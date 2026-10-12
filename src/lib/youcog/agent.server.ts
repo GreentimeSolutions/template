@@ -127,20 +127,27 @@ async function callModel(apiKey: string, model: string, mission: string): Promis
 
 async function tryGrok(mission: string): Promise<MissionResult | null> {
   const apiKey = process.env.XAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) {
+    console.warn("[youcog] XAI_API_KEY is not set; using keyless web research fallback.");
+    return null;
+  }
   try {
     let response = await callModel(apiKey, PRIMARY_MODEL, mission);
     if (!response.ok && (response.status === 400 || response.status === 404)) {
       response = await callModel(apiKey, FALLBACK_MODEL, mission);
     }
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.warn(`[youcog] xAI API returned ${response.status}; using fallback.`);
+      return null;
+    }
     const payload = asRecord(await response.json());
     if (!payload) return null;
     const brief = collectText(payload).slice(0, 6000);
     if (!brief) return null;
     const sources = await keepPublicSources(collectRawUrls(payload, brief));
     return { ok: true, brief, sources, stored: false };
-  } catch {
+  } catch (error) {
+    console.warn("[youcog] xAI API call failed; using fallback.", error);
     return null;
   }
 }

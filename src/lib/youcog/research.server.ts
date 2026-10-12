@@ -119,6 +119,28 @@ async function searchDuck(query: string): Promise<Hit[]> {
   return parseDuck(await res.text());
 }
 
+async function searchWikipedia(query: string): Promise<Hit[]> {
+  const api = new URL("https://en.wikipedia.org/w/api.php");
+  api.search = new URLSearchParams({
+    action: "query",
+    list: "search",
+    srsearch: terms(query).join(" ") || query,
+    srlimit: String(PAGE_CAP),
+    format: "json",
+  }).toString();
+  const res = await fetch(api, {
+    headers: { Accept: "application/json", "User-Agent": "Youcognito/1.0 (research fallback)" },
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) return [];
+  const json = (await res.json()) as { query?: { search?: Array<{ title: string; snippet: string }> } };
+  return (json.query?.search ?? []).map((row) => ({
+    url: `https://en.wikipedia.org/wiki/${encodeURIComponent(row.title.replace(/ /g, "_"))}`,
+    title: row.title,
+    snippet: clean(row.snippet),
+  }));
+}
+
 function blockedPage(text: string): boolean {
   const sample = text.replace(/\s+/g, " ").trim().slice(0, 280);
   return /one moment|enable javascript|are you a robot|captcha|access denied|just a moment|verify you are human/i.test(
@@ -198,6 +220,13 @@ export async function researchMission(mission: string): Promise<MissionResult> {
     hits = await searchDuck(mission);
   } catch {
     hits = [];
+  }
+  if (hits.length === 0) {
+    try {
+      hits = await searchWikipedia(mission);
+    } catch {
+      hits = [];
+    }
   }
   if (hits.length === 0) {
     throw new Error("Youcog could not reach the web just now. You can still open a sealed tab by address.");

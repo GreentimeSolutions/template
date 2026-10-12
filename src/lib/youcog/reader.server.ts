@@ -149,6 +149,16 @@ export function htmlToReader(html: string): { title: string; text: string } {
   return { title: title || "Untitled page", text };
 }
 
+async function explorerFallback(url: string): Promise<PageRead | null> {
+  try {
+    const { readExplorerPage } = await import("./chain.server");
+    const page = await readExplorerPage(url);
+    return page ? { ok: true, url, title: page.title, text: page.text } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function readPublicPage(raw: string): Promise<PageRead> {
   let current = await assertPublicUrl(raw);
   for (let hop = 0; hop < HOP_LIMIT; hop += 1) {
@@ -168,8 +178,12 @@ export async function readPublicPage(raw: string): Promise<PageRead> {
       current = await assertPublicUrl(new URL(location, current).toString());
       continue;
     }
-    if (res.status === 401 || res.status === 403 || res.status === 429) {
-      throw new Error("This site refused a cookieless read.");
+    if (res.status === 401 || res.status === 403 || res.status === 429 || res.status === 503) {
+      const fallback = await explorerFallback(current);
+      if (fallback) return fallback;
+      throw new Error(
+        `${new URL(current).hostname} blocks automated readers (bot protection), so it can't be opened in a sealed tab. Open it in your own browser instead.`,
+      );
     }
     if (!res.ok) throw new Error("The page could not be read.");
     const contentType = res.headers.get("content-type") ?? "";
@@ -178,6 +192,11 @@ export async function readPublicPage(raw: string): Promise<PageRead> {
     }
     const html = await readCapped(res);
     const reader = htmlToReader(html);
+    if (/just a moment|attention required|verify you are human/i.test(reader.title)) {
+      const fallback = await explorerFallback(current);
+      if (fallback) return fallback;
+      throw new Error("This site showed a bot check instead of the page. Open it in your own browser instead.");
+    }
     if (!reader.text) throw new Error("The page had no readable text.");
     return { ok: true, url: current, title: reader.title, text: reader.text };
   }
