@@ -18,6 +18,7 @@ import { Route as ApiHolderRouteImport } from './routes/api/holder'
 import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
 import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
+import { Route as ApiRcstClaimRouteImport } from './routes/api/rcst-claim'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
@@ -68,6 +69,11 @@ const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
   path: '/api/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRcstClaimRoute = ApiRcstClaimRouteImport.update({
+  id: '/api/rcst-claim',
+  path: '/api/rcst-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStatsRoute = ApiStatsRouteImport.update({
   id: '/api/stats',
   path: '/api/stats',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
     | '/api/holder-nonce'
     | '/api/holder-verify'
     | '/api/leaderboard'
+    | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/api/holder-nonce'
     | '/api/holder-verify'
     | '/api/leaderboard'
+    | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/api/holder-nonce'
     | '/api/holder-verify'
     | '/api/leaderboard'
+    | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -182,6 +194,7 @@ export interface RootRouteChildren {
   ApiHolderNonceRoute: typeof ApiHolderNonceRoute
   ApiHolderVerifyRoute: typeof ApiHolderVerifyRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
+  ApiRcstClaimRoute: typeof ApiRcstClaimRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rcst-claim': {
+      id: '/api/rcst-claim'
+      path: '/api/rcst-claim'
+      fullPath: '/api/rcst-claim'
+      preLoaderRoute: typeof ApiRcstClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stats': {
       id: '/api/stats'
       path: '/api/stats'
@@ -286,6 +306,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHolderNonceRoute: ApiHolderNonceRoute,
   ApiHolderVerifyRoute: ApiHolderVerifyRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
+  ApiRcstClaimRoute: ApiRcstClaimRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,

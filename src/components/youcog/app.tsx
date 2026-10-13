@@ -6,6 +6,7 @@ import { Faucet } from "@/components/youcog/faucet";
 import { Donate } from "@/components/youcog/donate";
 import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
+import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
@@ -130,6 +131,7 @@ function Welcome() {
       </ul>
       <div className="hidden flex-col gap-4 lg:flex">
         <Faucet />
+        <RcstClaim />
         <Leaderboard />
         <Donate />
       </div>
@@ -608,6 +610,7 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
+          <RcstClaim />
           <DeepMission onOpenUrl={openUrl} />
           <Leaderboard />
           <Donate />

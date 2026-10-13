@@ -92,7 +92,7 @@ function hashIp(ip: string): string {
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex");
 }
 
-function clients() {
+export function clients() {
   const raw = process.env.FAUCET_PRIVATE_KEY?.trim();
   if (!raw) return null;
   const key = (raw.startsWith("0x") ? raw : `0x${raw}`) as `0x${string}`;
@@ -418,6 +418,7 @@ export async function stats() {
     const r = byDay.get(d);
     chart.push({ day: d, claims: r ? Number(r.claims) : 0, tokens: r ? Number(r.tokens) : 0 });
   }
+  const rcst = await import("@/lib/youcog/rcst.server").then((m) => m.rcstStats()).catch(() => ({ claims: 0, distributed: 0, inRecastChannel: 0 }));
   return {
     updatedAt: new Date().toISOString(),
     claims: {
@@ -432,7 +433,8 @@ export async function stats() {
     streaks: { active, longest },
     tips: { count: Number(tp.n), eth: Number(tp.eth), usdc: Number(tp.usdc) },
     perks: { holders: Number(hp?.n ?? 0) },
-    builderCode: { code: "bc_q72p8qc9", since: BUILDER_CODE_SINCE, attributedTxs: Number(t.attributed) + Number(tp.attributed) },
+    rcst,
+    builderCode: { code: "bc_q72p8qc9", since: BUILDER_CODE_SINCE, attributedTxs: Number(t.attributed) + Number(tp.attributed) + rcst.claims },
     faucet: { address: getAddress(wallet), ...balances },
     token: TOKEN,
     daily: chart,
