@@ -320,6 +320,10 @@ export async function leaderboard() {
       array_agg(distinct to_char(day, 'YYYY-MM-DD')) as days
     from faucet_claims where status = 'sent'
     group by 1 order by sum(amount) desc limit 25`;
+  const holderRows = await sql<{ address: string; fid: string | null }>`
+    select address, fid::text as fid from holders where is_holder and verified_at > now() - interval '7 days'`.catch(() => []);
+  const holderAddrs = new Set(holderRows.map((h) => h.address.toLowerCase()));
+  const holderFids = new Set(holderRows.filter((h) => h.fid).map((h) => Number(h.fid)));
   const claimers = await Promise.all(
     rows.map(async (r) => {
       const fid = r.fid ? Number(r.fid) : null;
@@ -334,6 +338,7 @@ export async function leaderboard() {
         claims: Number(r.claims),
         longestStreak: longest,
         currentStreak: current,
+        holder: (fid != null && holderFids.has(fid)) || holderAddrs.has(String(r.address).toLowerCase()),
       };
     }),
   );
@@ -388,6 +393,9 @@ export async function stats() {
       count(*) filter (where created_at >= ${BUILDER_CODE_SINCE}::timestamptz)::text as attributed
     from tips`;
 
+  const [hp] = await sql<{ n: string }>`
+    select count(distinct coalesce('fid:' || fid::text, address))::text as n from holders
+    where is_holder and verified_at > now() - interval '7 days'`.catch(() => [{ n: "0" }]);
   const transport = http(process.env.BASE_RPC_URL?.trim() || "https://mainnet.base.org");
   const pub = createPublicClient({ chain: base, transport });
   const c = clients();
@@ -423,6 +431,7 @@ export async function stats() {
     },
     streaks: { active, longest },
     tips: { count: Number(tp.n), eth: Number(tp.eth), usdc: Number(tp.usdc) },
+    perks: { holders: Number(hp?.n ?? 0) },
     builderCode: { code: "bc_q72p8qc9", since: BUILDER_CODE_SINCE, attributedTxs: Number(t.attributed) + Number(tp.attributed) },
     faucet: { address: getAddress(wallet), ...balances },
     token: TOKEN,

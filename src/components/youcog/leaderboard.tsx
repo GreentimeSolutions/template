@@ -4,7 +4,7 @@ import { shareToFarcaster, streakText } from "@/lib/youcog/share";
 
 type Claimer = {
   fid: number | null; username: string | null; pfp: string | null; address: string;
-  total: number; claims: number; longestStreak: number; currentStreak: number;
+  total: number; claims: number; longestStreak: number; currentStreak: number; holder?: boolean;
 };
 type Tipper = { fid: number | null; username: string | null; pfp: string | null; address: string; eth: number; usdc: number; tips: number };
 
@@ -63,7 +63,10 @@ export function Leaderboard() {
               <li key={`${c.fid ?? c.address}`} className="flex items-center gap-2 text-sm">
                 <span className="w-5 text-right text-mist">{i + 1}</span>
                 <Avatar src={c.pfp} />
-                <span className="min-w-0 flex-1 truncate text-ink">{label(c)}</span>
+                <span className="min-w-0 flex-1 truncate text-ink">
+                  {label(c)}
+                  {c.holder ? <span className="ml-1 rounded-seal border border-accent px-1 text-[10px] text-ink">Holder</span> : null}
+                </span>
                 <span className="shrink-0 text-xs text-mist" title="current / longest streak">
                   🔥{c.currentStreak} · best {c.longestStreak}
                 </span>

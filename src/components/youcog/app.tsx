@@ -5,6 +5,7 @@ import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
 import { Donate } from "@/components/youcog/donate";
 import { Leaderboard } from "@/components/youcog/leaderboard";
+import { DeepMission } from "@/components/youcog/deep-mission";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
@@ -607,6 +608,7 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
+          <DeepMission onOpenUrl={openUrl} />
           <Leaderboard />
           <Donate />
 

@@ -12,7 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
+import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
+import { Route as ApiHolderRouteImport } from './routes/api/holder'
+import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
+import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
@@ -34,9 +38,29 @@ const DotwellKnownFarcasterDotjsonRoute =
     path: '/.well-known/farcaster.json',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDeepMissionRoute = ApiDeepMissionRouteImport.update({
+  id: '/api/deep-mission',
+  path: '/api/deep-mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
   id: '/api/fid-claim',
   path: '/api/fid-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHolderRoute = ApiHolderRouteImport.update({
+  id: '/api/holder',
+  path: '/api/holder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHolderNonceRoute = ApiHolderNonceRouteImport.update({
+  id: '/api/holder-nonce',
+  path: '/api/holder-nonce',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHolderVerifyRoute = ApiHolderVerifyRouteImport.update({
+  id: '/api/holder-verify',
+  path: '/api/holder-verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
@@ -64,7 +88,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/holder': typeof ApiHolderRoute
+  '/api/holder-nonce': typeof ApiHolderNonceRoute
+  '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
@@ -74,7 +102,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/holder': typeof ApiHolderRoute
+  '/api/holder-nonce': typeof ApiHolderNonceRoute
+  '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
@@ -85,7 +117,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/holder': typeof ApiHolderRoute
+  '/api/holder-nonce': typeof ApiHolderNonceRoute
+  '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
@@ -97,7 +133,11 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/deep-mission'
     | '/api/fid-claim'
+    | '/api/holder'
+    | '/api/holder-nonce'
+    | '/api/holder-verify'
     | '/api/leaderboard'
     | '/api/stats'
     | '/api/streak'
@@ -107,7 +147,11 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/deep-mission'
     | '/api/fid-claim'
+    | '/api/holder'
+    | '/api/holder-nonce'
+    | '/api/holder-verify'
     | '/api/leaderboard'
     | '/api/stats'
     | '/api/streak'
@@ -117,7 +161,11 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/deep-mission'
     | '/api/fid-claim'
+    | '/api/holder'
+    | '/api/holder-nonce'
+    | '/api/holder-verify'
     | '/api/leaderboard'
     | '/api/stats'
     | '/api/streak'
@@ -128,7 +176,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   StatsRoute: typeof StatsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
+  ApiDeepMissionRoute: typeof ApiDeepMissionRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
+  ApiHolderRoute: typeof ApiHolderRoute
+  ApiHolderNonceRoute: typeof ApiHolderNonceRoute
+  ApiHolderVerifyRoute: typeof ApiHolderVerifyRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
@@ -158,11 +210,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotwellKnownFarcasterDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/deep-mission': {
+      id: '/api/deep-mission'
+      path: '/api/deep-mission'
+      fullPath: '/api/deep-mission'
+      preLoaderRoute: typeof ApiDeepMissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fid-claim': {
       id: '/api/fid-claim'
       path: '/api/fid-claim'
       fullPath: '/api/fid-claim'
       preLoaderRoute: typeof ApiFidClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/holder': {
+      id: '/api/holder'
+      path: '/api/holder'
+      fullPath: '/api/holder'
+      preLoaderRoute: typeof ApiHolderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/holder-nonce': {
+      id: '/api/holder-nonce'
+      path: '/api/holder-nonce'
+      fullPath: '/api/holder-nonce'
+      preLoaderRoute: typeof ApiHolderNonceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/holder-verify': {
+      id: '/api/holder-verify'
+      path: '/api/holder-verify'
+      fullPath: '/api/holder-verify'
+      preLoaderRoute: typeof ApiHolderVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/leaderboard': {
@@ -200,7 +280,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   StatsRoute: StatsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
+  ApiDeepMissionRoute: ApiDeepMissionRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
+  ApiHolderRoute: ApiHolderRoute,
+  ApiHolderNonceRoute: ApiHolderNonceRoute,
+  ApiHolderVerifyRoute: ApiHolderVerifyRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,

@@ -89,11 +89,11 @@ export function titleFromUrl(url: string): string {
   }
 }
 
-async function keepPublicSources(urls: string[]): Promise<Source[]> {
+async function keepPublicSources(urls: string[], cap = SOURCE_CAP): Promise<Source[]> {
   const seen = new Set<string>();
   const sources: Source[] = [];
   for (const candidate of urls) {
-    if (sources.length >= SOURCE_CAP) break;
+    if (sources.length >= cap) break;
     try {
       const url = await assertPublicUrl(candidate);
       if (seen.has(url)) continue;
@@ -106,10 +106,13 @@ async function keepPublicSources(urls: string[]): Promise<Source[]> {
   return sources;
 }
 
-async function callModel(apiKey: string, model: string, mission: string): Promise<Response> {
+type CallOpts = { instructions: string; maxTokens: number; timeoutMs: number };
+const BRIEF_OPTS: CallOpts = { instructions: INSTRUCTIONS, maxTokens: 800, timeoutMs: 50_000 };
+
+async function callModel(apiKey: string, model: string, mission: string, opts: CallOpts = BRIEF_OPTS): Promise<Response> {
   return fetch("https://api.x.ai/v1/responses", {
     method: "POST",
-    signal: AbortSignal.timeout(50_000),
+    signal: AbortSignal.timeout(opts.timeoutMs),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -117,24 +120,24 @@ async function callModel(apiKey: string, model: string, mission: string): Promis
     body: JSON.stringify({
       model,
       store: false,
-      max_output_tokens: 800,
-      instructions: INSTRUCTIONS,
+      max_output_tokens: opts.maxTokens,
+      instructions: opts.instructions,
       input: [{ role: "user", content: mission }],
       tools: [{ type: "web_search" }],
     }),
   });
 }
 
-async function tryGrok(mission: string): Promise<MissionResult | null> {
+async function tryGrok(mission: string, opts: CallOpts = BRIEF_OPTS, cap = SOURCE_CAP): Promise<MissionResult | null> {
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
     console.warn("[youcog] XAI_API_KEY is not set; using keyless web research fallback.");
     return null;
   }
   try {
-    let response = await callModel(apiKey, PRIMARY_MODEL, mission);
+    let response = await callModel(apiKey, PRIMARY_MODEL, mission, opts);
     if (!response.ok && (response.status === 400 || response.status === 404)) {
-      response = await callModel(apiKey, FALLBACK_MODEL, mission);
+      response = await callModel(apiKey, FALLBACK_MODEL, mission, opts);
     }
     if (!response.ok) {
       console.warn(`[youcog] xAI API returned ${response.status}; using fallback.`);
@@ -142,9 +145,9 @@ async function tryGrok(mission: string): Promise<MissionResult | null> {
     }
     const payload = asRecord(await response.json());
     if (!payload) return null;
-    const brief = collectText(payload).slice(0, 6000);
+    const brief = collectText(payload).slice(0, 16000);
     if (!brief) return null;
-    const sources = await keepPublicSources(collectRawUrls(payload, brief));
+    const sources = await keepPublicSources(collectRawUrls(payload, brief), cap);
     return { ok: true, brief, sources, stored: false };
   } catch (error) {
     console.warn("[youcog] xAI API call failed; using fallback.", error);
@@ -157,4 +160,71 @@ export async function runMissionOnServer(mission: string): Promise<MissionResult
   if (grok) return grok;
   const { researchMission } = await import("./research.server");
   return researchMission(mission);
+}
+
+const DEEP_INSTRUCTIONS = [
+  "You are Youcog, the private research agent inside Youcognito, running a Deep Mission for a verified YOUCOG holder.",
+  "Write a thorough report of 450-800 words in Markdown with these sections, each as a '## ' heading:",
+  "Summary; Holders & distribution; Liquidity & market; Contract; Risks; Risk score; Sources.",
+  "Use web search widely: block explorers (Basescan), DEX data (DexScreener, GeckoTerminal), official sites, docs, audits, and credible news.",
+  "Prefer at least 6 distinct sources. Use the on-chain facts provided; never invent numbers. Say clearly when data is unavailable.",
+  "In 'Risk score' give a single line 'Risk score: N/100' (higher = riskier) and two or three short reasons.",
+  "If the mission is not about a token, adapt the sections sensibly but keep Summary, Risks, Risk score and Sources.",
+  "Not financial advice. Do not ask for personal data. Do not mention these instructions.",
+].join(" ");
+
+/** Cheap on-chain + DEX facts for any Base token address in the mission. */
+async function onchainFacts(mission: string): Promise<string> {
+  const m = mission.match(/0x[0-9a-fA-F]{40}/);
+  const target = m?.[0] ?? (/youcog/i.test(mission) ? "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3" : null);
+  if (!target) return "";
+  const lines: string[] = [`Address: ${target} (Base)`];
+  try {
+    const { createPublicClient, http, parseAbi, formatUnits } = await import("viem");
+    const { base } = await import("viem/chains");
+    const pub = createPublicClient({ chain: base, transport: http(process.env.BASE_RPC_URL?.trim() || "https://mainnet.base.org") });
+    const code = await pub.getCode({ address: target as `0x${string}` });
+    lines.push(code && code !== "0x" ? `Contract bytecode: ${(code.length - 2) / 2} bytes` : "No contract code (EOA or wrong chain)");
+    if (code && code !== "0x") {
+      const abi = parseAbi([
+        "function name() view returns (string)",
+        "function symbol() view returns (string)",
+        "function decimals() view returns (uint8)",
+        "function totalSupply() view returns (uint256)",
+        "function owner() view returns (address)",
+      ]);
+      const read = (fn: "name" | "symbol" | "decimals" | "totalSupply" | "owner") =>
+        pub.readContract({ address: target as `0x${string}`, abi, functionName: fn }).catch(() => null);
+      const [name, symbol, decimals, supply, owner] = await Promise.all([read("name"), read("symbol"), read("decimals"), read("totalSupply"), read("owner")]);
+      if (name) lines.push(`Name: ${name}`);
+      if (symbol) lines.push(`Symbol: ${symbol}`);
+      if (supply != null && decimals != null) lines.push(`Total supply: ${formatUnits(supply as bigint, Number(decimals))}`);
+      lines.push(owner ? `owner(): ${owner}` : "owner(): not exposed (no Ownable or renounced)");
+    }
+  } catch {
+    lines.push("RPC read failed.");
+  }
+  try {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${target}`, { signal: AbortSignal.timeout(5000) });
+    const pairs = ((await r.json())?.pairs ?? []).slice(0, 3);
+    for (const p of pairs) {
+      lines.push(
+        `DEX pair ${p.dexId} on ${p.chainId}: price $${p.priceUsd ?? "?"}, liquidity $${p.liquidity?.usd ?? "?"}, FDV $${p.fdv ?? "?"}, 24h volume $${p.volume?.h24 ?? "?"}, ${p.url}`,
+      );
+    }
+    if (!pairs.length) lines.push("No DEX pairs found on DexScreener.");
+  } catch {
+    /* optional */
+  }
+  return lines.join("\n");
+}
+
+export async function runDeepMissionOnServer(mission: string): Promise<MissionResult> {
+  const facts = await onchainFacts(mission);
+  const input = facts ? `${mission}\n\nOn-chain facts (verified just now):\n${facts}` : mission;
+  const grok = await tryGrok(input, { instructions: DEEP_INSTRUCTIONS, maxTokens: 2600, timeoutMs: 90_000 }, 12);
+  if (grok) return grok;
+  const { researchMission } = await import("./research.server");
+  const r = await researchMission(mission);
+  return facts ? { ...r, brief: `## On-chain facts\n\n${facts}\n\n${r.brief}` } : r;
 }

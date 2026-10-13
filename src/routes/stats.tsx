@@ -8,6 +8,7 @@ type Stats = {
   streaks: { active: number; longest: number };
   tips: { count: number; eth: number; usdc: number };
   builderCode: { code: string; attributedTxs: number };
+  perks?: { holders: number };
   faucet: { address: string; eth?: string; youcog?: string };
   token: string;
   daily: { day: string; claims: number; tokens: number }[];
@@ -81,6 +82,7 @@ function StatsPage() {
             <Card label="YOUCOG given" value={fmt(s.claims.distributed)} />
             <Card label="Active streaks" value={fmt(s.streaks.active)} sub={`Longest ${s.streaks.longest} day${s.streaks.longest === 1 ? "" : "s"}`} />
             <Card label="Tips" value={fmt(s.tips.count)} sub={`${fmt(s.tips.eth, 6)} ETH · ${fmt(s.tips.usdc, 2)} USDC`} />
+            <Card label="Verified holders" value={fmt(s.perks?.holders ?? 0)} sub="Deep Mission unlocked" />
             <Card label="Builder Code txs" value={fmt(s.builderCode.attributedTxs)} sub={s.builderCode.code} />
           </div>
 
