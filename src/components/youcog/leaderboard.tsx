@@ -97,6 +97,9 @@ export function Leaderboard() {
       >
         Share to Farcaster
       </button>
+      <a href="/stats" className="mt-3 block text-center text-xs text-mist underline underline-offset-4">
+        View live faucet stats →
+      </a>
     </section>
   );
 }

@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
+import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownFarcasterDotjsonRoute =
@@ -37,6 +44,11 @@ const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
   path: '/api/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStatsRoute = ApiStatsRouteImport.update({
+  id: '/api/stats',
+  path: '/api/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStreakRoute = ApiStreakRouteImport.update({
   id: '/api/streak',
   path: '/api/streak',
@@ -50,26 +62,32 @@ const ApiTipRoute = ApiTipRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
 }
@@ -77,34 +95,42 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/stats'
     | '/.well-known/farcaster.json'
     | '/api/fid-claim'
     | '/api/leaderboard'
+    | '/api/stats'
     | '/api/streak'
     | '/api/tip'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/stats'
     | '/.well-known/farcaster.json'
     | '/api/fid-claim'
     | '/api/leaderboard'
+    | '/api/stats'
     | '/api/streak'
     | '/api/tip'
   id:
     | '__root__'
     | '/'
+    | '/stats'
     | '/.well-known/farcaster.json'
     | '/api/fid-claim'
     | '/api/leaderboard'
+    | '/api/stats'
     | '/api/streak'
     | '/api/tip'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  StatsRoute: typeof StatsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
+  ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
 }
@@ -116,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/farcaster.json': {
@@ -139,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stats': {
+      id: '/api/stats'
+      path: '/api/stats'
+      fullPath: '/api/stats'
+      preLoaderRoute: typeof ApiStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/streak': {
       id: '/api/streak'
       path: '/api/streak'
@@ -158,9 +198,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  StatsRoute: StatsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
+  ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,
 }

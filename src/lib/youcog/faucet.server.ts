@@ -351,3 +351,81 @@ export async function leaderboard() {
   );
   return { claimers, tippers };
 }
+
+/** Builder Code attribution went live with commit 2ea3e1a (2026-10-13 02:27 UTC). */
+const BUILDER_CODE_SINCE = "2026-10-13T02:27:30Z";
+
+export async function stats() {
+  const sql = await getSql();
+  const [t] = await sql<Record<string, string>>`
+    select count(*)::text as claims,
+      count(distinct address)::text as wallets,
+      count(distinct fid)::text as fids,
+      count(distinct coalesce('fid:' || fid::text, address))::text as claimers,
+      coalesce(sum(amount), 0)::text as distributed,
+      count(*) filter (where created_at > now() - interval '24 hours')::text as last24h,
+      count(*) filter (where created_at > now() - interval '7 days')::text as last7d,
+      count(*) filter (where created_at >= ${BUILDER_CODE_SINCE}::timestamptz)::text as attributed
+    from faucet_claims where status = 'sent'`;
+  const daily = await sql<{ day: string; claims: string; tokens: string }>`
+    select to_char(day, 'YYYY-MM-DD') as day, count(*)::text as claims, sum(amount)::text as tokens
+    from faucet_claims where status = 'sent' and day > current_date - 30
+    group by day order by day`;
+  const who = await sql<{ days: string[] }>`
+    select array_agg(distinct to_char(day, 'YYYY-MM-DD')) as days
+    from faucet_claims where status = 'sent' group by coalesce('fid:' || fid::text, address)`;
+  let active = 0;
+  let longest = 0;
+  for (const w of who) {
+    const r = bestRuns((w.days ?? []).map(String));
+    if (r.current > 0) active++;
+    longest = Math.max(longest, r.longest);
+  }
+  const [tp] = await sql<Record<string, string>>`
+    select count(*)::text as n,
+      coalesce(sum(amount) filter (where token = 'ETH'), 0)::text as eth,
+      coalesce(sum(amount) filter (where token = 'USDC'), 0)::text as usdc,
+      count(*) filter (where created_at >= ${BUILDER_CODE_SINCE}::timestamptz)::text as attributed
+    from tips`;
+
+  const transport = http(process.env.BASE_RPC_URL?.trim() || "https://mainnet.base.org");
+  const pub = createPublicClient({ chain: base, transport });
+  const c = clients();
+  const wallet = c?.account.address ?? "0x3067ab541253746AB353b842Fdc0970ffBDe13c7";
+  let balances: { eth: string; youcog: string } | null = null;
+  try {
+    const [eth, tok] = await Promise.all([
+      pub.getBalance({ address: wallet as `0x${string}` }),
+      pub.readContract({ address: TOKEN, abi: ERC20, functionName: "balanceOf", args: [wallet as `0x${string}`] }),
+    ]);
+    balances = { eth: formatEther(eth), youcog: formatEther(tok) };
+  } catch {
+    /* RPC down */
+  }
+  // Fill missing days with zero for the chart.
+  const byDay = new Map(daily.map((d) => [String(d.day), d]));
+  const chart = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = dayOffset(utcDay(), -i);
+    const r = byDay.get(d);
+    chart.push({ day: d, claims: r ? Number(r.claims) : 0, tokens: r ? Number(r.tokens) : 0 });
+  }
+  return {
+    updatedAt: new Date().toISOString(),
+    claims: {
+      total: Number(t.claims),
+      uniqueClaimers: Number(t.claimers),
+      uniqueWallets: Number(t.wallets),
+      uniqueFids: Number(t.fids),
+      distributed: Number(t.distributed),
+      last24h: Number(t.last24h),
+      last7d: Number(t.last7d),
+    },
+    streaks: { active, longest },
+    tips: { count: Number(tp.n), eth: Number(tp.eth), usdc: Number(tp.usdc) },
+    builderCode: { code: "bc_q72p8qc9", since: BUILDER_CODE_SINCE, attributedTxs: Number(t.attributed) + Number(tp.attributed) },
+    faucet: { address: getAddress(wallet), ...balances },
+    token: TOKEN,
+    daily: chart,
+  };
+}
