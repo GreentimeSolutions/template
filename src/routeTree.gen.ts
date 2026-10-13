@@ -10,33 +10,54 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
+import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownFarcasterDotjsonRoute =
+  DotwellKnownFarcasterDotjsonRouteImport.update({
+    id: '/.well-known/farcaster.json',
+    path: '/.well-known/farcaster.json',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
+  id: '/api/fid-claim',
+  path: '/api/fid-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/fid-claim': typeof ApiFidClaimRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/fid-claim': typeof ApiFidClaimRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/fid-claim': typeof ApiFidClaimRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
+  id: '__root__' | '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
+  ApiFidClaimRoute: typeof ApiFidClaimRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +69,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/farcaster.json': {
+      id: '/.well-known/farcaster.json'
+      path: '/.well-known/farcaster.json'
+      fullPath: '/.well-known/farcaster.json'
+      preLoaderRoute: typeof DotwellKnownFarcasterDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fid-claim': {
+      id: '/api/fid-claim'
+      path: '/api/fid-claim'
+      fullPath: '/api/fid-claim'
+      preLoaderRoute: typeof ApiFidClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
+  ApiFidClaimRoute: ApiFidClaimRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

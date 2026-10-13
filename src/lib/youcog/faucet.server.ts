@@ -59,6 +59,8 @@ export async function claimFromFaucet(input: {
   address: string;
   amount: number;
   ip: string;
+  /** Verified Farcaster FID (Quick Auth). When set, the per-FID limit replaces the per-IP limit. */
+  fid?: number;
 }): Promise<ClaimResult> {
   if (!(AMOUNTS as readonly number[]).includes(input.amount)) {
     return refuse("Pick 420, 1111, or 6969 YOUCOG.");
@@ -76,7 +78,8 @@ export async function claimFromFaucet(input: {
   if (address.toLowerCase() === c.account.address.toLowerCase()) {
     return refuse("The faucet can't send to itself.");
   }
-  if (!input.ip) return refuse("Couldn't verify your connection. Try again later.");
+  const fid = input.fid;
+  if (!fid && !input.ip) return refuse("Couldn't verify your connection. Try again later.");
 
   // Balance checks before reserving a slot.
   const amountWei = parseUnits(String(input.amount), 18);
@@ -93,16 +96,20 @@ export async function claimFromFaucet(input: {
 
   const sql = await getSql();
   const day = utcDay();
-  const ipHash = hashIp(input.ip);
+  // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
+  const ipHash = fid ? `fid:${fid}` : hashIp(input.ip);
 
-  const prior = await sql<{ address: string; ip_hash: string }>`
-    select address, ip_hash from faucet_claims
-    where day = ${day} and status <> 'failed' and (address = ${address} or ip_hash = ${ipHash}) limit 1`;
+  const prior = await sql<{ address: string; ip_hash: string; fid: string | null }>`
+    select address, ip_hash, fid from faucet_claims
+    where day = ${day} and status <> 'failed'
+      and (address = ${address} or ip_hash = ${ipHash} or (fid is not null and fid = ${fid ?? -1})) limit 1`;
   if (prior.length) {
     return refuse(
-      prior[0].address === address
-        ? "This address already claimed today. Come back after midnight UTC."
-        : "Someone on your connection already claimed today. One claim per person per day.",
+      fid && prior[0].fid != null && Number(prior[0].fid) === fid
+        ? "Your Farcaster account already claimed today. Come back after midnight UTC."
+        : prior[0].address === address
+          ? "This address already claimed today. Come back after midnight UTC."
+          : "Someone on your connection already claimed today. One claim per person per day.",
     );
   }
 
@@ -119,7 +126,8 @@ export async function claimFromFaucet(input: {
   let id: number;
   try {
     const rows = await sql<{ id: number }>`
-      insert into faucet_claims (day, address, ip_hash, amount) values (${day}, ${address}, ${ipHash}, ${input.amount})
+      insert into faucet_claims (day, address, ip_hash, amount, fid)
+      values (${day}, ${address}, ${ipHash}, ${input.amount}, ${fid ?? null})
       returning id`;
     id = rows[0].id;
   } catch {

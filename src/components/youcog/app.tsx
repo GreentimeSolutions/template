@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { readSealedPage, runMission } from "@/lib/youcog/youcog.functions";
 import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
+import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
 const YOUCOG_BASESCAN = "https://basescan.org/token/0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
@@ -344,6 +345,7 @@ function Reader({
 
 export function YoucogApp() {
   const [faucetOpen, setFaucetOpen] = useState(false);
+  const miniApp = useMiniApp();
   const booted = useSession((state) => state.booted);
   const startedAt = useSession((state) => state.startedAt);
   const now = useSession((state) => state.now);
@@ -570,7 +572,11 @@ export function YoucogApp() {
                   }
                 }}
               >
-                <span>Claim free YOUCOG (420 / 1,111 / 6,969 daily)</span>
+                <span>
+                  {miniApp.inMiniApp && miniApp.user
+                    ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`} (420 / 1,111 / 6,969 daily)`
+                    : "Claim free YOUCOG (420 / 1,111 / 6,969 daily)"}
+                </span>
                 <span aria-hidden className="text-accent">{faucetOpen ? "−" : "+"}</span>
               </button>
               {SUGGESTIONS.map((suggestion) => (
