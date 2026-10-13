@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { APP_DOMAIN } from "@/lib/youcog/miniapp";
+import { domainFromRequest } from "@/lib/youcog/miniapp";
 
 const bodySchema = z.object({
   address: z.string().trim().min(1).max(100),
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/fid-claim")({
           const { createClient } = await import("@farcaster/quick-auth");
           const payload = await createClient().verifyJwt({
             token,
-            domain: process.env.FARCASTER_DOMAIN?.trim() || APP_DOMAIN,
+            domain: process.env.FARCASTER_DOMAIN?.trim() || domainFromRequest(request),
           });
           fid = Number(payload.sub);
           if (!Number.isSafeInteger(fid) || fid <= 0) throw new Error("bad sub");

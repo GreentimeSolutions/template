@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { APP_DOMAIN } from "@/lib/youcog/miniapp";
+import { domainFromRequest } from "@/lib/youcog/miniapp";
 
 const json = (status: number, body: unknown) =>
   Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -10,7 +10,7 @@ export async function fidFromRequest(request: Request): Promise<number | undefin
   if (!token) return undefined;
   try {
     const { createClient } = await import("@farcaster/quick-auth");
-    const payload = await createClient().verifyJwt({ token, domain: process.env.FARCASTER_DOMAIN?.trim() || APP_DOMAIN });
+    const payload = await createClient().verifyJwt({ token, domain: process.env.FARCASTER_DOMAIN?.trim() || domainFromRequest(request) });
     const fid = Number(payload.sub);
     return Number.isSafeInteger(fid) && fid > 0 ? fid : undefined;
   } catch {
