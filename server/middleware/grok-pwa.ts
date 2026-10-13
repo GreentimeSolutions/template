@@ -25,6 +25,8 @@ import {
   renderWebManifest,
 } from "../../scripts/grok-pwa-shared.mjs";
 
+const OWN_SHARE_CARD = new Set(["/stats"]);
+
 interface GrokPwaEvent {
   url: URL;
   req: { method: string; headers: Headers };
@@ -97,6 +99,8 @@ export default async function grokPwaMiddleware(
   }
 
   if (!isDocumentPath(path)) return next();
+  // Pages that ship their own share card (OG/Twitter meta from the route head) skip the platform OG rewrite.
+  if (OWN_SHARE_CARD.has(path.replace(/\/$/, ""))) return next();
 
   const result = await next();
   if (
