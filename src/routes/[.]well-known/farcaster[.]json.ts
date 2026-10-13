@@ -17,6 +17,7 @@ export const Route = createFileRoute("/.well-known/farcaster.json")({
         Response.json(
           {
             accountAssociation: accountAssociation(),
+            baseBuilder: { ownerAddress: "0xa959D8EedeD6fB440cA584D1e87E581168bBF628" },
             miniapp: {
               version: "1",
               name: "Youcognito",

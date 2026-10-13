@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { readSealedPage, runMission } from "@/lib/youcog/youcog.functions";
 import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
+import { Donate } from "@/components/youcog/donate";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
@@ -125,8 +126,9 @@ function Welcome() {
           <p className="mt-2 text-sm leading-relaxed text-mist">Pages load through a proxy. Scripts never run here.</p>
         </li>
       </ul>
-      <div className="hidden lg:block">
+      <div className="hidden flex-col gap-4 lg:flex">
         <Faucet />
+        <Donate />
       </div>
     </div>
   );
@@ -603,6 +605,7 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
+          <Donate />
 
           <form
             className="flex flex-col gap-3 rounded-shell border border-line bg-panel p-4"
