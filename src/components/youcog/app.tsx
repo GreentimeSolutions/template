@@ -5,10 +5,18 @@ import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
-const SUGGESTIONS = [
-  "What changed in browser tracking protections this year?",
-  "Passkeys versus passwords, in plain language",
-  "How a privacy proxy differs from a private window",
+const YOUCOG_BASESCAN = "https://basescan.org/token/0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
+
+type Suggestion = { label: string; mission?: string; url?: string };
+
+const SUGGESTIONS: Suggestion[] = [
+  { label: "What is the YOUCOG token on Base?", mission: "What is the YOUCOG token on Base?" },
+  { label: "Open Basescan for YOUCOG in a sealed tab", url: YOUCOG_BASESCAN },
+  {
+    label: "Research a token privately",
+    mission: "Research the YOUCOG token on Base: contract, supply, holders and recent activity",
+  },
+  { label: "Summarize today's Base news", mission: "Summarize today's news about the Base blockchain" },
 ];
 
 function messageOf(error: unknown): string {
@@ -116,7 +124,9 @@ function Welcome() {
           <p className="mt-2 text-sm leading-relaxed text-mist">Pages load through a proxy. Scripts never run here.</p>
         </li>
       </ul>
-      <Faucet />
+      <div className="hidden lg:block">
+        <Faucet />
+      </div>
     </div>
   );
 }
@@ -174,6 +184,7 @@ function AskDock({
   addressError,
   trace,
   onMission,
+  onOpenUrl,
   onAddress,
   onAsk,
   onOpen,
@@ -185,6 +196,7 @@ function AskDock({
   addressError: string | null;
   trace: { id: string; text: string }[];
   onMission: (value: string) => void;
+  onOpenUrl: (url: string) => void;
   onAddress: (value: string) => void;
   onAsk: (event: FormEvent<HTMLFormElement>) => void;
   onOpen: (event: FormEvent<HTMLFormElement>) => void;
@@ -218,12 +230,12 @@ function AskDock({
           <div className="flex flex-col gap-2">
             {SUGGESTIONS.map((suggestion) => (
               <button
-                key={suggestion}
+                key={suggestion.label}
                 type="button"
                 className="press rounded-seal border border-line px-3 py-3 text-left text-sm leading-snug text-mist"
-                onClick={() => onMission(suggestion)}
+                onClick={() => (suggestion.url ? onOpenUrl(suggestion.url) : onMission(suggestion.mission ?? suggestion.label))}
               >
-                {suggestion}
+                {suggestion.label}
               </button>
             ))}
           </div>
@@ -331,6 +343,7 @@ function Reader({
 }
 
 export function YoucogApp() {
+  const [faucetOpen, setFaucetOpen] = useState(false);
   const booted = useSession((state) => state.booted);
   const startedAt = useSession((state) => state.startedAt);
   const now = useSession((state) => state.now);
@@ -437,6 +450,7 @@ export function YoucogApp() {
           addressError={addressError}
           trace={trace}
           onMission={setMission}
+          onOpenUrl={openUrl}
           onAddress={(value) => {
             setAddress(value);
             if (addressError) setAddressError(null);
@@ -541,18 +555,48 @@ export function YoucogApp() {
             </button>
             {runError ? <p className="text-sm text-danger">{runError}</p> : null}
             <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                aria-expanded={faucetOpen}
+                aria-controls="sidebar-faucet"
+                className="press flex items-center justify-between gap-2 rounded-seal border border-accent bg-accent/10 px-3 py-3 text-left text-sm font-medium leading-snug text-ink"
+                onClick={() => {
+                  const next = !faucetOpen;
+                  setFaucetOpen(next);
+                  if (next) {
+                    window.setTimeout(() => {
+                      document.getElementById("sidebar-faucet")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
+                  }
+                }}
+              >
+                <span>Claim free YOUCOG (420 / 1,111 / 6,969 daily)</span>
+                <span aria-hidden className="text-accent">{faucetOpen ? "−" : "+"}</span>
+              </button>
               {SUGGESTIONS.map((suggestion) => (
                 <button
-                  key={suggestion}
+                  key={suggestion.label}
                   type="button"
                   className="press rounded-seal border border-line px-3 py-3 text-left text-sm leading-snug text-mist"
-                  onClick={() => setMission(suggestion)}
+                  onClick={() => {
+                    if (suggestion.url) {
+                      openUrl(suggestion.url);
+                      return;
+                    }
+                    setMission(suggestion.mission ?? suggestion.label);
+                    document.getElementById("mission")?.focus();
+                  }}
                 >
-                  {suggestion}
+                  {suggestion.label}
                 </button>
               ))}
             </div>
           </form>
+          {faucetOpen ? (
+            <div id="sidebar-faucet" className="scroll-mt-4">
+              <Faucet />
+            </div>
+          ) : null}
 
           <form
             className="flex flex-col gap-3 rounded-shell border border-line bg-panel p-4"
