@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
+import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
+import { Route as ApiStreakRouteImport } from './routes/api/streak'
+import { Route as ApiTipRouteImport } from './routes/api/tip'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,35 +32,81 @@ const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
   path: '/api/fid-claim',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
+  id: '/api/leaderboard',
+  path: '/api/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStreakRoute = ApiStreakRouteImport.update({
+  id: '/api/streak',
+  path: '/api/streak',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTipRoute = ApiTipRouteImport.update({
+  id: '/api/tip',
+  path: '/api/tip',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/streak': typeof ApiStreakRoute
+  '/api/tip': typeof ApiTipRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/streak': typeof ApiStreakRoute
+  '/api/tip': typeof ApiTipRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/streak': typeof ApiStreakRoute
+  '/api/tip': typeof ApiTipRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
+  fullPaths:
+    | '/'
+    | '/.well-known/farcaster.json'
+    | '/api/fid-claim'
+    | '/api/leaderboard'
+    | '/api/streak'
+    | '/api/tip'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
-  id: '__root__' | '/' | '/.well-known/farcaster.json' | '/api/fid-claim'
+  to:
+    | '/'
+    | '/.well-known/farcaster.json'
+    | '/api/fid-claim'
+    | '/api/leaderboard'
+    | '/api/streak'
+    | '/api/tip'
+  id:
+    | '__root__'
+    | '/'
+    | '/.well-known/farcaster.json'
+    | '/api/fid-claim'
+    | '/api/leaderboard'
+    | '/api/streak'
+    | '/api/tip'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
+  ApiLeaderboardRoute: typeof ApiLeaderboardRoute
+  ApiStreakRoute: typeof ApiStreakRoute
+  ApiTipRoute: typeof ApiTipRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -83,6 +132,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFidClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/leaderboard': {
+      id: '/api/leaderboard'
+      path: '/api/leaderboard'
+      fullPath: '/api/leaderboard'
+      preLoaderRoute: typeof ApiLeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/streak': {
+      id: '/api/streak'
+      path: '/api/streak'
+      fullPath: '/api/streak'
+      preLoaderRoute: typeof ApiStreakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/tip': {
+      id: '/api/tip'
+      path: '/api/tip'
+      fullPath: '/api/tip'
+      preLoaderRoute: typeof ApiTipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -90,6 +160,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
+  ApiLeaderboardRoute: ApiLeaderboardRoute,
+  ApiStreakRoute: ApiStreakRoute,
+  ApiTipRoute: ApiTipRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

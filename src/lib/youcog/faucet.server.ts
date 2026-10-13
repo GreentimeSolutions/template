@@ -24,7 +24,7 @@ const ERC20 = parseAbi([
 ]);
 
 export type ClaimResult =
-  | { ok: true; amount: number; txHash: string; url: string }
+  | { ok: true; amount: number; baseAmount: number; streak: number; multiplier: number; txHash: string; url: string }
   | { ok: false; reason: string };
 
 const refuse = (reason: string): ClaimResult => ({ ok: false, reason });
@@ -32,6 +32,55 @@ const refuse = (reason: string): ClaimResult => ({ ok: false, reason });
 function dailyCap(): number {
   const n = Number(process.env.FAUCET_DAILY_CAP);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 100;
+}
+
+function dailyTokenBudget(): number {
+  const n = Number(process.env.FAUCET_DAILY_TOKEN_BUDGET);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 250000;
+}
+
+/** Streak bonus: day 3+ = 1.25x, day 7+ = 1.5x (capped at 1.5x). */
+export function streakMultiplier(streak: number): number {
+  return streak >= 7 ? 1.5 : streak >= 3 ? 1.25 : 1;
+}
+
+function dayOffset(day: string, delta: number): string {
+  const d = new Date(`${day}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Consecutive sent-claim days ending at `endDay` (inclusive), from a list of distinct days. */
+function runEndingAt(days: Set<string>, endDay: string): number {
+  let n = 0;
+  let d = endDay;
+  while (days.has(d)) {
+    n++;
+    d = dayOffset(d, -1);
+  }
+  return n;
+}
+
+type Sql = Awaited<ReturnType<typeof getSql>>;
+
+async function claimDays(sql: Sql, who: { fid?: number; address?: string }): Promise<Set<string>> {
+  const rows = who.fid
+    ? await sql<{ day: string }>`select distinct to_char(day, 'YYYY-MM-DD') as day from faucet_claims where status = 'sent' and fid = ${who.fid} order by 1 desc limit 400`
+    : await sql<{ day: string }>`select distinct to_char(day, 'YYYY-MM-DD') as day from faucet_claims where status = 'sent' and address = ${who.address ?? ""} order by 1 desc limit 400`;
+  return new Set(rows.map((r) => String(r.day)));
+}
+
+/** Current streak (alive if the last claim was today or yesterday) and what the next claim would be. */
+export async function streakInfo(who: { fid?: number; address?: string }) {
+  if (!who.fid && !who.address) return { streak: 0, claimedToday: false, nextStreak: 1, nextMultiplier: 1 };
+  const sql = await getSql();
+  const address = who.address && isAddress(who.address, { strict: false }) ? getAddress(who.address) : undefined;
+  const days = await claimDays(sql, { fid: who.fid, address });
+  const today = utcDay();
+  const claimedToday = days.has(today);
+  const streak = claimedToday ? runEndingAt(days, today) : runEndingAt(days, dayOffset(today, -1));
+  const nextStreak = claimedToday ? streak : streak + 1;
+  return { streak, claimedToday, nextStreak, nextMultiplier: streakMultiplier(nextStreak) };
 }
 
 function utcDay(): string {
@@ -82,8 +131,16 @@ export async function claimFromFaucet(input: {
   const fid = input.fid;
   if (!fid && !input.ip) return refuse("Couldn't verify your connection. Try again later.");
 
+  // Streak: consecutive UTC days with a sent claim (per FID in the Mini App, per address on web).
+  const sql = await getSql();
+  const day = utcDay();
+  const days = await claimDays(sql, fid ? { fid } : { address });
+  const streak = runEndingAt(days, dayOffset(day, -1)) + 1;
+  const multiplier = streakMultiplier(streak);
+  const sendAmount = Math.round(input.amount * multiplier);
+
   // Balance checks before reserving a slot.
-  const amountWei = parseUnits(String(input.amount), 18);
+  const amountWei = parseUnits(String(sendAmount), 18);
   try {
     const [eth, tokens] = await Promise.all([
       c.pub.getBalance({ address: c.account.address }),
@@ -95,8 +152,6 @@ export async function claimFromFaucet(input: {
     return refuse("Couldn't reach the Base network. Try again in a minute.");
   }
 
-  const sql = await getSql();
-  const day = utcDay();
   // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
   const ipHash = fid ? `fid:${fid}` : hashIp(input.ip);
 
@@ -122,17 +177,28 @@ export async function claimFromFaucet(input: {
     where faucet_days.claims < ${cap}
     returning claims`;
   if (!bumped.length) return refuse("Today's faucet is all claimed. Come back after midnight UTC.");
+  // Token budget (bonus included) is reserved atomically too.
+  const budget = dailyTokenBudget();
+  const reserved = await sql`
+    update faucet_days set tokens = tokens + ${sendAmount}
+    where day = ${day} and tokens + ${sendAmount} <= ${budget}
+    returning tokens`;
+  if (!reserved.length) {
+    await sql`update faucet_days set claims = claims - 1 where day = ${day}`;
+    return refuse("Today's faucet budget is nearly used up. Try a smaller amount or come back after midnight UTC.");
+  }
+  const release = () => sql`update faucet_days set claims = claims - 1, tokens = tokens - ${sendAmount} where day = ${day}`;
 
   // Reserve the claim first; unique indexes stop concurrent double-claims.
   let id: number;
   try {
     const rows = await sql<{ id: number }>`
-      insert into faucet_claims (day, address, ip_hash, amount, fid)
-      values (${day}, ${address}, ${ipHash}, ${input.amount}, ${fid ?? null})
+      insert into faucet_claims (day, address, ip_hash, amount, fid, base_amount, streak)
+      values (${day}, ${address}, ${ipHash}, ${sendAmount}, ${fid ?? null}, ${input.amount}, ${streak})
       returning id`;
     id = rows[0].id;
   } catch {
-    await sql`update faucet_days set claims = claims - 1 where day = ${day}`;
+    await release();
     return refuse("You already claimed today. One claim per address and connection per day.");
   }
 
@@ -145,11 +211,11 @@ export async function claimFromFaucet(input: {
       dataSuffix: DATA_SUFFIX,
     });
     await sql`update faucet_claims set status = 'sent', tx_hash = ${txHash} where id = ${id}`;
-    return { ok: true, amount: input.amount, txHash, url: `https://basescan.org/tx/${txHash}` };
+    return { ok: true, amount: sendAmount, baseAmount: input.amount, streak, multiplier, txHash, url: `https://basescan.org/tx/${txHash}` };
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 300) : "send failed";
     await sql`update faucet_claims set status = 'failed', error = ${msg} where id = ${id}`;
-    await sql`update faucet_days set claims = claims - 1 where day = ${day}`;
+    await release();
     console.error("[faucet] send failed:", msg);
     return refuse(
       /insufficient funds/i.test(msg)
@@ -168,4 +234,120 @@ export async function faucetStatus() {
   } catch {
     return { open: true, address: c.account.address };
   }
+}
+
+const DONATE = "0xa959d8eeded6fb440ca584d1e87e581168bbf628";
+const USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+/** Record a tip sent via the Support widget after verifying it on Base. */
+export async function recordTip(hash: string, fid?: number) {
+  if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) return { ok: false as const, reason: "Bad tx hash." };
+  const transport = http(process.env.BASE_RPC_URL?.trim() || "https://mainnet.base.org");
+  const pub = createPublicClient({ chain: base, transport });
+  const h = hash as `0x${string}`;
+  let receipt;
+  try {
+    receipt = await pub.waitForTransactionReceipt({ hash: h, timeout: 20_000 });
+  } catch {
+    return { ok: false as const, reason: "Tip not confirmed yet." };
+  }
+  if (receipt.status !== "success") return { ok: false as const, reason: "Tip failed on-chain." };
+  const tx = await pub.getTransaction({ hash: h });
+  let token: "ETH" | "USDC" | null = null;
+  let amount = "0";
+  if (tx.to?.toLowerCase() === DONATE && tx.value > 0n) {
+    token = "ETH";
+    amount = formatEther(tx.value);
+  } else {
+    const log = receipt.logs.find(
+      (l) =>
+        l.address.toLowerCase() === USDC &&
+        l.topics[0] === TRANSFER_TOPIC &&
+        l.topics[2]?.toLowerCase().endsWith(DONATE.slice(2)),
+    );
+    if (log) {
+      token = "USDC";
+      amount = (Number(BigInt(log.data)) / 1e6).toString();
+    }
+  }
+  if (!token) return { ok: false as const, reason: "Not a tip to Youcog." };
+  const sql = await getSql();
+  await sql`insert into tips (tx_hash, from_address, token, amount, fid)
+    values (${h.toLowerCase()}, ${getAddress(tx.from)}, ${token}, ${amount}, ${fid ?? null})
+    on conflict (tx_hash) do nothing`;
+  return { ok: true as const, token, amount };
+}
+
+const profileCache = new Map<number, { at: number; username?: string; pfp?: string }>();
+async function fcProfile(fid: number) {
+  const hit = profileCache.get(fid);
+  if (hit && Date.now() - hit.at < 6 * 3600_000) return hit;
+  let v: { at: number; username?: string; pfp?: string } = { at: Date.now() };
+  try {
+    const r = await fetch(`https://api.farcaster.xyz/v2/user?fid=${fid}`, { signal: AbortSignal.timeout(2500) });
+    if (r.ok) {
+      const u = (await r.json())?.result?.user;
+      v = { at: Date.now(), username: u?.username, pfp: u?.pfp?.url };
+    }
+  } catch {
+    /* fall back to FID */
+  }
+  profileCache.set(fid, v);
+  return v;
+}
+
+function bestRuns(days: string[]) {
+  const set = new Set(days);
+  let longest = 0;
+  for (const d of days) if (!set.has(dayOffset(d, -1))) longest = Math.max(longest, runEndingAt(set, lastOf(set, d)));
+  const today = utcDay();
+  const current = set.has(today) ? runEndingAt(set, today) : runEndingAt(set, dayOffset(today, -1));
+  return { longest, current };
+}
+function lastOf(set: Set<string>, start: string) {
+  let d = start;
+  while (set.has(dayOffset(d, 1))) d = dayOffset(d, 1);
+  return d;
+}
+
+export async function leaderboard() {
+  const sql = await getSql();
+  // Identity: FID when present, else address.
+  const rows = await sql<{ who: string; fid: string | null; address: string; total: string; claims: string; days: string[] }>`
+    select coalesce('fid:' || fid::text, address) as who, max(fid)::text as fid, max(address) as address,
+      sum(amount)::text as total, count(*)::text as claims,
+      array_agg(distinct to_char(day, 'YYYY-MM-DD')) as days
+    from faucet_claims where status = 'sent'
+    group by 1 order by sum(amount) desc limit 25`;
+  const claimers = await Promise.all(
+    rows.map(async (r) => {
+      const fid = r.fid ? Number(r.fid) : null;
+      const p = fid ? await fcProfile(fid) : null;
+      const { longest, current } = bestRuns((r.days ?? []).map(String));
+      return {
+        fid,
+        username: p?.username ?? null,
+        pfp: p?.pfp ?? null,
+        address: r.address,
+        total: Number(r.total),
+        claims: Number(r.claims),
+        longestStreak: longest,
+        currentStreak: current,
+      };
+    }),
+  );
+  const tipRows = await sql<{ who: string; fid: string | null; address: string; eth: string; usdc: string; n: string }>`
+    select coalesce('fid:' || fid::text, from_address) as who, max(fid)::text as fid, max(from_address) as address,
+      coalesce(sum(amount) filter (where token = 'ETH'), 0)::text as eth,
+      coalesce(sum(amount) filter (where token = 'USDC'), 0)::text as usdc, count(*)::text as n
+    from tips group by 1 order by count(*) desc limit 10`;
+  const tippers = await Promise.all(
+    tipRows.map(async (r) => {
+      const fid = r.fid ? Number(r.fid) : null;
+      const p = fid ? await fcProfile(fid) : null;
+      return { fid, username: p?.username ?? null, pfp: p?.pfp ?? null, address: r.address, eth: Number(r.eth), usdc: Number(r.usdc), tips: Number(r.n) };
+    }),
+  );
+  return { claimers, tippers };
 }

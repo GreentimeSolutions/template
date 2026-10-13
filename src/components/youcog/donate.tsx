@@ -54,6 +54,21 @@ function transferData(to: string, amount: bigint) {
   return "0xa9059cbb" + to.slice(2).toLowerCase().padStart(64, "0") + amount.toString(16).padStart(64, "0");
 }
 
+/** Report the tip so it can be verified on-chain and shown on the leaderboard (FID attached inside Farcaster). */
+async function recordTip(hash: string) {
+  const init = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hash }) };
+  try {
+    const { sdk } = await import("@farcaster/miniapp-sdk");
+    if (await sdk.isInMiniApp()) {
+      await sdk.quickAuth.fetch(`${window.location.origin}/api/tip`, init);
+      return;
+    }
+  } catch {
+    /* fall through */
+  }
+  await fetch("/api/tip", init).catch(() => undefined);
+}
+
 export function Donate() {
   const [choice, setChoice] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -78,6 +93,7 @@ export function Donate() {
           : { from, to: USDC, data: withSuffix(transferData(DONATE_ADDRESS, opt.value)), value: "0x0" };
       const hash = (await p.request({ method: "eth_sendTransaction", params: [tx] })) as string;
       setMsg({ ok: true, text: `Thank you! ${opt.label} sent.`, url: `https://basescan.org/tx/${hash}` });
+      void recordTip(hash);
     } catch (e) {
       const m = (e as { message?: string })?.message ?? "Transaction failed.";
       setMsg({ ok: false, text: /reject|denied/i.test(m) ? "Transaction cancelled." : m });

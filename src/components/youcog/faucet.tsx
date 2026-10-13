@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { claimFaucet } from "@/lib/youcog/youcog.functions";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
-import { APP_URL } from "@/lib/youcog/miniapp";
+import { shareToFarcaster, streakText } from "@/lib/youcog/share";
 
 async function connectedBaseAddress(): Promise<string | null> {
   const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -22,7 +22,8 @@ async function connectedBaseAddress(): Promise<string | null> {
 }
 
 const AMOUNTS = [420, 1111, 6969] as const;
-type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number };
+type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number };
+type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number };
 
 export function Faucet() {
   const [address, setAddress] = useState("");
@@ -43,16 +44,27 @@ export function Faucet() {
   }, [fc]);
 
   const recipient = fc && walletAddr && !useOther ? walletAddr : address.trim();
+  const [streak, setStreak] = useState<Streak | null>(null);
 
-  async function share(amountSent: number) {
-    const { sdk } = await import("@farcaster/miniapp-sdk");
-    await sdk.actions
-      .composeCast({
-        text: `I just claimed ${amountSent.toLocaleString()} free $YOUCOG on Base with Youcognito. Claim yours:`,
-        embeds: [APP_URL],
-      })
-      .catch(() => undefined);
+  async function loadStreak() {
+    try {
+      if (fc) {
+        const { sdk } = await import("@farcaster/miniapp-sdk");
+        const r = await sdk.quickAuth.fetch(`${window.location.origin}/api/streak`);
+        setStreak(await r.json());
+      } else if (/^0x[0-9a-fA-F]{40}$/.test(recipient)) {
+        const r = await fetch(`/api/streak?address=${recipient}`);
+        setStreak(await r.json());
+      } else setStreak(null);
+    } catch {
+      setStreak(null);
+    }
   }
+  useEffect(() => {
+    void loadStreak();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fc, recipient]);
+
 
   async function onClaim(event: FormEvent) {
     event.preventDefault();
@@ -61,7 +73,7 @@ export function Faucet() {
     setMsg(null);
     try {
       let res:
-        | { ok: true; amount: number; url: string }
+        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number }
         | { ok: false; reason: string };
       if (fc) {
         const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -82,10 +94,14 @@ export function Faucet() {
       if (res.ok) {
         setMsg({
           kind: "ok",
-          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.`,
+          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${
+            res.streak ? ` ${res.streak}-day streak${res.multiplier && res.multiplier > 1 ? ` (${res.multiplier}x bonus)` : ""}.` : ""
+          }`,
           url: res.url,
           amount: res.amount,
+          streak: res.streak,
         });
+        void loadStreak();
       } else {
         setMsg({ kind: "err", text: res.reason });
       }
@@ -109,6 +125,19 @@ export function Faucet() {
           ? `Claim free YOUCOG on Base once per day${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
           : "Claim free YOUCOG on Base once per day. One claim per address and per connection."}
       </p>
+      <p className="mt-2 text-xs leading-relaxed text-mist">
+        Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Missing a day resets.
+      </p>
+      {streak && (streak.streak > 0 || streak.nextMultiplier > 1) ? (
+        <p data-testid="streak" className="mt-2 text-sm text-ink">
+          🔥 {streak.streak}-day streak
+          {streak.claimedToday
+            ? " · claimed today"
+            : streak.nextMultiplier > 1
+              ? ` · next claim ${streak.nextMultiplier}x`
+              : ""}
+        </p>
+      ) : null}
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
           <div className="flex flex-col gap-1 text-sm text-mist">
@@ -188,7 +217,9 @@ export function Faucet() {
           disabled={busy || !recipient}
           className="press inline-flex h-11 items-center justify-center rounded-seal bg-accent px-4 text-sm font-medium text-accent-fg disabled:opacity-50"
         >
-          {busy ? "Sending…" : `Claim ${amount.toLocaleString()} YOUCOG`}
+          {busy
+            ? "Sending…"
+            : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG`}
         </button>
       </form>
       {msg ? (
@@ -207,13 +238,13 @@ export function Faucet() {
               View on Basescan
             </a>
           ) : null}
-          {fc && msg.kind === "ok" && msg.amount ? (
+          {msg.kind === "ok" && msg.amount ? (
             <button
               type="button"
-              onClick={() => void share(msg.amount!)}
+              onClick={() => void shareToFarcaster(streakText(msg.streak ?? 1), fc)}
               className="press ml-1 underline underline-offset-4"
             >
-              Share
+              Share to Farcaster
             </button>
           ) : null}
         </p>

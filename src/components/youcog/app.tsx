@@ -4,6 +4,7 @@ import { readSealedPage, runMission } from "@/lib/youcog/youcog.functions";
 import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
 import { Donate } from "@/components/youcog/donate";
+import { Leaderboard } from "@/components/youcog/leaderboard";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
@@ -128,6 +129,7 @@ function Welcome() {
       </ul>
       <div className="hidden flex-col gap-4 lg:flex">
         <Faucet />
+        <Leaderboard />
         <Donate />
       </div>
     </div>
@@ -605,6 +607,7 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
+          <Leaderboard />
           <Donate />
 
           <form
