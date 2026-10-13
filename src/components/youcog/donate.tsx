@@ -1,3 +1,4 @@
+import { withSuffix } from "@/lib/youcog/builder-code";
 import { useState } from "react";
 
 export const DONATE_ADDRESS = "0xa959d8eeded6fb440ca584d1e87e581168bbf628";
@@ -73,8 +74,8 @@ export function Donate() {
       const opt = OPTIONS[choice];
       const tx =
         opt.token === "ETH"
-          ? { from, to: DONATE_ADDRESS, value: "0x" + opt.value.toString(16) }
-          : { from, to: USDC, data: transferData(DONATE_ADDRESS, opt.value), value: "0x0" };
+          ? { from, to: DONATE_ADDRESS, value: "0x" + opt.value.toString(16), data: withSuffix() }
+          : { from, to: USDC, data: withSuffix(transferData(DONATE_ADDRESS, opt.value)), value: "0x0" };
       const hash = (await p.request({ method: "eth_sendTransaction", params: [tx] })) as string;
       setMsg({ ok: true, text: `Thank you! ${opt.label} sent.`, url: `https://basescan.org/tx/${hash}` });
     } catch (e) {

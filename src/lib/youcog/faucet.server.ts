@@ -1,3 +1,4 @@
+import { DATA_SUFFIX } from "@/lib/youcog/builder-code";
 import { createHash } from "node:crypto";
 import {
   createPublicClient,
@@ -51,7 +52,7 @@ function clients() {
   return {
     account,
     pub: createPublicClient({ chain: base, transport }),
-    wallet: createWalletClient({ account, chain: base, transport }),
+    wallet: createWalletClient({ account, chain: base, transport, dataSuffix: DATA_SUFFIX }),
   };
 }
 
@@ -141,6 +142,7 @@ export async function claimFromFaucet(input: {
       abi: ERC20,
       functionName: "transfer",
       args: [address, amountWei],
+      dataSuffix: DATA_SUFFIX,
     });
     await sql`update faucet_claims set status = 'sent', tx_hash = ${txHash} where id = ${id}`;
     return { ok: true, amount: input.amount, txHash, url: `https://basescan.org/tx/${txHash}` };
