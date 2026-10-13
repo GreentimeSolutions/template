@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
 import { readSealedPage, runMission } from "@/lib/youcog/youcog.functions";
 import { Brief } from "@/components/youcog/brief";
+import { Faucet } from "@/components/youcog/faucet";
 import { useSession, type SealTab } from "@/components/youcog/session";
 
 const SUGGESTIONS = [
@@ -115,6 +116,7 @@ function Welcome() {
           <p className="mt-2 text-sm leading-relaxed text-mist">Pages load through a proxy. Scripts never run here.</p>
         </li>
       </ul>
+      <Faucet />
     </div>
   );
 }

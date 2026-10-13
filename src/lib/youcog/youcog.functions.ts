@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseHeader } from "@tanstack/react-start/server";
+import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const missionSchema = z.object({
@@ -56,4 +56,31 @@ export const readSealedPage = createServerFn({ method: "POST" })
     }
     const { readPublicPage } = await import("./reader.server");
     return readPublicPage(data.url);
+  });
+
+const claimSchema = z.object({
+  address: z.string().trim().min(1).max(100),
+  amount: z.union([z.literal(420), z.literal(1111), z.literal(6969)]),
+  website: z.string().max(200).optional(), // honeypot: humans never fill this
+});
+
+function clientIp(): string {
+  const fwd = getRequestHeader("x-forwarded-for")?.split(",")[0]?.trim();
+  return fwd || getRequestHeader("x-real-ip")?.trim() || "";
+}
+
+export const claimFaucet = createServerFn({ method: "POST" })
+  .validator((input: unknown) => {
+    const parsed = claimSchema.safeParse(input);
+    if (!parsed.success) throw new Error("Pick 420, 1111, or 6969 YOUCOG and enter a Base address.");
+    return parsed.data;
+  })
+  .handler(async ({ data }) => {
+    noStore();
+    if (data.website) return { ok: false as const, reason: "Claim refused." };
+    if (!allow("faucet", 30, 60 * 1000)) {
+      return { ok: false as const, reason: "The faucet is busy. Try again in a minute." };
+    }
+    const { claimFromFaucet } = await import("./faucet.server");
+    return claimFromFaucet({ address: data.address, amount: data.amount, ip: clientIp() });
   });

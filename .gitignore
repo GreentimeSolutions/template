@@ -9,3 +9,4 @@ dist/
 .pglite/
 screenshots/
 artifacts/
+.vercel
