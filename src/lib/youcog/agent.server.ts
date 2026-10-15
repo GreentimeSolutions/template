@@ -247,6 +247,37 @@ export async function runDeepMissionOnServer(mission: string): Promise<MissionRe
     creditsOutUntil > Date.now()
       ? null
       : await tryGrok(input, { instructions: DEEP_INSTRUCTIONS, maxTokens: 2400, timeoutMs: 150_000 }, 12);
-  if (grok) return grok;
+  if (grok) return { ...grok, brief: cleanDeepReport(grok.brief) };
   return freeFallback(mission, facts);
+}
+
+/**
+ * Tidy a Deep Mission report: normalise inline citations to readable " [n](url)" links
+ * (so "token[[1]](u)" no longer reads "token1"), drop bare footnote digits glued to words
+ * and trailing raw IDs / citation dumps the model sometimes appends.
+ */
+export function cleanDeepReport(text: string): string {
+  let t = text.replace(/\r\n/g, "\n");
+  // [[1]](url) / [1](url) glued to a word -> " [[1]](url)"
+  t = t.replace(/\s*\[\[(\d{1,3})\]\]\((https?:\/\/[^\s)]+)\)/g, " [[$1]]($2)");
+  t = t.replace(/(\S)\s*\[(\d{1,3})\]\((https?:\/\/[^\s)]+)\)/g, "$1 [[$2]]($3)");
+  // unlinked bracket markers like "word[3]" or "word【3†source】"
+  t = t.replace(/【[^】]*】/g, "");
+  t = t.replace(/(\S)\[(\d{1,3}(?:,\s*\d{1,3})*)\](?![\](])/g, "$1 [$2]");
+  // unicode superscript footnotes
+  t = t.replace(/[\u00b9\u00b2\u00b3\u2070-\u2079]+/g, "");
+  // trailing junk: bare IDs, footnote definitions, raw URL lists, empty brackets
+  const lines = t.split("\n");
+  const junk = (l: string) => {
+    const s = l.trim();
+    if (!s) return true;
+    if (/^\[\^?\d+\]:\s*\S+/.test(s)) return true; // [1]: url
+    if (/^(?:[-*]\s*)?<?https?:\/\/\S+>?$/.test(s)) return true; // bare url
+    if (/^[\w-]*\b(?:[0-9a-f]{8}-[0-9a-f]{4}-|[0-9a-f]{24,}|resp_|msg_|rs_|ws_|call_)[\w-]*$/i.test(s)) return true; // raw ids
+    if (/^[\[\]\d,\s]+$/.test(s)) return true; // "[1][2][3]" or "1, 2"
+    return false;
+  };
+  while (lines.length && junk(lines[lines.length - 1])) lines.pop();
+  t = lines.join("\n");
+  return t.replace(/[ \t]{2,}/g, " ").replace(/ +([.,;:])/g, "$1").replace(/\n{3,}/g, "\n\n").trim();
 }
