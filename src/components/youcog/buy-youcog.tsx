@@ -71,3 +71,30 @@ export function BuyYoucogButton({ label = "Get 10M YOUCOG", className = "" }: { 
     </a>
   );
 }
+
+export const COINBASE_WALLET_INVITE = "https://wallet.coinbase.com/invite/_base/6GYZL0C9";
+
+export function CoinbaseWalletLink({ className = "" }: { className?: string }) {
+  const { inMiniApp } = useMiniApp();
+  return (
+    <a
+      data-testid="coinbase-wallet-link"
+      href={COINBASE_WALLET_INVITE}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={async (e) => {
+        if (!inMiniApp) return;
+        e.preventDefault();
+        try {
+          const { sdk } = await import("@farcaster/miniapp-sdk");
+          await sdk.actions.openUrl(COINBASE_WALLET_INVITE);
+        } catch {
+          window.open(COINBASE_WALLET_INVITE, "_blank", "noopener,noreferrer");
+        }
+      }}
+      className={`text-xs text-mist underline decoration-line underline-offset-2 hover:text-ink ${className}`}
+    >
+      New to crypto? Get Coinbase Wallet
+    </a>
+  );
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Brief } from "@/components/youcog/brief";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
-import { BuyYoucogButton, BUY_WEB_URL } from "@/components/youcog/buy-youcog";
+import { BuyYoucogButton, CoinbaseWalletLink, BUY_WEB_URL } from "@/components/youcog/buy-youcog";
 
 export const BUY_URL = BUY_WEB_URL;
 const SESSION_KEY = "youcog-holder-session";
@@ -142,6 +142,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
               </button>
             )}
           </div>
+          <CoinbaseWalletLink className="self-start" />
           {fc ? <p className="text-xs text-mist">In Farcaster we check the wallets verified on your account.</p> : null}
         </div>
       )}
