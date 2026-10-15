@@ -36,7 +36,9 @@ export const runMission = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     noStore();
-    if (!allow("mission", 6, 10 * 60 * 1000)) {
+    // Per-visitor limit (was a single bucket shared by every user), plus a global safety cap.
+    const ip = clientIp() || "anon";
+    if (!allow(`mission:${ip}`, 8, 10 * 60 * 1000) || !allow("mission:all", 120, 10 * 60 * 1000)) {
       throw new Error("Youcog is resting. Try again in a few minutes.");
     }
     const { runMissionOnServer } = await import("./agent.server");

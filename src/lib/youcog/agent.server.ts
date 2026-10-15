@@ -128,6 +128,10 @@ async function callModel(apiKey: string, model: string, mission: string, opts: C
   });
 }
 
+/** Set when xAI reports exhausted credits / spending limit, so fallbacks can say so. */
+let creditsOutUntil = 0;
+const CREDITS_NOTE = "_AI credits ran out, so this is a free summary from public sources (no AI)._";
+
 async function tryGrok(mission: string, opts: CallOpts = BRIEF_OPTS, cap = SOURCE_CAP): Promise<MissionResult | null> {
   const apiKey = process.env.XAI_API_KEY;
   if (!apiKey) {
@@ -140,7 +144,11 @@ async function tryGrok(mission: string, opts: CallOpts = BRIEF_OPTS, cap = SOURC
       response = await callModel(apiKey, FALLBACK_MODEL, mission, opts);
     }
     if (!response.ok) {
-      console.warn(`[youcog] xAI API returned ${response.status}; using fallback.`);
+      const body = (await response.text().catch(() => "")).slice(0, 300);
+      if (response.status === 402 || response.status === 429 || /credit|spending|quota|billing/i.test(body)) {
+        creditsOutUntil = Date.now() + 10 * 60_000;
+      }
+      console.warn(`[youcog] xAI API returned ${response.status}; using fallback. ${body}`);
       return null;
     }
     const payload = asRecord(await response.json());
@@ -155,11 +163,24 @@ async function tryGrok(mission: string, opts: CallOpts = BRIEF_OPTS, cap = SOURC
   }
 }
 
-export async function runMissionOnServer(mission: string): Promise<MissionResult> {
-  const grok = await tryGrok(mission);
-  if (grok) return grok;
+/** Keyless fallback: on-chain + DexScreener facts (when a token is mentioned) plus web/Wikipedia research. */
+async function freeFallback(mission: string, facts?: string): Promise<MissionResult> {
+  const f = facts ?? (await onchainFacts(mission).catch(() => ""));
+  const note = creditsOutUntil > Date.now() ? `${CREDITS_NOTE}\n\n` : "";
   const { researchMission } = await import("./research.server");
-  return researchMission(mission);
+  try {
+    const r = await researchMission(mission);
+    return { ...r, brief: `${note}${f ? `## On-chain facts\n\n${f}\n\n` : ""}${r.brief}` };
+  } catch (e) {
+    if (f) return { ok: true, brief: `${note}## On-chain facts\n\n${f}`, sources: [], stored: false };
+    throw e;
+  }
+}
+
+export async function runMissionOnServer(mission: string): Promise<MissionResult> {
+  const grok = creditsOutUntil > Date.now() ? null : await tryGrok(mission);
+  if (grok) return grok;
+  return freeFallback(mission);
 }
 
 const DEEP_INSTRUCTIONS = [
@@ -222,9 +243,10 @@ async function onchainFacts(mission: string): Promise<string> {
 export async function runDeepMissionOnServer(mission: string): Promise<MissionResult> {
   const facts = await onchainFacts(mission);
   const input = facts ? `${mission}\n\nOn-chain facts (verified just now):\n${facts}` : mission;
-  const grok = await tryGrok(input, { instructions: DEEP_INSTRUCTIONS, maxTokens: 2600, timeoutMs: 90_000 }, 12);
+  const grok =
+    creditsOutUntil > Date.now()
+      ? null
+      : await tryGrok(input, { instructions: DEEP_INSTRUCTIONS, maxTokens: 2400, timeoutMs: 150_000 }, 12);
   if (grok) return grok;
-  const { researchMission } = await import("./research.server");
-  const r = await researchMission(mission);
-  return facts ? { ...r, brief: `## On-chain facts\n\n${facts}\n\n${r.brief}` } : r;
+  return freeFallback(mission, facts);
 }
