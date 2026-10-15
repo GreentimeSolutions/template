@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Brief } from "@/components/youcog/brief";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
+import { BuyYoucogButton, BUY_WEB_URL } from "@/components/youcog/buy-youcog";
 
-const TOKEN = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
-export const BUY_URL = `https://app.uniswap.org/swap?chain=base&inputCurrency=ETH&outputCurrency=${TOKEN}`;
+export const BUY_URL = BUY_WEB_URL;
 const SESSION_KEY = "youcog-holder-session";
 
 type Eip1193 = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> };
@@ -131,9 +131,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
             </p>
           ) : null}
           <div className="grid grid-cols-2 gap-2">
-            <a href={BUY_URL} target="_blank" rel="noreferrer" className="press inline-flex h-11 items-center justify-center rounded-seal bg-accent px-3 text-sm font-medium text-accent-fg">
-              Buy YOUCOG
-            </a>
+            <BuyYoucogButton className="inline-flex h-11 items-center justify-center rounded-seal bg-accent px-3 text-sm font-medium text-accent-fg" />
             {fc ? (
               <button type="button" onClick={() => void refresh()} className="press h-11 rounded-seal border border-line text-sm text-ink">
                 Re-check

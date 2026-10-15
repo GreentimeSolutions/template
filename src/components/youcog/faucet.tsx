@@ -1,3 +1,4 @@
+import { BuyYoucogButton } from "@/components/youcog/buy-youcog";
 import { useEffect, useState, type FormEvent } from "react";
 import { claimFaucet } from "@/lib/youcog/youcog.functions";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
@@ -119,7 +120,10 @@ export function Faucet() {
 
   return (
     <section className="rounded-panel border border-line bg-panel p-4 sm:p-5">
-      <p className="font-display text-lg text-ink">YOUCOG faucet</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-display text-lg text-ink">YOUCOG faucet</p>
+        <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
+      </div>
       <p className="mt-1 text-sm leading-relaxed text-mist">
         {fc
           ? `Claim free YOUCOG on Base once per day${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
