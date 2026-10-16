@@ -1,8 +1,8 @@
 import { assertPublicUrl } from "./reader.server";
 import type { MissionResult, Source } from "./types";
 
-const PRIMARY_MODEL = "grok-4.5";
-const FALLBACK_MODEL = "grok-4.7";
+const PRIMARY_MODEL = "grok-4.3";
+const FALLBACK_MODEL = "grok-4.20-0309-non-reasoning";
 const SOURCE_CAP = 5;
 
 const INSTRUCTIONS = [
