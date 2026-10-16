@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { ListenButton } from "@/components/youcog/listen";
 
 type BriefProps = {
   text: string;
@@ -54,6 +55,7 @@ export function Brief({ text, onOpenUrl }: BriefProps) {
   const blocks = text.trim().split(/\n{2,}/);
   return (
     <div className="flex flex-col gap-4 text-base leading-relaxed text-mist">
+      {text.trim().length > 1 ? <ListenButton text={text} /> : null}
       {blocks.map((block, blockIndex) => {
         const lines = block.split("\n").filter((line) => line.trim().length > 0);
         const heading = lines.length === 1 ? lines[0].match(/^(#{1,3})\s+(.+)$/) : null;

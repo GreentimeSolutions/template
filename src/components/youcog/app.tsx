@@ -6,6 +6,7 @@ import { Faucet } from "@/components/youcog/faucet";
 import { Donate } from "@/components/youcog/donate";
 import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
+import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
@@ -612,6 +613,7 @@ export function YoucogApp() {
           ) : null}
           <RcstClaim />
           <DeepMission onOpenUrl={openUrl} />
+          <ImageMaker />
           <Leaderboard />
           <Donate />
 
