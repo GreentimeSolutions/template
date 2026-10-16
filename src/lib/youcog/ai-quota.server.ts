@@ -18,10 +18,20 @@ export function whoFromRequest(request: Request): string {
 }
 
 /** Reserve one use. Returns null if allowed, or a user-facing reason. */
-export async function takeQuota(kind: string, who: string, perUser: number, global: number): Promise<string | null> {
+export function ctDay(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date());
+}
+const utcDay = () => new Date().toISOString().slice(0, 10);
+
+export async function usedToday(kind: string, day = utcDay()): Promise<number> {
+  const sql = await sqlReady();
+  const r = await sql<{ n: number }>`select n from ai_usage where day = ${day} and kind = ${kind} and who = '*'`;
+  return Number(r[0]?.n ?? 0);
+}
+
+export async function takeQuota(kind: string, who: string, perUser: number, global: number, day = utcDay()): Promise<string | null> {
   if (!who) return "Couldn't verify your connection. Try again later.";
   const sql = await sqlReady();
-  const day = new Date().toISOString().slice(0, 10);
   const g = await sql`insert into ai_usage (day, kind, who, n) values (${day}, ${kind}, '*', 1)
     on conflict (day, kind, who) do update set n = ai_usage.n + 1 where ai_usage.n < ${global} returning n`;
   if (!g.length) return "Today's free limit for everyone is used up. Try again tomorrow (resets midnight UTC).";
@@ -34,8 +44,7 @@ export async function takeQuota(kind: string, who: string, perUser: number, glob
   return null;
 }
 
-export async function refundQuota(kind: string, who: string) {
+export async function refundQuota(kind: string, who: string, day = utcDay()) {
   const sql = await sqlReady();
-  const day = new Date().toISOString().slice(0, 10);
   await sql`update ai_usage set n = greatest(n - 1, 0) where day = ${day} and kind = ${kind} and who in (${who}, '*')`;
 }

@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 /** FLUX 3 Klein meme maker. Renders nothing until the server reports BFL_API_KEY is set. */
 export function ImageMaker() {
   const [enabled, setEnabled] = useState(false);
-  const [perUser, setPerUser] = useState(2);
+  const [left, setLeft] = useState<number | null>(null);
+  const [total, setTotal] = useState(10);
   const [prompt, setPrompt] = useState("");
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState<string | null>(null);
@@ -11,9 +12,10 @@ export function ImageMaker() {
   useEffect(() => {
     fetch("/api/image")
       .then((r) => r.json())
-      .then((j: { enabled?: boolean; perUser?: number }) => {
+      .then((j: { enabled?: boolean; left?: number; total?: number }) => {
         setEnabled(Boolean(j.enabled));
-        if (j.perUser) setPerUser(j.perUser);
+        if (typeof j.left === "number") setLeft(j.left);
+        if (j.total) setTotal(j.total);
       })
       .catch(() => {});
   }, []);
@@ -27,6 +29,7 @@ export function ImageMaker() {
       const j = (await r.json()) as { ok?: boolean; url?: string; reason?: string };
       if (!j.ok || !j.url) throw new Error(j.reason ?? "Couldn't make that image.");
       setUrl(j.url);
+      setLeft((n) => (n == null ? n : Math.max(n - 1, 0)));
     } catch (e) {
       setNote(e instanceof Error ? e.message : "Couldn't make that image.");
     } finally {
@@ -44,7 +47,8 @@ export function ImageMaker() {
       }}
     >
       <p className="text-sm font-medium text-ink">Make YOUCOG art (FLUX 3)</p>
-      <p className="text-xs text-mist">Free, {perUser} per day. Save the image soon, the link expires in about 10 minutes.</p>
+      <p className="text-sm text-ink" data-testid="image-spots">{left == null ? "" : `${left} of ${total} left today`}</p>
+      <p className="text-xs text-mist">First come, first served: {total} free images a day, 1 per person, resets at midnight CT. Save your image soon, the link expires in about 10 minutes.</p>
       <input
         value={prompt}
         maxLength={300}
@@ -52,7 +56,7 @@ export function ImageMaker() {
         placeholder="e.g. ghost mascot surfing a Base-blue wave"
         className="rounded-seal border border-line bg-transparent px-3 py-2 text-sm text-ink"
       />
-      <button type="submit" disabled={busy || prompt.trim().length < 3} className="press rounded-seal border border-line px-3 py-2 text-sm text-ink disabled:opacity-60">
+      <button type="submit" disabled={busy || left === 0 || prompt.trim().length < 3} className="press rounded-seal border border-line px-3 py-2 text-sm text-ink disabled:opacity-60">
         {busy ? "Making art…" : "Make it"}
       </button>
       {note ? <p className="text-xs text-mist">{note}</p> : null}

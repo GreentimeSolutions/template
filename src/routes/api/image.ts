@@ -1,14 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const PER_USER = Number(process.env.IMAGE_PER_USER_DAILY ?? 2);
-const GLOBAL = Number(process.env.IMAGE_GLOBAL_DAILY ?? 25);
+const PER_USER = Number(process.env.IMAGE_PER_USER_DAILY ?? 1);
+const GLOBAL = Number(process.env.IMAGE_GLOBAL_DAILY ?? 10);
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
 
 /** FLUX 3 Image Klein via the BFL API at 768x768 ($0.008 / image). Disabled until BFL_API_KEY is set. */
 export const Route = createFileRoute("/api/image")({
   server: {
     handlers: {
-      GET: async () => json({ enabled: Boolean(process.env.BFL_API_KEY?.trim()), perUser: PER_USER }),
+      GET: async () => {
+        const { usedToday, ctDay } = await import("@/lib/youcog/ai-quota.server");
+        const used = await usedToday("image", ctDay()).catch(() => 0);
+        return json({ enabled: Boolean(process.env.BFL_API_KEY?.trim()), perUser: PER_USER, total: GLOBAL, left: Math.max(GLOBAL - used, 0) });
+      },
       POST: async ({ request }) => {
         const key = process.env.BFL_API_KEY?.trim();
         if (!key) return json({ ok: false, reason: "Image making isn't turned on yet." }, 503);
@@ -19,10 +23,11 @@ export const Route = createFileRoute("/api/image")({
           /* bad body */
         }
         if (idea.length < 3 || idea.length > 300) return json({ ok: false, reason: "Describe your image in a few words (under 300 characters)." }, 400);
-        const { takeQuota, refundQuota, whoFromRequest } = await import("@/lib/youcog/ai-quota.server");
+        const { takeQuota, refundQuota, whoFromRequest, ctDay } = await import("@/lib/youcog/ai-quota.server");
         const who = whoFromRequest(request);
-        const denied = await takeQuota("image", who, PER_USER, GLOBAL).catch(() => "Image making is busy. Try again later.");
-        if (denied) return json({ ok: false, reason: denied }, 429);
+        const day = ctDay();
+        const denied = await takeQuota("image", who, PER_USER, GLOBAL, day).catch(() => "Image making is busy. Try again later.");
+        if (denied) return json({ ok: false, reason: denied.replace(/midnight UTC|tomorrow \(resets midnight UTC\)/, "midnight CT") }, 429);
         try {
           const prompt = `Fun, colorful meme-style art for YOUCOG, a privacy-themed crypto token on Base (incognito ghost mascot vibe). ${idea}. No real people, safe for work.`;
           const sub = await fetch("https://api.bfl.ai/v1/flux-3-image-klein", {
@@ -45,7 +50,7 @@ export const Route = createFileRoute("/api/image")({
           throw new Error("timeout");
         } catch (e) {
           console.warn("[youcog] image failed", e);
-          await refundQuota("image", who).catch(() => {});
+          await refundQuota("image", who, day).catch(() => {});
           return json({ ok: false, reason: "Couldn't make that image. Try a different idea." }, 502);
         }
       },
