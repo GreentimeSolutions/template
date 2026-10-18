@@ -714,3 +714,29 @@
     box-shadow: 0 0 0 3px rgb(167 139 250 / 0.55), 0 0 22px rgb(167 139 250 / 0.6);
   }
 }
+
+/* Listen boost (faucet card) */
+.listen-boost {
+  padding: 0.75rem;
+  border: 1px dashed rgb(167 139 250 / 0.55);
+  border-radius: var(--radius-seal);
+  background: radial-gradient(120% 140% at 0% 0%, rgb(124 58 237 / 0.22), transparent 60%), rgb(20 8 31 / 0.55);
+}
+
+.listen-bar {
+  position: relative;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(124 58 237 / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(167 139 250 / 0.3);
+}
+
+.listen-bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c3aed, #c4b5fd, #fbbf24);
+  box-shadow: 0 0 10px rgb(196 181 253 / 0.7);
+  transition: width 0.25s linear;
+}

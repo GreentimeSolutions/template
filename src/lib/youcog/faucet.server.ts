@@ -4,6 +4,7 @@ import {
   createPublicClient,
   createWalletClient,
   formatEther,
+  formatUnits,
   getAddress,
   http,
   isAddress,
@@ -14,6 +15,9 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 import { dbSource, getSql } from "@/lib/db";
+import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE } from "@/constants/listen";
+import { listenIdentity, pickClaimAmount } from "@/lib/youcog/listen-core";
+import { findBonusListen, releaseBonusListen, claimBonusListen } from "@/lib/youcog/listen.server";
 
 export const TOKEN = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3" as const;
 export const AMOUNTS = [420, 1111, 6969] as const;
@@ -24,7 +28,17 @@ const ERC20 = parseAbi([
 ]);
 
 export type ClaimResult =
-  | { ok: true; amount: number; baseAmount: number; streak: number; multiplier: number; txHash: string; url: string }
+  | {
+      ok: true;
+      amount: number;
+      baseAmount: number;
+      streak: number;
+      multiplier: number;
+      txHash: string;
+      url: string;
+      /** True when a verified full listen upgraded this claim to LISTEN_BONUS_AMOUNT. */
+      listenBonus?: boolean;
+    }
   | { ok: false; reason: string };
 
 const refuse = (reason: string): ClaimResult => ({ ok: false, reason });
@@ -87,7 +101,7 @@ function utcDay(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function hashIp(ip: string): string {
+export function hashIp(ip: string): string {
   const salt = process.env.FAUCET_IP_SALT ?? "youcog-faucet";
   return createHash("sha256").update(`${salt}:${ip}`).digest("hex");
 }
@@ -137,23 +151,40 @@ export async function claimFromFaucet(input: {
   const days = await claimDays(sql, fid ? { fid } : { address });
   const streak = runEndingAt(days, dayOffset(day, -1)) + 1;
   const multiplier = streakMultiplier(streak);
-  const sendAmount = Math.round(input.amount * multiplier);
+  const normalAmount = Math.round(input.amount * multiplier);
+  let sendAmount = normalAmount;
+
+  // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
+  const ipHash = fid ? `fid:${fid}` : hashIp(input.ip);
+
+  // Listen bonus: a server-verified full listen today (same identity) upgrades the claim.
+  const identity = listenIdentity(fid ? { fid } : { address, ipHash });
+  const bonusListenId = identity ? await findBonusListen(sql, identity).catch(() => null) : null;
+  let bonus = false;
 
   // Balance checks before reserving a slot.
-  const amountWei = parseUnits(String(sendAmount), 18);
+  let amountWei = parseUnits(String(sendAmount), 18);
   try {
     const [eth, tokens] = await Promise.all([
       c.pub.getBalance({ address: c.account.address }),
       c.pub.readContract({ address: TOKEN, abi: ERC20, functionName: "balanceOf", args: [c.account.address] }),
     ]);
     if (eth < MIN_GAS_WEI) return refuse("The faucet is out of gas (ETH). Try again after it's topped up.");
+    const pick = pickClaimAmount({
+      baseAmount: input.amount,
+      multiplier,
+      bonusEligible: Boolean(bonusListenId),
+      bonusAmount: LISTEN_BONUS_AMOUNT,
+      faucetBalanceTokens: Number(formatUnits(tokens, 18)),
+      minFaucetBalanceTokens: LISTEN_MIN_FAUCET_BALANCE,
+    });
+    sendAmount = pick.amount;
+    bonus = pick.bonus;
+    amountWei = parseUnits(String(sendAmount), 18);
     if (tokens < amountWei) return refuse("The faucet is out of YOUCOG for that amount. Try a smaller amount.");
   } catch {
     return refuse("Couldn't reach the Base network. Try again in a minute.");
   }
-
-  // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
-  const ipHash = fid ? `fid:${fid}` : hashIp(input.ip);
 
   const prior = await sql<{ address: string; ip_hash: string; fid: string | null }>`
     select address, ip_hash, fid from faucet_claims
@@ -179,10 +210,18 @@ export async function claimFromFaucet(input: {
   if (!bumped.length) return refuse("Today's faucet is all claimed. Come back after midnight UTC.");
   // Token budget (bonus included) is reserved atomically too.
   const budget = dailyTokenBudget();
-  const reserved = await sql`
-    update faucet_days set tokens = tokens + ${sendAmount}
-    where day = ${day} and tokens + ${sendAmount} <= ${budget}
+  const reserve = (n: number) => sql`
+    update faucet_days set tokens = tokens + ${n}
+    where day = ${day} and tokens + ${n} <= ${budget}
     returning tokens`;
+  let reserved = await reserve(sendAmount);
+  if (!reserved.length && bonus) {
+    // Not enough budget left today for the bonus: fall back to the normal amount.
+    bonus = false;
+    sendAmount = normalAmount;
+    amountWei = parseUnits(String(sendAmount), 18);
+    reserved = await reserve(sendAmount);
+  }
   if (!reserved.length) {
     await sql`update faucet_days set claims = claims - 1 where day = ${day}`;
     return refuse("Today's faucet budget is nearly used up. Try a smaller amount or come back after midnight UTC.");
@@ -193,13 +232,22 @@ export async function claimFromFaucet(input: {
   let id: number;
   try {
     const rows = await sql<{ id: number }>`
-      insert into faucet_claims (day, address, ip_hash, amount, fid, base_amount, streak)
-      values (${day}, ${address}, ${ipHash}, ${sendAmount}, ${fid ?? null}, ${input.amount}, ${streak})
+      insert into faucet_claims (day, address, ip_hash, amount, fid, base_amount, streak, listen_bonus)
+      values (${day}, ${address}, ${ipHash}, ${sendAmount}, ${fid ?? null}, ${input.amount}, ${streak}, ${bonus})
       returning id`;
     id = rows[0].id;
   } catch {
     await release();
     return refuse("You already claimed today. One claim per address and connection per day.");
+  }
+
+  // Bind the listen to this claim; if it was taken meanwhile, pay the normal amount instead.
+  if (bonus && bonusListenId && !(await claimBonusListen(sql, bonusListenId, id))) {
+    await sql`update faucet_days set tokens = tokens - ${sendAmount - normalAmount} where day = ${day}`;
+    bonus = false;
+    sendAmount = normalAmount;
+    amountWei = parseUnits(String(sendAmount), 18);
+    await sql`update faucet_claims set amount = ${sendAmount}, listen_bonus = false where id = ${id}`;
   }
 
   try {
@@ -211,11 +259,21 @@ export async function claimFromFaucet(input: {
       dataSuffix: DATA_SUFFIX,
     });
     await sql`update faucet_claims set status = 'sent', tx_hash = ${txHash} where id = ${id}`;
-    return { ok: true, amount: sendAmount, baseAmount: input.amount, streak, multiplier, txHash, url: `https://basescan.org/tx/${txHash}` };
+    return {
+      ok: true,
+      amount: sendAmount,
+      baseAmount: input.amount,
+      streak,
+      multiplier: bonus ? 1 : multiplier,
+      txHash,
+      url: `https://basescan.org/tx/${txHash}`,
+      listenBonus: bonus,
+    };
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 300) : "send failed";
     await sql`update faucet_claims set status = 'failed', error = ${msg} where id = ${id}`;
     await release();
+    if (bonus && bonusListenId) await releaseBonusListen(sql, bonusListenId, id).catch(() => undefined);
     console.error("[faucet] send failed:", msg);
     return refuse(
       /insufficient funds/i.test(msg)

@@ -25,6 +25,9 @@ import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
+import { Route as ApiListenFinishRouteImport } from './routes/api/listen/finish'
+import { Route as ApiListenStartRouteImport } from './routes/api/listen/start'
+import { Route as ApiListenStatusRouteImport } from './routes/api/listen/status'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -107,6 +110,21 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
   path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiListenFinishRoute = ApiListenFinishRouteImport.update({
+  id: '/api/listen/finish',
+  path: '/api/listen/finish',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListenStartRoute = ApiListenStartRouteImport.update({
+  id: '/api/listen/start',
+  path: '/api/listen/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiListenStatusRoute = ApiListenStatusRouteImport.update({
+  id: '/api/listen/status',
+  path: '/api/listen/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,6 +143,9 @@ export interface FileRoutesByFullPath {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/listen/finish': typeof ApiListenFinishRoute
+  '/api/listen/start': typeof ApiListenStartRoute
+  '/api/listen/status': typeof ApiListenStatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,6 +164,9 @@ export interface FileRoutesByTo {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/listen/finish': typeof ApiListenFinishRoute
+  '/api/listen/start': typeof ApiListenStartRoute
+  '/api/listen/status': typeof ApiListenStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -162,6 +186,9 @@ export interface FileRoutesById {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/listen/finish': typeof ApiListenFinishRoute
+  '/api/listen/start': typeof ApiListenStartRoute
+  '/api/listen/status': typeof ApiListenStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -182,6 +209,9 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/api/listen/finish'
+    | '/api/listen/start'
+    | '/api/listen/status'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -200,6 +230,9 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/api/listen/finish'
+    | '/api/listen/start'
+    | '/api/listen/status'
   id:
     | '__root__'
     | '/'
@@ -218,6 +251,9 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/api/listen/finish'
+    | '/api/listen/start'
+    | '/api/listen/status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -237,6 +273,9 @@ export interface RootRouteChildren {
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
   ApiTtsRoute: typeof ApiTtsRoute
+  ApiListenFinishRoute: typeof ApiListenFinishRoute
+  ApiListenStartRoute: typeof ApiListenStartRoute
+  ApiListenStatusRoute: typeof ApiListenStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -353,6 +392,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/listen/finish': {
+      id: '/api/listen/finish'
+      path: '/api/listen/finish'
+      fullPath: '/api/listen/finish'
+      preLoaderRoute: typeof ApiListenFinishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/listen/start': {
+      id: '/api/listen/start'
+      path: '/api/listen/start'
+      fullPath: '/api/listen/start'
+      preLoaderRoute: typeof ApiListenStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/listen/status': {
+      id: '/api/listen/status'
+      path: '/api/listen/status'
+      fullPath: '/api/listen/status'
+      preLoaderRoute: typeof ApiListenStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -373,6 +433,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,
   ApiTtsRoute: ApiTtsRoute,
+  ApiListenFinishRoute: ApiListenFinishRoute,
+  ApiListenStartRoute: ApiListenStartRoute,
+  ApiListenStatusRoute: ApiListenStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,9 +1,12 @@
 import { BuyYoucogButton, CoinbaseWalletLink } from "@/components/youcog/buy-youcog";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { claimFaucet } from "@/lib/youcog/youcog.functions";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { shareToFarcaster, streakText } from "@/lib/youcog/share";
 import { HauntedButtonFrame, celebrate } from "@/components/youcog/halloween";
+import { ListenBoost } from "@/components/youcog/listen-boost";
+import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
+import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 
 async function connectedBaseAddress(): Promise<string | null> {
   const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -47,6 +50,17 @@ export function Faucet() {
 
   const recipient = fc && walletAddr && !useOther ? walletAddr : address.trim();
 
+  // Tell the listen-boost flow who is claiming (same identity the faucet keys on).
+  const listen = useListen();
+  const sectionRef = useRef<HTMLElement>(null);
+  const validRecipient = /^0x[0-9a-fA-F]{40}$/.test(recipient);
+  useEffect(() => {
+    // The app renders a desktop and a mobile copy of this card; only the visible one speaks.
+    if (!sectionRef.current?.getClientRects().length) return;
+    setListenIdentity(fc ? { fc: true } : validRecipient ? { fc: false, address: recipient } : null);
+  }, [fc, recipient, validRecipient]);
+  const boosted = listen.phase === "unlocked";
+
   // Cosmetic only: ghosts and bats after a real successful claim.
   useEffect(() => {
     if (msg?.kind === "ok") celebrate();
@@ -80,7 +94,7 @@ export function Faucet() {
     setMsg(null);
     try {
       let res:
-        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number }
+        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean }
         | { ok: false; reason: string };
       if (fc) {
         const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -99,9 +113,10 @@ export function Faucet() {
         });
       }
       if (res.ok) {
+        if (res.listenBonus) markListenUsed();
         setMsg({
           kind: "ok",
-          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${
+          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${res.listenBonus ? " Listen boost applied." : ""}${
             res.streak ? ` ${res.streak}-day streak${res.multiplier && res.multiplier > 1 ? ` (${res.multiplier}x bonus)` : ""}.` : ""
           }`,
           url: res.url,
@@ -125,7 +140,7 @@ export function Faucet() {
   }
 
   return (
-    <section className="rounded-panel border border-line bg-panel p-4 sm:p-5">
+    <section ref={sectionRef} className="rounded-panel border border-line bg-panel p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
         <p className="font-spooky text-xl tracking-wide text-ink">YOUCOG faucet</p>
         <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
@@ -203,6 +218,7 @@ export function Faucet() {
           onChange={(e) => setWebsite(e.target.value)}
           className="absolute -left-[9999px] h-0 w-0 opacity-0"
         />
+        <ListenBoost ready={fc || validRecipient} />
         <div
           className="grid grid-cols-3 gap-2"
           role="radiogroup"
@@ -233,7 +249,9 @@ export function Faucet() {
         >
           {busy
             ? "Sending…"
-            : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG`}
+            : boosted
+              ? `Claim ${LISTEN_BONUS_AMOUNT.toLocaleString()} YOUCOG (boosted)`
+              : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG`}
         </button>
         </HauntedButtonFrame>
       </form>
