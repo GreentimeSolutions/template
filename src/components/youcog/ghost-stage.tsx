@@ -6,6 +6,7 @@ import {
   GAME_THUMB,
   GAME_URL,
   SOUNDTRACK_THUMB,
+  PROJECT_WALLETS,
   YOUTUBE_SHORT,
 } from "@/constants/media";
 import { GhostAvatar } from "@/components/youcog/ghost-avatar";
@@ -20,10 +21,8 @@ type TipTarget = "deep" | "faucet" | "game" | "music" | "burn" | "rcst" | "short
 type Slide = { kind: "tip"; text: string; target: TipTarget } | { kind: "buy"; text: string };
 type Buy = { tokens: number; usd: number; from: string; at: string };
 
-/** Wallets we know, so our own buys are labeled honestly instead of "someone". */
-const KNOWN_WALLETS: Record<string, string> = {
-  "0x3067ab541253746ab353b842fdc0970ffbde13c7": "Youcog's agent wallet",
-};
+/** Project-owned wallets never appear in buy slides (client-side guard too). */
+const EXCLUDED = new Set(PROJECT_WALLETS.map((w) => w.toLowerCase()));
 
 const SLIDE_MS = 5000;
 
@@ -47,13 +46,7 @@ function ago(iso: string) {
 }
 
 function buyText(b: Buy) {
-  const who = KNOWN_WALLETS[b.from.toLowerCase()];
-  const recent = Date.now() - new Date(b.at).getTime() < 3600_000;
-  const verb = recent ? "just bought" : "bought";
-  const amount = `${compact(b.tokens)} YOUCOG ($${b.usd.toFixed(2)})`;
-  return who
-    ? `${who} ${verb} ${amount}, ${shortAddr(b.from)}, ${ago(b.at)}`
-    : `Someone ${verb} ${amount}, ${shortAddr(b.from)}, ${ago(b.at)}`;
+  return `Someone just bought ${compact(b.tokens)} YOUCOG ($${b.usd.toFixed(2)}), ${shortAddr(b.from)}, ${ago(b.at)}`;
 }
 
 /** First on-screen-rendered element for a tip target (skips display:none copies). */
@@ -255,7 +248,9 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
       fetch("/api/buys")
         .then((r) => (r.ok ? r.json() : { buys: [] }))
         .then((d: { buys?: Buy[] }) => {
-          if (!cancelled) setBuys(Array.isArray(d.buys) ? d.buys : []);
+          if (cancelled) return;
+          const list = Array.isArray(d.buys) ? d.buys : [];
+          setBuys(list.filter((b) => b.from && !EXCLUDED.has(b.from.toLowerCase())).slice(0, 10));
         })
         .catch(() => undefined);
     void load();
@@ -281,15 +276,20 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
     tips.push({ kind: "tip", text: "Burn your session when you're done, no trace.", target: "burn" });
     if (hasRcst) tips.push({ kind: "tip", text: "Quote-cast the launch for 1,111 $RCST.", target: "rcst" });
     const out: Slide[] = [];
-    let b = 0;
     tips.forEach((tip, i) => {
       out.push(tip);
-      if (i % 2 === 1 && b < buys.length) out.push({ kind: "buy", text: buyText(buys[b++]) });
+      if (i % 2 === 1 && buys.length > 0) out.push({ kind: "buy", text: "" });
     });
     return out;
   }, [buys, music.available, hasRcst]);
 
-  const slide = slides[index % slides.length];
+  const current = slides[index % slides.length];
+  // Each buy slide shows a random one of the latest outside buys.
+  const slide = useMemo<Slide | undefined>(() => {
+    if (!current || current.kind !== "buy" || buys.length === 0) return current;
+    return { kind: "buy", text: buyText(buys[Math.floor(Math.random() * buys.length)]) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, buys, index]);
 
   const advance = useCallback(() => setIndex((i) => (i + 1) % Math.max(1, slides.length)), [slides.length]);
 

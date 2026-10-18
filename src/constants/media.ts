@@ -30,3 +30,12 @@ export const YOUTUBE_SHORT = {
 /** Small square thumbs for the home grid. */
 export const DEEP_MISSION_THUMB = "/deep-mission-thumb.webp";
 export const FAUCET_THUMB = "/faucet-thumb.webp";
+
+/**
+ * Project-owned wallets (agent/faucet, donations). Their trades never appear as
+ * buy slides, so the bubble only shows buys from outside users. Lowercase.
+ */
+export const PROJECT_WALLETS = [
+  "0x3067ab541253746ab353b842fdc0970ffbde13c7", // Youcog agent + faucet wallet
+  "0xa959d8eeded6fb440ca584d1e87e581168bbf628", // donations
+];

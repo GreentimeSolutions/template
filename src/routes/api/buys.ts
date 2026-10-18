@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PROJECT_WALLETS } from "@/constants/media";
 
 /**
  * Recent real YOUCOG buys from GeckoTerminal (read-only, cached ~60s).
  * Only kind == "buy" with volume_in_usd >= 0.05. The tiny "sells" in the same
- * tx are pool fee swaps and are ignored. Never fabricates data: on failure the
+ * tx are pool fee swaps and are ignored. Buys by project wallets (agent/faucet,
+ * donations) are excluded, so only outside buyers show. Never fabricates data: on failure the
  * list is simply empty.
  */
 const POOL = "0x0c6b7aac93aed41f6a12b99e44b821388bd4df31f9247288feef741edb135614";
@@ -11,6 +13,8 @@ const TRADES_URL = `https://api.geckoterminal.com/api/v2/networks/base/pools/${P
 const TTL_MS = 60_000;
 
 export type Buy = { tokens: number; usd: number; from: string; at: string; tx: string };
+
+const EXCLUDED = new Set(PROJECT_WALLETS.map((w) => w.toLowerCase()));
 
 let cache: { at: number; buys: Buy[] } | null = null;
 
@@ -40,8 +44,9 @@ async function loadBuys(): Promise<Buy[]> {
     const tokens = Number(a.to_token_amount);
     if (!Number.isFinite(usd) || usd < 0.05 || !Number.isFinite(tokens)) continue;
     if (!a.tx_from_address || !a.block_timestamp) continue;
+    if (EXCLUDED.has(a.tx_from_address.toLowerCase())) continue;
     buys.push({ tokens, usd, from: a.tx_from_address, at: a.block_timestamp, tx: a.tx_hash ?? "" });
-    if (buys.length >= 6) break;
+    if (buys.length >= 10) break;
   }
   return buys;
 }
