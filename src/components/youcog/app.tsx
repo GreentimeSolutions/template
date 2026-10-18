@@ -8,6 +8,7 @@ import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
+import { GameCard } from "@/components/youcog/game-card";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 import {
@@ -143,6 +144,7 @@ function Welcome() {
       <div className="hidden flex-col gap-4 lg:flex">
         <Faucet />
         <RcstClaim />
+        <GameCard />
         <Leaderboard />
         <Donate />
       </div>
@@ -635,6 +637,7 @@ export function YoucogApp() {
             </div>
           ) : null}
           <RcstClaim />
+          <GameCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />
           <Leaderboard />
