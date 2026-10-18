@@ -97,7 +97,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
   return (
     <section id="deep-mission" className="rounded-panel border border-line bg-panel p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-display text-lg text-ink">Deep Mission</p>
+        <p className="font-spooky text-xl tracking-wide text-ink">Deep Mission</p>
         <span className={`rounded-seal border px-2 py-0.5 text-xs ${unlocked ? "border-accent bg-accent text-accent-fg" : "border-line text-mist"}`}>
           {unlocked ? "Holder" : "🔒 Locked"}
         </span>

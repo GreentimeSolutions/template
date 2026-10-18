@@ -114,7 +114,7 @@ export function Donate() {
 
   return (
     <section id="support-youcog" className="rounded-panel border border-line bg-panel p-4 sm:p-5">
-      <p className="font-display text-lg text-ink">Support Youcog</p>
+      <p className="font-spooky text-xl tracking-wide text-ink">Support Youcog</p>
       <p className="mt-1 text-sm leading-relaxed text-mist">
         Tips on Base help fund Youcognito's Google Play listing and keep the faucet topped up.
       </p>

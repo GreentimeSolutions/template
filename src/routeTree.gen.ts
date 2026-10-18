@@ -17,11 +17,13 @@ import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
 import { Route as ApiHolderRouteImport } from './routes/api/holder'
 import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
 import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
+import { Route as ApiImageRouteImport } from './routes/api/image'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
 import { Route as ApiRcstClaimRouteImport } from './routes/api/rcst-claim'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
+import { Route as ApiTtsRouteImport } from './routes/api/tts'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +66,11 @@ const ApiHolderVerifyRoute = ApiHolderVerifyRouteImport.update({
   path: '/api/holder-verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImageRoute = ApiImageRouteImport.update({
+  id: '/api/image',
+  path: '/api/image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
   id: '/api/leaderboard',
   path: '/api/leaderboard',
@@ -89,6 +96,11 @@ const ApiTipRoute = ApiTipRouteImport.update({
   path: '/api/tip',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTtsRoute = ApiTtsRouteImport.update({
+  id: '/api/tts',
+  path: '/api/tts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -99,11 +111,13 @@ export interface FileRoutesByFullPath {
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
+  '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,11 +128,13 @@ export interface FileRoutesByTo {
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
+  '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -130,11 +146,13 @@ export interface FileRoutesById {
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
+  '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
+  '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,11 +165,13 @@ export interface FileRouteTypes {
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
+    | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
+    | '/api/tts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -162,11 +182,13 @@ export interface FileRouteTypes {
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
+    | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
+    | '/api/tts'
   id:
     | '__root__'
     | '/'
@@ -177,11 +199,13 @@ export interface FileRouteTypes {
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
+    | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
+    | '/api/tts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -193,11 +217,13 @@ export interface RootRouteChildren {
   ApiHolderRoute: typeof ApiHolderRoute
   ApiHolderNonceRoute: typeof ApiHolderNonceRoute
   ApiHolderVerifyRoute: typeof ApiHolderVerifyRoute
+  ApiImageRoute: typeof ApiImageRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
   ApiRcstClaimRoute: typeof ApiRcstClaimRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
+  ApiTtsRoute: typeof ApiTtsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -258,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHolderVerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/image': {
+      id: '/api/image'
+      path: '/api/image'
+      fullPath: '/api/image'
+      preLoaderRoute: typeof ApiImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/leaderboard': {
       id: '/api/leaderboard'
       path: '/api/leaderboard'
@@ -293,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTipRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tts': {
+      id: '/api/tts'
+      path: '/api/tts'
+      fullPath: '/api/tts'
+      preLoaderRoute: typeof ApiTtsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -305,11 +345,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHolderRoute: ApiHolderRoute,
   ApiHolderNonceRoute: ApiHolderNonceRoute,
   ApiHolderVerifyRoute: ApiHolderVerifyRoute,
+  ApiImageRoute: ApiImageRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
   ApiRcstClaimRoute: ApiRcstClaimRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,
+  ApiTtsRoute: ApiTtsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

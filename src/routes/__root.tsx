@@ -16,7 +16,7 @@ export const Route = createRootRoute({
         content:
           "Youcog opens sealed tabs for you. Your browser never visits them, and the session is memory only.",
       },
-      { name: "theme-color", content: "#0c0d10" },
+      { name: "theme-color", content: "#1a0b2e" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
@@ -27,7 +27,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&family=Creepster&display=swap",
       },
     ],
   }),

@@ -4,14 +4,16 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
 
-  --color-canvas: #0c0d10;
-  --color-panel: #14161b;
-  --color-inset: #0a0b0e;
+  --font-spooky: "Creepster", "Fraunces", ui-serif, serif;
+
+  --color-canvas: #1a0b2e;
+  --color-panel: rgb(42 16 72 / 0.9);
+  --color-inset: #12071f;
   --color-ink: #eceae6;
-  --color-mist: #a8a49c;
-  --color-faint: #6f6b64;
-  --color-line: #2a2d34;
-  --color-line-strong: #3c4048;
+  --color-mist: #c4b8d6;
+  --color-faint: #9a8cb0;
+  --color-line: #44286a;
+  --color-line-strong: #5b3a88;
   --color-accent: #d7dde6;
   --color-accent-fg: #121418;
   --color-danger: #c45c52;
@@ -122,5 +124,325 @@
   .rise,
   .pulse-soft {
     animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Halloween theme (cosmetic only)
+ * ------------------------------------------------------------------------- */
+
+.font-spooky {
+  font-family: var(--font-spooky);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* Root shell: own stacking context so the backdrop sits behind content. */
+.haunt-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 60% at 50% -10%, #3b1466 0%, transparent 60%),
+    linear-gradient(180deg, #1f0c38 0%, #1a0b2e 55%, #14081f 100%);
+}
+
+.haunt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.haunt-drift {
+  position: absolute;
+  display: block;
+  animation-name: haunt-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+@keyframes haunt-drift {
+  0% { transform: translate3d(0, 0, 0) rotate(-4deg); }
+  50% { transform: translate3d(24px, -30px, 0) rotate(3deg); }
+  100% { transform: translate3d(-18px, 14px, 0) rotate(-2deg); }
+}
+
+.haunt-zoom {
+  position: absolute;
+  top: 38%;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  opacity: 0;
+  animation: haunt-zoom 19s linear infinite;
+  animation-delay: 4s;
+  will-change: transform, opacity;
+}
+
+@keyframes haunt-zoom {
+  0%, 82% { transform: translate3d(-80px, 0, 0) rotate(12deg); opacity: 0; }
+  83% { opacity: 0.22; }
+  90% { transform: translate3d(55vw, -60px, 0) rotate(10deg); opacity: 0.22; }
+  97% { transform: translate3d(110vw, -20px, 0) rotate(14deg); opacity: 0.18; }
+  100% { transform: translate3d(115vw, -20px, 0); opacity: 0; }
+}
+
+.haunt-fog {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32vh;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to top, #000 30%, transparent);
+  mask-image: linear-gradient(to top, #000 30%, transparent);
+}
+
+.haunt-fog-layer {
+  position: absolute;
+  inset: 0 -100% 0 0;
+  background:
+    radial-gradient(40% 70% at 12% 85%, rgb(124 58 237 / 0.28), transparent 70%),
+    radial-gradient(35% 60% at 38% 95%, rgb(167 139 250 / 0.2), transparent 70%),
+    radial-gradient(45% 75% at 62% 88%, rgb(124 58 237 / 0.24), transparent 70%),
+    radial-gradient(35% 60% at 88% 95%, rgb(167 139 250 / 0.2), transparent 70%);
+  animation: haunt-fog 38s linear infinite;
+  will-change: transform;
+}
+
+.haunt-fog-layer-2 {
+  opacity: 0.7;
+  animation-duration: 57s;
+  animation-direction: reverse;
+  transform: scaleY(0.8);
+}
+
+@keyframes haunt-fog {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Header ghost: moon glow and jack-o'-lantern. */
+.haunt-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.haunt-mark::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(254 243 199 / 0.55) 0%, rgb(253 230 138 / 0.28) 38%, rgb(196 181 253 / 0.14) 58%, transparent 72%);
+  z-index: -1;
+}
+
+.haunt-mark .jack {
+  position: absolute;
+  right: -9px;
+  bottom: -3px;
+  width: 17px;
+  height: 17px;
+  filter: drop-shadow(0 0 4px rgb(249 115 22 / 0.7));
+}
+
+.jack-glow {
+  animation: candle 2.8s ease-in-out infinite;
+}
+
+.haunt-mark.is-vanishing svg:first-child {
+  animation: ghost-fade 1.4s ease-in-out;
+}
+
+@keyframes ghost-fade {
+  0% { opacity: 1; transform: none; }
+  40% { opacity: 0; transform: translateY(-6px) scale(0.9); }
+  70% { opacity: 0; }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Cards: cobweb corners and candle glow. */
+.bg-panel.rounded-panel,
+.bg-panel.rounded-shell {
+  position: relative;
+}
+
+.bg-panel.rounded-panel::before,
+.bg-panel.rounded-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.22;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23e9e3f5' stroke-width='.7'%3E%3Cpath d='M0 0L48 0M0 0L0 48M0 0L44 22M0 0L22 44M0 0L36 36'/%3E%3Cpath d='M12 0Q10 6 0 12M24 0Q20 13 13 16Q11 20 0 24M36 0Q31 17 26 21Q22 25 21 31Q16 34 0 36'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23e9e3f5' stroke-width='.7'%3E%3Cpath d='M48 0L0 0M48 0L48 48M48 0L4 22M48 0L26 44M48 0L12 36'/%3E%3Cpath d='M36 0Q38 6 48 12M24 0Q28 13 35 16Q37 20 48 24M12 0Q17 17 22 21Q26 25 27 31Q32 34 48 36'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 44px 44px;
+  background-position: top left, top right;
+}
+
+.bg-panel.rounded-panel::after,
+.bg-panel.rounded-shell::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px rgb(251 146 60 / 0.18),
+    0 0 18px rgb(251 146 60 / 0.16),
+    inset 0 0 14px rgb(124 58 237 / 0.16);
+  animation: candle 3.6s ease-in-out infinite;
+}
+
+@keyframes candle {
+  0%, 100% { opacity: 0.85; }
+  18% { opacity: 0.55; }
+  22% { opacity: 0.95; }
+  48% { opacity: 0.7; }
+  52% { opacity: 1; }
+  76% { opacity: 0.6; }
+}
+
+/* Haunted claim button. */
+.haunt-btn-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 14px;
+}
+
+.haunt-btn-frame > button {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+  color: #fff;
+  animation: haunt-glow 2.4s ease-in-out infinite, haunt-wobble 5s ease-in-out infinite;
+}
+
+.haunt-btn-frame > button:disabled {
+  animation: none;
+}
+
+.haunt-peek {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: -22px;
+  width: 30px;
+  height: 30px;
+  margin-left: -15px;
+  animation: haunt-peek 4.5s ease-in-out infinite;
+}
+
+@keyframes haunt-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(124 58 237 / 0.45), 0 0 10px rgb(167 139 250 / 0.25); }
+  50% { box-shadow: 0 0 0 4px rgb(124 58 237 / 0.18), 0 0 22px rgb(167 139 250 / 0.5); }
+}
+
+@keyframes haunt-wobble {
+  0%, 84%, 100% { transform: rotate(0); }
+  87% { transform: rotate(-1.4deg); }
+  90% { transform: rotate(1.2deg); }
+  93% { transform: rotate(-0.8deg); }
+  96% { transform: rotate(0.4deg); }
+}
+
+@keyframes haunt-peek {
+  0%, 100% { transform: translateY(10px); }
+  30%, 60% { transform: translateY(0); }
+  45% { transform: translateY(1px) rotate(-6deg); }
+}
+
+/* Claim celebration. */
+.haunt-celebrate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.haunt-float {
+  position: absolute;
+  bottom: -60px;
+  display: block;
+  opacity: 0;
+  animation-name: haunt-float;
+  animation-timing-function: cubic-bezier(0.33, 0, 0.4, 1);
+  animation-fill-mode: forwards;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 6px rgb(196 181 253 / 0.6));
+}
+
+.haunt-float-bat svg {
+  animation: haunt-flap 0.28s ease-in-out infinite;
+}
+
+@keyframes haunt-float {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: 0.95; }
+  50% { transform: translate3d(var(--sway, 0), -55vh, 0); }
+  85% { opacity: 0.9; }
+  100% { transform: translate3d(0, -110vh, 0); opacity: 0; }
+}
+
+@keyframes haunt-flap {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 0.6; }
+}
+
+/* Burn: TV static flash. */
+.haunt-static {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  background-color: #2a0d4a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .95 0 0 0 1.6 -.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  animation: haunt-static-jitter 0.08s steps(1) infinite, haunt-static-fade 0.6s ease-out forwards;
+}
+
+@keyframes haunt-static-jitter {
+  0% { background-position: 0 0; }
+  25% { background-position: -47px 31px; }
+  50% { background-position: 63px -18px; }
+  75% { background-position: -22px -70px; }
+}
+
+@keyframes haunt-static-fade {
+  0% { opacity: 0.92; }
+  70% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .haunt-drift,
+  .haunt-fog-layer,
+  .jack-glow,
+  .haunt-peek,
+  .haunt-btn-frame > button,
+  .bg-panel.rounded-panel::after,
+  .bg-panel.rounded-shell::after,
+  .haunt-mark.is-vanishing svg:first-child {
+    animation: none;
+  }
+
+  .haunt-zoom,
+  .haunt-static,
+  .haunt-celebrate {
+    display: none;
+  }
+
+  .haunt-peek {
+    transform: translateY(2px);
   }
 }

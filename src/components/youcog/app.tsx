@@ -10,6 +10,13 @@ import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
+import {
+  BurnStatic,
+  ClaimCelebration,
+  HauntedBackdrop,
+  JackOLantern,
+  burnStatic,
+} from "@/components/youcog/halloween";
 
 const YOUCOG_BASESCAN = "https://basescan.org/token/0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 
@@ -48,8 +55,9 @@ function withProtocol(value: string): string {
   return `https://${trimmed}`;
 }
 
-function SealMark() {
+function SealMark({ vanishing = false }: { vanishing?: boolean }) {
   return (
+    <span className={vanishing ? "haunt-mark is-vanishing" : "haunt-mark"}>
     <svg viewBox="0 0 32 32" className="size-9 shrink-0" aria-hidden="true">
       <path
         className="fill-accent"
@@ -69,6 +77,8 @@ function SealMark() {
       <rect className="fill-canvas" x="17.2" y="15.2" width="4.2" height="2.5" rx="0.7" />
       <rect className="fill-canvas" x="14.65" y="16" width="2.7" height="0.9" rx="0.3" />
     </svg>
+    <JackOLantern className="jack" />
+    </span>
   );
 }
 
@@ -82,7 +92,7 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
       <img
         src="/youcog-mark.png"
         alt="Youcog in a hat, glasses, and trench coat"
-        className={compact ? "h-36 w-36 object-contain" : "h-52 w-52 object-contain"}
+        className={`${compact ? "h-36 w-36" : "h-52 w-52"} rounded-2xl object-contain shadow-[0_0_36px_rgba(196,181,253,0.28)]`}
       />
       <p className="max-w-sm text-base leading-relaxed text-ink">
         Youcog opens sealed tabs for the question you give it. The sites never see your browser, and the session stays in memory until you burn it.
@@ -107,8 +117,8 @@ function Welcome() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 sm:py-12 lg:px-8">
       <YoucogIntro />
       <div className="flex flex-col gap-4">
-        <p className="font-display text-lg text-mist">Youcognito</p>
-        <h1 className="max-w-xl font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl">
+        <p className="font-spooky text-2xl tracking-wide text-violet-200">YOUCOGNITO</p>
+        <h1 className="max-w-xl font-spooky text-4xl tracking-wide text-ink sm:text-5xl">
           Tabs, without a trace on your side.
         </h1>
         <p className="max-w-xl text-base leading-relaxed text-mist">
@@ -381,6 +391,13 @@ export function YoucogApp() {
   const burn = useSession((state) => state.burn);
   const [armed, setArmed] = useState(false);
   const [addressError, setAddressError] = useState<string | null>(null);
+  const [vanishing, setVanishing] = useState(false);
+
+  useEffect(() => {
+    if (!vanishing) return;
+    const id = window.setTimeout(() => setVanishing(false), 1400);
+    return () => window.clearTimeout(id);
+  }, [vanishing]);
 
   const active = tabs.find((tab) => tab.id === activeId) ?? null;
   const siblings =
@@ -417,11 +434,14 @@ export function YoucogApp() {
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-canvas text-ink">
-      <header className="flex shrink-0 items-center gap-3 border-b border-line bg-canvas px-4 py-3">
-        <SealMark />
+    <div className="haunt-shell flex h-dvh flex-col overflow-hidden text-ink">
+      <HauntedBackdrop />
+      <ClaimCelebration />
+      <BurnStatic />
+      <header className="flex shrink-0 items-center gap-3 border-b border-line bg-canvas/85 px-4 py-3">
+        <SealMark vanishing={vanishing} />
         <div className="min-w-0">
-          <p className="font-display text-lg leading-none font-medium tracking-tight">Youcog</p>
+          <p className="font-spooky text-xl leading-none tracking-wide">Youcog</p>
           <p className="truncate text-xs text-faint">Private session</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -443,6 +463,8 @@ export function YoucogApp() {
                 return;
               }
               setArmed(false);
+              burnStatic();
+              setVanishing(true);
               burn();
             }}
           >
@@ -516,7 +538,8 @@ export function YoucogApp() {
           {tabs.length === 0 ? (
             <div className="flex flex-col gap-4 lg:hidden">
               <YoucogIntro compact />
-              <h1 className="font-display text-4xl font-medium tracking-tight">
+              <p className="font-spooky text-3xl tracking-wide text-violet-200">YOUCOGNITO</p>
+              <h1 className="font-spooky text-4xl tracking-wide">
                 Tabs, without a trace on your side.
               </h1>
               <p className="text-base leading-relaxed text-mist">

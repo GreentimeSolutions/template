@@ -66,7 +66,7 @@ export function RcstClaim() {
 
   return (
     <section id="rcst-claim" className="rounded-panel border border-line bg-panel p-4 sm:p-5">
-      <p className="font-display text-lg text-ink">Quote-cast the launch, get 1111 $RCST</p>
+      <p className="font-spooky text-xl tracking-wide text-ink">Quote-cast the launch, get 1111 $RCST</p>
       <p className="mt-1 text-sm leading-relaxed text-mist">
         Quote the Youcognito launch cast, paste your quote's link, and claim 1,111 Recast on Base. One claim per Farcaster account.
       </p>

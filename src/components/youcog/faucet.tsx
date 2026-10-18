@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { claimFaucet } from "@/lib/youcog/youcog.functions";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { shareToFarcaster, streakText } from "@/lib/youcog/share";
+import { HauntedButtonFrame, celebrate } from "@/components/youcog/halloween";
 
 async function connectedBaseAddress(): Promise<string | null> {
   const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -45,6 +46,11 @@ export function Faucet() {
   }, [fc]);
 
   const recipient = fc && walletAddr && !useOther ? walletAddr : address.trim();
+
+  // Cosmetic only: ghosts and bats after a real successful claim.
+  useEffect(() => {
+    if (msg?.kind === "ok") celebrate();
+  }, [msg]);
   const [streak, setStreak] = useState<Streak | null>(null);
 
   async function loadStreak() {
@@ -121,7 +127,7 @@ export function Faucet() {
   return (
     <section className="rounded-panel border border-line bg-panel p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-display text-lg text-ink">YOUCOG faucet</p>
+        <p className="font-spooky text-xl tracking-wide text-ink">YOUCOG faucet</p>
         <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
       </div>
       <div className="mt-1 flex justify-end">
@@ -219,6 +225,7 @@ export function Faucet() {
             </button>
           ))}
         </div>
+        <HauntedButtonFrame>
         <button
           type="submit"
           disabled={busy || !recipient}
@@ -228,6 +235,7 @@ export function Faucet() {
             ? "Sending…"
             : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG`}
         </button>
+        </HauntedButtonFrame>
       </form>
       {msg ? (
         <p

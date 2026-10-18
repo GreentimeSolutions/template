@@ -38,7 +38,7 @@ export function Leaderboard() {
   return (
     <section id="leaderboard" className="rounded-panel border border-line bg-panel p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-display text-lg text-ink">Leaderboard</p>
+        <p className="font-spooky text-xl tracking-wide text-ink">Leaderboard</p>
         <div className="flex gap-1 text-xs" role="tablist">
           {(["claimers", "tippers"] as const).map((t) => (
             <button
