@@ -158,7 +158,7 @@ export async function claimFromFaucet(input: {
   const ipHash = fid ? `fid:${fid}` : hashIp(input.ip);
 
   // Listen bonus: a server-verified full listen today (same identity) upgrades the claim.
-  const identity = listenIdentity(fid ? { fid } : { address, ipHash });
+  const identity = listenIdentity(fid ? { fid } : { address });
   const bonusListenId = identity ? await findBonusListen(sql, identity).catch(() => null) : null;
   let bonus = false;
 

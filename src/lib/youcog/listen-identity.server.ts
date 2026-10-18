@@ -1,6 +1,5 @@
 import { getAddress, isAddress } from "viem";
 import { domainFromRequest } from "@/lib/youcog/miniapp";
-import { hashIp } from "@/lib/youcog/faucet.server";
 import { listenIdentity } from "@/lib/youcog/listen-core";
 
 export const listenJson = (status: number, body: unknown) =>
@@ -27,8 +26,7 @@ export function requestIp(request: Request): string {
 
 /**
  * Who is listening, keyed exactly like the faucet keys claims: the verified
- * Farcaster FID (Quick Auth) in the Mini App, or the Base address plus the
- * hashed connection IP on the web.
+ * Farcaster FID (Quick Auth) in the Mini App, or the Base address on the web.
  */
 export async function resolveListenIdentity(
   request: Request,
@@ -56,7 +54,7 @@ export async function resolveListenIdentity(
     return { ok: false, status: 400, reason: "Enter your Base address first, then start the song." };
   }
   if (!ip) return { ok: false, status: 400, reason: "Couldn't verify your connection. Try again later." };
-  const identity = listenIdentity({ address: getAddress(address.trim()), ipHash: hashIp(ip) });
+  const identity = listenIdentity({ address: getAddress(address.trim()) });
   if (!identity) return { ok: false, status: 400, reason: "Couldn't identify this listen." };
   return { ok: true, identity, ip };
 }

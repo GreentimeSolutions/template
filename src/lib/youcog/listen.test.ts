@@ -37,10 +37,10 @@ test("pickClaimAmount switches to the bonus only when eligible and the faucet ca
   assert.equal(Math.floor((39_800_000 - LISTEN_MIN_FAUCET_BALANCE) / LISTEN_BONUS_AMOUNT), 378);
 });
 
-test("listenIdentity keys like the faucet (fid, or address + ip hash)", () => {
+test("listenIdentity keys on fid, or the Base address on the web", () => {
   assert.equal(listenIdentity({ fid: 42 }), "fid:42");
-  assert.equal(listenIdentity({ address: "0xAbC", ipHash: "h" }), "web:0xabc:h");
-  assert.equal(listenIdentity({ address: "0xabc" }), null);
+  assert.equal(listenIdentity({ address: "0xAbC" }), "web:0xabc");
+  assert.equal(listenIdentity({}), null);
 });
 
 async function db(): Promise<ListenSql> {
@@ -90,7 +90,7 @@ test("server flow: early finish rejected, valid finish accepted, bonus used once
 test("one listen session at a time per identity", async () => {
   const sql = await db();
   const t0 = Date.parse("2026-10-18T15:00:00Z");
-  const who = "web:0xabc:hash";
+  const who = "web:0xabc";
   const a = await startListen(sql, who, "local", t0);
   const b = await startListen(sql, who, "local", t0 + 1000);
   assert.ok(a.ok && b.ok);

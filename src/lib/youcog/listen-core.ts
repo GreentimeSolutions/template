@@ -43,9 +43,13 @@ export function pickClaimAmount(input: {
   return { amount: normal, bonus: false };
 }
 
-/** Identity key, matching what the faucet keys claims on. */
-export function listenIdentity(who: { fid?: number; address?: string; ipHash?: string }): string | null {
+/**
+ * Identity key: the verified Farcaster FID in the Mini App, or the Base address
+ * on the web. (Not the IP: phones switch IPs mid-song. The faucet's own
+ * one-claim-per-address-and-IP-per-day rule still applies at claim time.)
+ */
+export function listenIdentity(who: { fid?: number; address?: string }): string | null {
   if (who.fid && Number.isSafeInteger(who.fid) && who.fid > 0) return `fid:${who.fid}`;
-  if (who.address && who.ipHash) return `web:${who.address.toLowerCase()}:${who.ipHash}`;
+  if (who.address) return `web:${who.address.toLowerCase()}`;
   return null;
 }
