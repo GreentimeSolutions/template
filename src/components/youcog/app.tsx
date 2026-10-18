@@ -9,6 +9,7 @@ import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { GameCard } from "@/components/youcog/game-card";
+import { MediaRow, TopBanner } from "@/components/youcog/top-banner";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 import {
@@ -440,6 +441,8 @@ export function YoucogApp() {
       <HauntedBackdrop />
       <ClaimCelebration />
       <BurnStatic />
+      <TopBanner />
+      {tabs.length === 0 ? <MediaRow /> : null}
       <header className="flex shrink-0 items-center gap-3 border-b border-line bg-canvas/85 px-4 py-3">
         <SealMark vanishing={vanishing} />
         <div className="min-w-0">

@@ -447,3 +447,106 @@
     transform: translateY(2px);
   }
 }
+
+/* Top banner + media row */
+.top-banner {
+  position: relative;
+  background:
+    radial-gradient(60% 140% at 12% 50%, rgb(124 58 237 / 0.35), transparent 70%),
+    linear-gradient(90deg, #2a0d4a, #1f0c38 60%, #1a0b2e);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.banner-ghost {
+  position: relative;
+  display: block;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgb(196 181 253 / 0.45));
+  animation: banner-bob 3.2s ease-in-out infinite, banner-peek 11s ease-in-out infinite;
+}
+
+.banner-ghost-wink {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: banner-wink 7s ease-in-out infinite;
+}
+
+.banner-ghost-hat {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: banner-tip 11s ease-in-out infinite;
+}
+
+@keyframes banner-bob {
+  0%, 100% { translate: 0 1px; }
+  50% { translate: 0 -3px; }
+}
+
+@keyframes banner-peek {
+  0%, 70%, 100% { rotate: 0deg; }
+  75% { rotate: -14deg; }
+  80% { rotate: -12deg; }
+  86% { rotate: 0deg; }
+}
+
+@keyframes banner-wink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  91%, 94% { transform: scaleY(0.15); }
+}
+
+@keyframes banner-tip {
+  0%, 74%, 88%, 100% { transform: none; }
+  78%, 84% { transform: translateY(-1.2px) rotate(-6deg); }
+}
+
+.media-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 1rem;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  border-bottom: 1px solid var(--color-line);
+  background: rgb(26 11 46 / 0.85);
+}
+
+.media-row::-webkit-scrollbar {
+  display: none;
+}
+
+.media-tile {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 10.5rem;
+  max-width: 13rem;
+  height: 3.5rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.4rem;
+  scroll-snap-align: start;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-panel);
+  background: linear-gradient(180deg, rgb(59 20 102 / 0.75), rgb(42 16 72 / 0.75));
+  box-shadow: inset 0 0 12px rgb(124 58 237 / 0.18);
+}
+
+.media-thumb {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 0.6rem;
+  object-fit: cover;
+  background: #2e1065;
+  box-shadow: 0 0 12px rgb(167 139 250 / 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-ghost,
+  .banner-ghost-wink,
+  .banner-ghost-hat {
+    animation: none;
+  }
+}
