@@ -267,7 +267,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
 
   const slides = useMemo<Slide[]>(() => {
     const tips: Slide[] = [
-      { kind: "tip", text: "Hold 10M YOUCOG to unlock Deep Mission.", target: "deep" },
+      { kind: "tip", text: "Hold 10M YOUCOG (about $1) to unlock Deep Mission.", target: "deep" },
       { kind: "tip", text: "Claim your free daily YOUCOG.", target: "faucet" },
       { kind: "tip", text: "Listen to the full Youcognito Theme to boost today's claim to 100,000 YOUCOG.", target: "faucet" },
       { kind: "tip", text: "Play Youcognito Run.", target: "game" },

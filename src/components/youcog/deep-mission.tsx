@@ -131,7 +131,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
             </p>
           ) : null}
           <div className="grid grid-cols-2 gap-2">
-            <BuyYoucogButton className="inline-flex h-11 items-center justify-center rounded-seal bg-accent px-3 text-sm font-medium text-accent-fg" />
+            <BuyYoucogButton className="inline-flex min-h-11 items-center justify-center rounded-seal bg-accent px-3 py-1.5 text-center text-sm leading-tight text-balance font-medium text-accent-fg" />
             {fc ? (
               <button type="button" onClick={() => void refresh()} className="press h-11 rounded-seal border border-line text-sm text-ink">
                 Re-check
