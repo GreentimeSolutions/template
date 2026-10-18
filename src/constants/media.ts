@@ -19,7 +19,14 @@ export const SOUNDTRACK_VOLUME = 0.35;
  * public/ (e.g. "/youtube-short.webp") or an https image URL.
  */
 export const YOUTUBE_SHORT = {
-  url: "",
-  thumb: "",
+  url: "https://youtube.com/shorts/YxUk8b6K9-E",
+  /** Square thumb (256px). */
+  thumb: "/youtube-short.webp",
+  /** Tall thumb used by the home grid, where the Short spans two rows. */
+  thumbTall: "/youtube-short-tall.webp",
   title: "Watch the Short",
 };
+
+/** Small square thumbs for the home grid. */
+export const DEEP_MISSION_THUMB = "/deep-mission-thumb.webp";
+export const FAUCET_THUMB = "/faucet-thumb.webp";

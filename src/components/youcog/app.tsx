@@ -9,7 +9,8 @@ import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { GameCard } from "@/components/youcog/game-card";
-import { MediaRow, TopBanner } from "@/components/youcog/top-banner";
+import { TopBanner } from "@/components/youcog/top-banner";
+import { GhostStage, OPEN_FAUCET_EVENT, findTarget } from "@/components/youcog/ghost-stage";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
 import {
@@ -91,11 +92,7 @@ const BANKR_CA = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 function YoucogIntro({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex flex-col gap-4">
-      <img
-        src="/youcog-mark.png"
-        alt="Youcog in a hat, glasses, and trench coat"
-        className={`${compact ? "h-36 w-36" : "h-52 w-52"} rounded-2xl object-contain shadow-[0_0_36px_rgba(196,181,253,0.28)]`}
-      />
+      <GhostStage compact={compact} />
       <p className="max-w-sm text-base leading-relaxed text-ink">
         Youcog opens sealed tabs for the question you give it. The sites never see your browser, and the session stays in memory until you burn it.
       </p>
@@ -143,8 +140,12 @@ function Welcome() {
         </li>
       </ul>
       <div className="hidden flex-col gap-4 lg:flex">
-        <Faucet />
-        <RcstClaim />
+        <div data-tip-target="faucet">
+          <Faucet />
+        </div>
+        <div data-tip-target="rcst">
+          <RcstClaim />
+        </div>
         <GameCard />
         <Leaderboard />
         <Donate />
@@ -396,6 +397,20 @@ export function YoucogApp() {
   const [addressError, setAddressError] = useState<string | null>(null);
   const [vanishing, setVanishing] = useState(false);
 
+  // Faucet tile / bubble tip: open the sidebar faucet and scroll to it (UI only).
+  useEffect(() => {
+    function onOpenFaucet() {
+      setFaucetOpen(true);
+      window.setTimeout(() => {
+        const el = document.getElementById("sidebar-faucet");
+        const target = el && el.getClientRects().length > 0 ? el : findTarget("faucet");
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 60);
+    }
+    window.addEventListener(OPEN_FAUCET_EVENT, onOpenFaucet);
+    return () => window.removeEventListener(OPEN_FAUCET_EVENT, onOpenFaucet);
+  }, []);
+
   useEffect(() => {
     if (!vanishing) return;
     const id = window.setTimeout(() => setVanishing(false), 1400);
@@ -442,7 +457,6 @@ export function YoucogApp() {
       <ClaimCelebration />
       <BurnStatic />
       <TopBanner />
-      {tabs.length === 0 ? <MediaRow /> : null}
       <header className="flex shrink-0 items-center gap-3 border-b border-line bg-canvas/85 px-4 py-3">
         <SealMark vanishing={vanishing} />
         <div className="min-w-0">
@@ -459,6 +473,7 @@ export function YoucogApp() {
           </span>
           <button
             type="button"
+            data-tip-target="burn"
             className={`press inline-flex h-11 items-center rounded-seal px-3 text-sm font-medium ${
               armed ? "bg-danger text-danger-fg" : "border border-line text-danger"
             }`}
@@ -597,6 +612,7 @@ export function YoucogApp() {
                 type="button"
                 aria-expanded={faucetOpen}
                 aria-controls="sidebar-faucet"
+                data-tip-target="faucet"
                 className="press flex items-center justify-between gap-2 rounded-seal border border-accent bg-accent/10 px-3 py-3 text-left text-sm font-medium leading-snug text-ink"
                 onClick={() => {
                   const next = !faucetOpen;
@@ -639,7 +655,9 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
-          <RcstClaim />
+          <div data-tip-target="rcst">
+            <RcstClaim />
+          </div>
           <GameCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />

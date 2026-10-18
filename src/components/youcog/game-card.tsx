@@ -1,13 +1,12 @@
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
-
-const GAME_URL = "https://remix.gg/g/youcognito-run";
+import { GAME_URL } from "@/constants/media";
 
 /** Promo card for the Youcognito Run minigame on Remix. Cosmetic/additive only. */
 export function GameCard() {
   const miniApp = useMiniApp();
 
   return (
-    <section className="rounded-panel border border-line bg-panel p-4 sm:p-5" data-testid="game-card">
+    <section className="rounded-panel border border-line bg-panel p-4 sm:p-5" data-testid="game-card" data-tip-target="game">
       <p className="font-spooky text-xl tracking-wide text-ink">Play Youcognito Run</p>
       <div className="mt-3 flex items-center gap-4">
         <img

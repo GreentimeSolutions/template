@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
+import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
 import { Route as ApiHolderRouteImport } from './routes/api/holder'
@@ -41,6 +42,11 @@ const DotwellKnownFarcasterDotjsonRoute =
     path: '/.well-known/farcaster.json',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiBuysRoute = ApiBuysRouteImport.update({
+  id: '/api/buys',
+  path: '/api/buys',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeepMissionRoute = ApiDeepMissionRouteImport.update({
   id: '/api/deep-mission',
   path: '/api/deep-mission',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/stats': typeof StatsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/buys'
     | '/api/deep-mission'
     | '/api/fid-claim'
     | '/api/holder'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/buys'
     | '/api/deep-mission'
     | '/api/fid-claim'
     | '/api/holder'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/'
     | '/stats'
     | '/.well-known/farcaster.json'
+    | '/api/buys'
     | '/api/deep-mission'
     | '/api/fid-claim'
     | '/api/holder'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   StatsRoute: typeof StatsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
+  ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
   ApiHolderRoute: typeof ApiHolderRoute
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       path: '/.well-known/farcaster.json'
       fullPath: '/.well-known/farcaster.json'
       preLoaderRoute: typeof DotwellKnownFarcasterDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/buys': {
+      id: '/api/buys'
+      path: '/api/buys'
+      fullPath: '/api/buys'
+      preLoaderRoute: typeof ApiBuysRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/deep-mission': {
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   StatsRoute: StatsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
+  ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
   ApiHolderRoute: ApiHolderRoute,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type MiniAppUser = { fid: number; username?: string; displayName?: string };
+export type MiniAppUser = { fid: number; username?: string; displayName?: string; pfpUrl?: string };
 export type MiniAppState = { checked: boolean; inMiniApp: boolean; user: MiniAppUser | null };
 
 let state: MiniAppState = { checked: false, inMiniApp: false, user: null };
@@ -17,7 +17,7 @@ async function detect() {
     if (inMiniApp) {
       try {
         const ctx = await sdk.context;
-        if (ctx?.user?.fid) user = { fid: ctx.user.fid, username: ctx.user.username, displayName: ctx.user.displayName };
+        if (ctx?.user?.fid) user = { fid: ctx.user.fid, username: ctx.user.username, displayName: ctx.user.displayName, pfpUrl: ctx.user.pfpUrl };
       } catch {
         /* context optional */
       }
