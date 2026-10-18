@@ -529,7 +529,7 @@ export function YoucogApp() {
         className={
           tabs.length > 0
             ? "min-h-0 flex-1 overflow-y-auto"
-            : "grid min-h-0 flex-1 overflow-y-auto lg:grid-cols-4 lg:grid-rows-1 lg:overflow-hidden"
+            : "grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-y-auto lg:grid-cols-4 lg:grid-rows-1 lg:overflow-hidden"
         }
       >
         <section
