@@ -8,8 +8,8 @@
 /** Claim amount after a verified full listen (flat; the streak multiplier is not applied on top). */
 export const LISTEN_BONUS_AMOUNT = 100_000;
 
-/** Song length in seconds. Current file public/audio/youcog-theme.mp3 is 33.28s. Remix ~200s, full theme ~252s. */
-export const LISTEN_SONG_SECONDS = 33;
+/** Song length in seconds (whole seconds, rounded down). Current file public/audio/youcog-theme-remix.mp3 is 200.14s. */
+export const LISTEN_SONG_SECONDS = 200;
 
 /** Allowed early finish (network/latency slack) in seconds. */
 export const LISTEN_TOLERANCE_SECONDS = 3;
@@ -23,7 +23,7 @@ export const LISTEN_MAX_STARTS_PER_DAY = 30;
 /** If the faucet wallet holds less than this many YOUCOG, bonus claims fall back to the base amount. */
 export const LISTEN_MIN_FAUCET_BALANCE = 2_000_000;
 
-export const LISTEN_TRACK_TITLE = "Youcognito Theme";
+export const LISTEN_TRACK_TITLE = "Youcognito Theme (Remix)";
 
 /**
  * Published SoundCloud track URL (e.g. "https://soundcloud.com/youcognito/youcognito-theme").

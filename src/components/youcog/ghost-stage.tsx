@@ -1,3 +1,4 @@
+import { LISTEN_TRACK_TITLE } from "@/constants/listen";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { Pause, Pencil, Play } from "lucide-react";
 import {
@@ -269,7 +270,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
     const tips: Slide[] = [
       { kind: "tip", text: "Hold 10M YOUCOG (about $1) to unlock Deep Mission.", target: "deep" },
       { kind: "tip", text: "Claim your free daily YOUCOG.", target: "faucet" },
-      { kind: "tip", text: "Listen to the full Youcognito Theme to boost today's claim to 100,000 YOUCOG.", target: "faucet" },
+      { kind: "tip", text: `Listen to the full ${LISTEN_TRACK_TITLE} to boost today's claim to 100,000 YOUCOG.`, target: "faucet" },
       { kind: "tip", text: "Play Youcognito Run.", target: "game" },
     ];
     if (YOUTUBE_SHORT.url) tips.push({ kind: "tip", text: "Watch the Youcognito Short.", target: "short" });
