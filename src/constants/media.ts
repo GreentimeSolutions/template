@@ -7,7 +7,7 @@ export const GAME_URL = "https://remix.gg/g/youcognito-run";
 export const GAME_THUMB = "/youcognito-run.webp";
 
 /**
- * Background soundtrack. Drop the song at public/audio/youcog-theme.mp3 (or change
+ * Background soundtrack (public/audio/youcog-theme.mp3, our own theremin track). To swap it, replace that file (or change
  * this path). If the file is missing or fails to load, the tile hides itself.
  */
 export const SOUNDTRACK_SRC = "/audio/youcog-theme.mp3";
