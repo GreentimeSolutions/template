@@ -228,6 +228,7 @@
 /* Header ghost: moon glow and jack-o'-lantern. */
 .haunt-mark {
   position: relative;
+  isolation: isolate;
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
