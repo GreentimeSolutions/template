@@ -102,7 +102,7 @@ function StatsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex justify-between text-[10px] text-faint">
+            <div className="mt-1 flex justify-between text-xs text-faint">
               <span>{s.daily[0]?.day.slice(5)}</span>
               <span>{s.daily.at(-1)?.day.slice(5)}</span>
             </div>

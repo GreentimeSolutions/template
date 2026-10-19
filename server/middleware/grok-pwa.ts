@@ -25,7 +25,9 @@ import {
   renderWebManifest,
 } from "../../scripts/grok-pwa-shared.mjs";
 
-const OWN_SHARE_CARD = new Set(["/stats"]);
+// Home and the trust pages ship their own og:url / og:description / canonical (the platform rewrite strips og:url and
+// had no og:image on the home page), so they skip the rewrite like /stats.
+const OWN_SHARE_CARD = new Set(["", "/stats", "/privacy", "/terms"]);
 
 interface GrokPwaEvent {
   url: URL;

@@ -14,6 +14,8 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: SITE_DESCRIPTION },
       { property: "og:url", content: `${APP_URL}/` },
       { property: "og:image", content: `${APP_URL}/og.jpg` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Youcognito" },
       { name: "twitter:title", content: "Youcognito · Private AI research on Base" },

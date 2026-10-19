@@ -16,6 +16,8 @@ export const Route = createRootRoute({
       { property: "og:site_name", content: APP_NAME },
       { property: "og:type", content: "website" },
       { name: "theme-color", content: "#1a0b2e" },
+      { name: "apple-mobile-web-app-title", content: APP_NAME },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },

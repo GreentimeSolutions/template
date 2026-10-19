@@ -16,6 +16,7 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:url", content: `${APP_URL}/privacy` },
       { property: "og:image", content: `${APP_URL}/og.jpg` },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: `${APP_URL}/og.jpg` },
     ],
     links: [{ rel: "canonical", href: `${APP_URL}/privacy` }],
   }),
