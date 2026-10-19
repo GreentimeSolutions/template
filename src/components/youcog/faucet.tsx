@@ -8,14 +8,15 @@ import { HauntedButtonFrame, celebrate } from "@/components/youcog/halloween";
 import { ListenBoost } from "@/components/youcog/listen-boost";
 import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
+import { FAUCET_AMOUNTS } from "@/constants/faucet";
 
-const AMOUNTS = [420, 1111, 6969] as const;
+const AMOUNTS = FAUCET_AMOUNTS;
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number };
 type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number };
 
 export function Faucet() {
   const [address, setAddress] = useState("");
-  const [amount, setAmount] = useState<(typeof AMOUNTS)[number]>(420);
+  const [amount, setAmount] = useState<(typeof AMOUNTS)[number]>(AMOUNTS[0]);
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg | null>(null);

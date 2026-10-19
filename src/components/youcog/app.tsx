@@ -15,6 +15,7 @@ import { TopBanner } from "@/components/youcog/top-banner";
 import { GhostStage, OPEN_FAUCET_EVENT, findTarget } from "@/components/youcog/ghost-stage";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
+import { FAUCET_AMOUNTS_LABEL } from "@/constants/faucet";
 import {
   BurnStatic,
   ClaimCelebration,
@@ -629,8 +630,8 @@ export function YoucogApp() {
               >
                 <span>
                   {miniApp.inMiniApp && miniApp.user
-                    ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`} (420 / 1,111 / 6,969 daily)`
-                    : "Daily YOUCOG faucet (420 / 1,111 / 6,969)"}
+                    ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`} (${FAUCET_AMOUNTS_LABEL} daily)`
+                    : `Daily YOUCOG faucet (${FAUCET_AMOUNTS_LABEL})`}
                 </span>
                 <span aria-hidden className="text-accent">{faucetOpen ? "−" : "+"}</span>
               </button>

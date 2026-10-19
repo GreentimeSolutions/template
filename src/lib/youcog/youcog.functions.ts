@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader, setResponseHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
 
 const missionSchema = z.object({
   mission: z.string().trim().min(2).max(400),
@@ -62,7 +63,7 @@ export const readSealedPage = createServerFn({ method: "POST" })
 
 const claimSchema = z.object({
   address: z.string().trim().min(1).max(100),
-  amount: z.union([z.literal(420), z.literal(1111), z.literal(6969)]),
+  amount: z.number().int().refine((n) => normalizeClaimAmount(n) != null),
   website: z.string().max(200).optional(), // honeypot: humans never fill this
 });
 
@@ -74,7 +75,7 @@ function clientIp(): string {
 export const claimFaucet = createServerFn({ method: "POST" })
   .validator((input: unknown) => {
     const parsed = claimSchema.safeParse(input);
-    if (!parsed.success) throw new Error("Pick 420, 1111, or 6969 YOUCOG and enter a Base address.");
+    if (!parsed.success) throw new Error(`${FAUCET_PICK_MESSAGE} and enter a Base address.`);
     return parsed.data;
   })
   .handler(async ({ data }) => {

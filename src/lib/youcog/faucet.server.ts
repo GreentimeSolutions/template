@@ -17,10 +17,11 @@ import { base } from "viem/chains";
 import { dbSource, getSql } from "@/lib/db";
 import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE } from "@/constants/listen";
 import { listenIdentity, pickClaimAmount } from "@/lib/youcog/listen-core";
+import { FAUCET_AMOUNTS, FAUCET_DAILY_TOKEN_BUDGET_DEFAULT, FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
 import { findBonusListen, releaseBonusListen, claimBonusListen } from "@/lib/youcog/listen.server";
 
 export const TOKEN = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3" as const;
-export const AMOUNTS = [420, 1111, 6969] as const;
+export const AMOUNTS = FAUCET_AMOUNTS;
 const MIN_GAS_WEI = parseEther("0.000002");
 const ERC20 = parseAbi([
   "function transfer(address to, uint256 amount) returns (bool)",
@@ -50,7 +51,8 @@ function dailyCap(): number {
 
 function dailyTokenBudget(): number {
   const n = Number(process.env.FAUCET_DAILY_TOKEN_BUDGET);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 250000;
+  // Doubled on 2026-10-19 with the claim tiers (was 250,000).
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : FAUCET_DAILY_TOKEN_BUDGET_DEFAULT;
 }
 
 /** Streak bonus: day 3+ = 1.25x, day 7+ = 1.5x (capped at 1.5x). */
@@ -150,9 +152,9 @@ export async function claimFromFaucet(input: {
   /** Verified Farcaster FID (Quick Auth). When set, the per-FID limit replaces the per-IP limit. */
   fid?: number;
 }): Promise<ClaimResult> {
-  if (!(AMOUNTS as readonly number[]).includes(input.amount)) {
-    return refuse("Pick 420, 1111, or 6969 YOUCOG.");
-  }
+  const tier = normalizeClaimAmount(input.amount);
+  if (tier == null) return refuse(`${FAUCET_PICK_MESSAGE}.`);
+  input = { ...input, amount: tier };
   if (!isAddress(input.address.trim(), { strict: false })) {
     return refuse("That isn't a valid Base address. It should start with 0x and be 42 characters.");
   }

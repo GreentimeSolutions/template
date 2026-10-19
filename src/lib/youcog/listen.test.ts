@@ -6,6 +6,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { checkFinish, listenIdentity, pickClaimAmount } from "./listen-core";
 import { findBonusListen, finishListen, listenStatus, startListen, claimBonusListen, type ListenSql } from "./listen.server";
 import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE, LISTEN_SONG_SECONDS, LISTEN_TOLERANCE_SECONDS } from "../../constants/listen";
+import { FAUCET_AMOUNTS, normalizeClaimAmount } from "../../constants/faucet";
 
 const SONG = LISTEN_SONG_SECONDS;
 const TOL = LISTEN_TOLERANCE_SECONDS;
@@ -26,13 +27,13 @@ test("checkFinish rejects a stale session", () => {
 });
 
 test("pickClaimAmount switches to the bonus only when eligible and the faucet can afford it", () => {
-  const base = { baseAmount: 6969, multiplier: 1, bonusAmount: LISTEN_BONUS_AMOUNT, minFaucetBalanceTokens: LISTEN_MIN_FAUCET_BALANCE };
-  assert.deepEqual(pickClaimAmount({ ...base, bonusEligible: false, faucetBalanceTokens: 39_800_000 }), { amount: 6969, bonus: false });
+  const base = { baseAmount: 13938, multiplier: 1, bonusAmount: LISTEN_BONUS_AMOUNT, minFaucetBalanceTokens: LISTEN_MIN_FAUCET_BALANCE };
+  assert.deepEqual(pickClaimAmount({ ...base, bonusEligible: false, faucetBalanceTokens: 39_800_000 }), { amount: 13938, bonus: false });
   assert.deepEqual(pickClaimAmount({ ...base, bonusEligible: true, faucetBalanceTokens: 39_800_000 }), { amount: 100_000, bonus: true });
   // Safety cap: under 2M left after paying, fall back to the base amount.
-  assert.deepEqual(pickClaimAmount({ ...base, bonusEligible: true, faucetBalanceTokens: 2_050_000 }), { amount: 6969, bonus: false });
+  assert.deepEqual(pickClaimAmount({ ...base, bonusEligible: true, faucetBalanceTokens: 2_050_000 }), { amount: 13938, bonus: false });
   // Streak multiplier still applies to normal claims.
-  assert.deepEqual(pickClaimAmount({ ...base, multiplier: 1.5, bonusEligible: false, faucetBalanceTokens: 39_800_000 }), { amount: 10454, bonus: false });
+  assert.deepEqual(pickClaimAmount({ ...base, multiplier: 1.5, bonusEligible: false, faucetBalanceTokens: 39_800_000 }), { amount: 20907, bonus: false });
   // 39.8M balance covers ~378 bonus claims before the 2M floor.
   assert.equal(Math.floor((39_800_000 - LISTEN_MIN_FAUCET_BALANCE) / LISTEN_BONUS_AMOUNT), 378);
 });
@@ -100,4 +101,14 @@ test("one listen session at a time per identity", async () => {
   assert.equal(oldFinish.ok, false);
   const active = await sql<{ n: number }>`select count(*)::int as n from listen_sessions where identity = ${who} and status = 'started'`;
   assert.equal(Number(active[0].n), 1);
+});
+
+test("faucet tiers are doubled and legacy tiers map to the doubled amount", () => {
+  assert.deepEqual([...FAUCET_AMOUNTS], [840, 2222, 13938]);
+  assert.equal(normalizeClaimAmount(840), 840);
+  assert.equal(normalizeClaimAmount(420), 840);
+  assert.equal(normalizeClaimAmount(1111), 2222);
+  assert.equal(normalizeClaimAmount(6969), 13938);
+  assert.equal(normalizeClaimAmount(100_000), null);
+  assert.equal(normalizeClaimAmount(5), null);
 });

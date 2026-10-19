@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
 import { domainFromRequest } from "@/lib/youcog/miniapp";
 
 const bodySchema = z.object({
   address: z.string().trim().min(1).max(100),
-  amount: z.union([z.literal(420), z.literal(1111), z.literal(6969)]),
+  amount: z.number().int().refine((n) => normalizeClaimAmount(n) != null),
 });
 
 const json = (status: number, body: unknown) =>
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/api/fid-claim")({
         let body: z.infer<typeof bodySchema>;
         try {
           const parsed = bodySchema.safeParse(await request.json());
-          if (!parsed.success) return json(400, { ok: false, reason: "Pick 420, 1111, or 6969 YOUCOG and a Base address." });
+          if (!parsed.success) return json(400, { ok: false, reason: `${FAUCET_PICK_MESSAGE} and a Base address.` });
           body = parsed.data;
         } catch {
           return json(400, { ok: false, reason: "Bad request." });
