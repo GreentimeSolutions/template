@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
@@ -34,9 +36,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownFarcasterDotjsonRoute =
@@ -128,7 +140,9 @@ const ApiListenStatusRoute = ApiListenStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -149,7 +163,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -171,7 +187,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
+  '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -194,7 +212,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
     | '/stats'
+    | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -215,7 +235,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/stats'
+    | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -236,7 +258,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/privacy'
     | '/stats'
+    | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -258,7 +282,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrivacyRoute: typeof PrivacyRoute
   StatsRoute: typeof StatsRoute
+  TermsRoute: typeof TermsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
@@ -287,11 +313,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stats': {
       id: '/stats'
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/farcaster.json': {
@@ -418,7 +458,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrivacyRoute: PrivacyRoute,
   StatsRoute: StatsRoute,
+  TermsRoute: TermsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,

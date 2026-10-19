@@ -28,7 +28,7 @@ export function RcstClaim() {
   }, [fc]);
 
   async function quote() {
-    const text = "Quote-casting the Youcognito launch on /recast. Free $YOUCOG daily + 1111 $RCST for quoting:";
+    const text = "Quote-casting the Youcognito launch on /recast. Daily $YOUCOG faucet + 1111 $RCST for quoting:";
     if (fc) {
       const { sdk } = await import("@farcaster/miniapp-sdk");
       await sdk.actions.composeCast({ text, embeds: [LAUNCH_URL, APP_URL], channelKey: "recast" }).catch(() => undefined);

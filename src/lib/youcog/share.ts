@@ -2,8 +2,8 @@ import { APP_URL } from "@/lib/youcog/miniapp";
 
 export function streakText(streak: number) {
   return streak > 1
-    ? `I'm on a ${streak}-day $YOUCOG streak on Youcognito. Claim free YOUCOG on Base daily:`
-    : `I just claimed free $YOUCOG on Base with Youcognito. Start your streak:`;
+    ? `I'm on a ${streak}-day $YOUCOG streak on Youcognito. Private AI research + a daily YOUCOG faucet on Base:`
+    : `I just claimed my daily $YOUCOG on Youcognito. Start your streak:`;
 }
 
 /** Compose a cast: Mini App SDK inside Farcaster/Base app, Farcaster web composer otherwise. */

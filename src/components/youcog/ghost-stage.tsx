@@ -269,7 +269,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
   const slides = useMemo<Slide[]>(() => {
     const tips: Slide[] = [
       { kind: "tip", text: "Hold 10M YOUCOG (about $1) to unlock Deep Mission.", target: "deep" },
-      { kind: "tip", text: "Claim your free daily YOUCOG.", target: "faucet" },
+      { kind: "tip", text: "Check in at the daily YOUCOG faucet.", target: "faucet" },
       { kind: "tip", text: `Listen to the full ${LISTEN_TRACK_TITLE} to boost today's claim to 100,000 YOUCOG.`, target: "faucet" },
       { kind: "tip", text: "Play Youcognito Run.", target: "game" },
     ];
@@ -400,7 +400,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             target="faucet"
             thumb={FAUCET_THUMB}
             label="Faucet"
-            ariaLabel="Claim free YOUCOG"
+            ariaLabel="Open the daily YOUCOG faucet"
             onClick={() => goTo("faucet", miniApp.inMiniApp)}
           />
           {YOUTUBE_SHORT.url ? (

@@ -18,7 +18,7 @@ export const miniAppEmbed = {
   version: "1",
   imageUrl: `${APP_URL}/miniapp-embed.png`,
   button: {
-    title: "Claim free YOUCOG",
+    title: "Open Youcognito",
     action: {
       type: "launch_frame",
       name: "Youcognito",

@@ -142,7 +142,7 @@ export function Faucet() {
   return (
     <section ref={sectionRef} className="rounded-panel border border-line bg-panel p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-spooky text-xl tracking-wide text-ink">YOUCOG faucet</p>
+        <p className="font-spooky text-xl tracking-wide text-ink">Daily YOUCOG faucet</p>
         <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
       </div>
       <div className="mt-1 flex justify-end">
@@ -150,8 +150,8 @@ export function Faucet() {
       </div>
       <p className="mt-1 text-sm leading-relaxed text-mist">
         {fc
-          ? `Claim free YOUCOG on Base once per day${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
-          : "Claim free YOUCOG on Base once per day. One claim per address and per connection."}
+          ? `Claim YOUCOG on Base once per day${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
+          : "Claim YOUCOG on Base once per day. One claim per address and per connection."}
       </p>
       <p className="mt-2 text-xs leading-relaxed text-mist">
         Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Missing a day resets.

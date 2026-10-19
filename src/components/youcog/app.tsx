@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { readSealedPage, runMission } from "@/lib/youcog/youcog.functions";
 import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
+import { SiteFooter } from "@/components/youcog/site-footer";
 import { Donate } from "@/components/youcog/donate";
 import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
@@ -118,10 +119,10 @@ function Welcome() {
       <div className="flex flex-col gap-4">
         <p className="font-spooky text-2xl tracking-wide text-violet-200">YOUCOGNITO</p>
         <h1 className="max-w-xl font-spooky text-4xl tracking-wide text-ink sm:text-5xl">
-          Tabs, without a trace on your side.
+          Private AI research, without a trace.
         </h1>
         <p className="max-w-xl text-base leading-relaxed text-mist">
-          Youcog opens sealed tabs for a question you give it. The sites never see your browser. This
+          Ask Youcog a question. It reads the web for you in sealed tabs, so the sites never see your browser, and the
           session lives only in memory.
         </p>
       </div>
@@ -560,10 +561,10 @@ export function YoucogApp() {
               <YoucogIntro compact />
               <p className="font-spooky text-3xl tracking-wide text-violet-200">YOUCOGNITO</p>
               <h1 className="font-spooky text-4xl tracking-wide">
-                Tabs, without a trace on your side.
+                Private AI research, without a trace.
               </h1>
               <p className="text-base leading-relaxed text-mist">
-                Youcog opens sealed tabs for a question you give it. The sites never see your browser.
+                Ask Youcog a question. It reads the web for you in sealed tabs, so the sites never see your browser.
               </p>
             </div>
           ) : null}
@@ -627,7 +628,7 @@ export function YoucogApp() {
                 <span>
                   {miniApp.inMiniApp && miniApp.user
                     ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`} (420 / 1,111 / 6,969 daily)`
-                    : "Claim free YOUCOG (420 / 1,111 / 6,969 daily)"}
+                    : "Daily YOUCOG faucet (420 / 1,111 / 6,969)"}
                 </span>
                 <span aria-hidden className="text-accent">{faucetOpen ? "−" : "+"}</span>
               </button>
@@ -722,6 +723,7 @@ export function YoucogApp() {
           ) : (
             <p className="px-1 text-sm text-faint">Nothing in this session is written to disk.</p>
           )}
+          <SiteFooter />
         </aside>
         ) : null}
       </div>

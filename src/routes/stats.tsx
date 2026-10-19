@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { APP_URL } from "@/lib/youcog/miniapp";
+import { SiteFooter } from "@/components/youcog/site-footer";
 
 type Stats = {
   updatedAt: string;
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/stats")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: `${APP_URL}/stats-og.png` },
     ],
+    links: [{ rel: "canonical", href: `${APP_URL}/stats` }],
   }),
   component: StatsPage,
 });
@@ -123,6 +125,7 @@ function StatsPage() {
           </section>
         </>
       )}
+      <SiteFooter className="mt-2" />
     </main>
   );
 }
