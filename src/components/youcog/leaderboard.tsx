@@ -65,7 +65,7 @@ export function Leaderboard() {
                 <Avatar src={c.pfp} />
                 <span className="min-w-0 flex-1 truncate text-ink">
                   {label(c)}
-                  {c.holder ? <span className="ml-1 rounded-seal border border-accent px-1 text-[10px] text-ink">Holder</span> : null}
+                  {c.holder ? <span className="ml-1 rounded-seal border border-accent px-1 text-xs text-ink">Holder</span> : null}
                 </span>
                 <span className="shrink-0 text-xs text-mist" title="current / longest streak">
                   🔥{c.currentStreak} · best {c.longestStreak}
