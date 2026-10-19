@@ -84,6 +84,11 @@ export async function listenPlayStarted(from: string) {
   }
 }
 
+/** True while a server listen session is open (starting, listening or verifying). */
+export function listenActive() {
+  return state.phase === "starting" || state.phase === "listening" || state.phase === "verifying";
+}
+
 export function listenProgress(playedSeconds: number) {
   if (state.phase !== "listening") return;
   set({ played: Math.min(playedSeconds, state.duration) });

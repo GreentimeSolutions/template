@@ -4,12 +4,13 @@ import { LISTEN_BONUS_AMOUNT, LISTEN_TRACK_TITLE, SOUNDCLOUD_TRACK_URL } from "@
 import {
   beginLocalListen,
   ensureLocalBridge,
+  listenActive,
   listenFullPlay,
   listenPlayStarted,
   listenProgress,
   useListen,
 } from "@/lib/youcog/listen-client";
-import { toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
+import { pauseSoundtrack, toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
 
 type ScWidget = {
   bind: (event: string, cb: (e?: { currentPosition?: number }) => void) => void;
@@ -43,7 +44,11 @@ function SoundCloudListen() {
       .then((SC) => {
         widget = SC.Widget(el);
         const E = SC.Widget.Events;
-        widget.bind(E.PLAY, () => void listenPlayStarted("soundcloud"));
+        widget.bind(E.PLAY, () => {
+          pauseSoundtrack(); // don't play the background mp3 over the embed
+          if (!listenActive()) played = 0; // a fresh session counts from this play
+          void listenPlayStarted("soundcloud");
+        });
         widget.bind(E.PLAY_PROGRESS, (e) => {
           const t = (e?.currentPosition ?? 0) / 1000;
           const d = t - last;
@@ -117,6 +122,9 @@ export function ListenBoost({ ready }: { ready: boolean }) {
       {usingSc && listen.phase !== "unlocked" && listen.phase !== "used" ? (
         <div className="mt-2">
           <SoundCloudListen />
+          {!ready && listen.phase === "idle" ? (
+            <p className="mt-1 text-xs text-mist">Enter your address first, then press play.</p>
+          ) : null}
         </div>
       ) : null}
 

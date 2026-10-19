@@ -114,6 +114,12 @@ function savePref(on: boolean) {
   }
 }
 
+/** Stop the background music (e.g. another player, like the SoundCloud embed, started). */
+export function pauseSoundtrack() {
+  wantOn = false;
+  audio?.pause();
+}
+
 export function toggleSoundtrack() {
   if (!state.available) return;
   const next = !state.playing;

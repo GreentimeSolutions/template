@@ -30,4 +30,4 @@ export const LISTEN_TRACK_TITLE = "Youcognito Theme (Remix)";
  * Empty = use the local mp3 player (SOUNDTRACK_SRC) instead. When set, the bonus
  * listen plays through the SoundCloud embed so it counts as real plays there.
  */
-export const SOUNDCLOUD_TRACK_URL = "";
+export const SOUNDCLOUD_TRACK_URL = "https://soundcloud.com/greentime1/youcognito-theme-remix";
