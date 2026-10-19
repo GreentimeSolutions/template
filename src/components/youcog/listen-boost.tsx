@@ -71,7 +71,7 @@ function SoundCloudListen() {
       for (const ev of ["play", "playProgress", "seek", "finish"]) widget.unbind(ev);
     };
   }, []);
-  const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SOUNDCLOUD_TRACK_URL)}&color=%237c3aed&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=false`;
+  const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SOUNDCLOUD_TRACK_URL)}&color=%237c3aed&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=true`;
   return (
     <iframe
       ref={ref}
@@ -79,7 +79,7 @@ function SoundCloudListen() {
       src={src}
       allow="autoplay; encrypted-media"
       loading="lazy"
-      className="h-[120px] w-full rounded-seal border-0"
+      className="h-[166px] w-full rounded-seal border-0"
     />
   );
 }
