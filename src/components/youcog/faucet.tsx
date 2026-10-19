@@ -2,29 +2,12 @@ import { BuyYoucogButton, CoinbaseWalletLink } from "@/components/youcog/buy-you
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { claimFaucet } from "@/lib/youcog/youcog.functions";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
+import { connectedBaseAddress } from "@/lib/youcog/wallet";
 import { shareToFarcaster, streakText } from "@/lib/youcog/share";
 import { HauntedButtonFrame, celebrate } from "@/components/youcog/halloween";
 import { ListenBoost } from "@/components/youcog/listen-boost";
 import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
-
-async function connectedBaseAddress(): Promise<string | null> {
-  const { sdk } = await import("@farcaster/miniapp-sdk");
-  const provider = await sdk.wallet.getEthereumProvider();
-  if (!provider) return null;
-  try {
-    await provider.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0x2105" }],
-    });
-  } catch {
-    /* host may already be on Base or not support switching */
-  }
-  const accounts = (await provider.request({
-    method: "eth_requestAccounts",
-  })) as string[];
-  return accounts?.[0] ?? null;
-}
 
 const AMOUNTS = [420, 1111, 6969] as const;
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number };

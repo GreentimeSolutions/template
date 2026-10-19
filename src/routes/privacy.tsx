@@ -25,7 +25,7 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <LegalPage title="Privacy" updated="October 18, 2026">
+    <LegalPage title="Privacy" updated="October 19, 2026">
       <p className="text-ink">
         Short version: we keep the little we need to run the faucet fairly, we never sell it, and your research sessions
         are yours to burn.
@@ -36,6 +36,7 @@ function PrivacyPage() {
           <li><span className="text-ink">Farcaster ID (fid)</span> when you use the Mini App, so each account claims once a day.</li>
           <li><span className="text-ink">Claim records:</span> day, amount, streak, and the Base transaction hash (also for $RCST quote-cast claims).</li>
           <li><span className="text-ink">Listen sessions</span> for the soundtrack boost: start and finish times, linked to your fid or address.</li>
+          <li><span className="text-ink">Feedback survey answers</span> if you fill it out, linked to your fid or address so the YOUCOG reward is paid once per person. We read them to improve the app.</li>
           <li><span className="text-ink">IP address,</span> stored only as a salted hash, used for rate limits and one-claim-per-day checks.</li>
           <li><span className="text-ink">Tips and holder checks:</span> the on-chain transaction or signed message that proves them.</li>
         </ul>

@@ -119,6 +119,30 @@ export function clients() {
   };
 }
 
+export type FaucetClients = NonNullable<ReturnType<typeof clients>>;
+
+/** The one YOUCOG payout path: a transfer from the faucet wallet (Builder Code suffix included). */
+export function sendYoucog(c: FaucetClients, to: `0x${string}`, amountWei: bigint): Promise<`0x${string}`> {
+  return c.wallet.writeContract({
+    address: TOKEN,
+    abi: ERC20,
+    functionName: "transfer",
+    args: [to, amountWei],
+    dataSuffix: DATA_SUFFIX,
+  });
+}
+
+/** Faucet wallet ETH (gas) and YOUCOG balances, in wei. */
+export async function faucetBalances(c: FaucetClients): Promise<{ eth: bigint; tokens: bigint }> {
+  const [eth, tokens] = await Promise.all([
+    c.pub.getBalance({ address: c.account.address }),
+    c.pub.readContract({ address: TOKEN, abi: ERC20, functionName: "balanceOf", args: [c.account.address] }),
+  ]);
+  return { eth, tokens };
+}
+
+export const FAUCET_MIN_GAS_WEI = MIN_GAS_WEI;
+
 export async function claimFromFaucet(input: {
   address: string;
   amount: number;
@@ -251,13 +275,7 @@ export async function claimFromFaucet(input: {
   }
 
   try {
-    const txHash = await c.wallet.writeContract({
-      address: TOKEN,
-      abi: ERC20,
-      functionName: "transfer",
-      args: [address, amountWei],
-      dataSuffix: DATA_SUFFIX,
-    });
+    const txHash = await sendYoucog(c, address, amountWei);
     await sql`update faucet_claims set status = 'sent', tx_hash = ${txHash} where id = ${id}`;
     return {
       ok: true,

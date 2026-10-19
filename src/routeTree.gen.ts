@@ -10,12 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
+import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
 import { Route as ApiHolderRouteImport } from './routes/api/holder'
 import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
@@ -34,6 +36,11 @@ import { Route as ApiListenStatusRouteImport } from './routes/api/listen/status'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -65,6 +72,11 @@ const ApiBuysRoute = ApiBuysRouteImport.update({
 const ApiDeepMissionRoute = ApiDeepMissionRouteImport.update({
   id: '/api/deep-mission',
   path: '/api/deep-mission',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
+  id: '/api/feedback',
+  path: '/api/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
@@ -140,12 +152,14 @@ const ApiListenStatusRoute = ApiListenStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
+  '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -163,12 +177,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
+  '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -187,12 +203,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/feedback': typeof FeedbackRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
+  '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -212,12 +230,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/feedback'
     | '/privacy'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
+    | '/api/feedback'
     | '/api/fid-claim'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -235,12 +255,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/feedback'
     | '/privacy'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
+    | '/api/feedback'
     | '/api/fid-claim'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -258,12 +280,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/feedback'
     | '/privacy'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
+    | '/api/feedback'
     | '/api/fid-claim'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -282,12 +306,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FeedbackRoute: typeof FeedbackRoute
   PrivacyRoute: typeof PrivacyRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
+  ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
   ApiHolderRoute: typeof ApiHolderRoute
   ApiHolderNonceRoute: typeof ApiHolderNonceRoute
@@ -311,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -353,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/api/deep-mission'
       fullPath: '/api/deep-mission'
       preLoaderRoute: typeof ApiDeepMissionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/feedback': {
+      id: '/api/feedback'
+      path: '/api/feedback'
+      fullPath: '/api/feedback'
+      preLoaderRoute: typeof ApiFeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fid-claim': {
@@ -458,12 +498,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FeedbackRoute: FeedbackRoute,
   PrivacyRoute: PrivacyRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,
+  ApiFeedbackRoute: ApiFeedbackRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
   ApiHolderRoute: ApiHolderRoute,
   ApiHolderNonceRoute: ApiHolderNonceRoute,

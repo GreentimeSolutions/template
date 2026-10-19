@@ -10,6 +10,7 @@ import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { GameCard } from "@/components/youcog/game-card";
+import { FeedbackCard } from "@/components/youcog/feedback-card";
 import { TopBanner } from "@/components/youcog/top-banner";
 import { GhostStage, OPEN_FAUCET_EVENT, findTarget } from "@/components/youcog/ghost-stage";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
@@ -148,6 +149,7 @@ function Welcome() {
           <RcstClaim />
         </div>
         <GameCard />
+        <FeedbackCard />
         <Leaderboard />
         <Donate />
       </div>
@@ -660,6 +662,7 @@ export function YoucogApp() {
             <RcstClaim />
           </div>
           <GameCard />
+          <FeedbackCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />
           <Leaderboard />
