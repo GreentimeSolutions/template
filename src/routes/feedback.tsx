@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { APP_URL } from "@/lib/youcog/miniapp";
 import { SiteFooter } from "@/components/youcog/site-footer";
+import { celebrate } from "@/components/youcog/halloween";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { connectedBaseAddress } from "@/lib/youcog/wallet";
 import { FEEDBACK_REWARD_YOUCOG } from "@/constants/feedback";
@@ -107,6 +108,8 @@ function FeedbackPage() {
       const res = (await r.json()) as Result;
       setResult(res);
       if (res.ok || res.done) setDone(true);
+      // Cosmetic: only after the server confirmed the reward was sent, with the amount it reports.
+      if (res.ok) celebrate({ amount: res.amount, subtitle: "Thanks for the feedback" });
     } catch {
       setResult({ ok: false, reason: "Couldn't send your feedback. Check your connection and try again." });
     } finally {

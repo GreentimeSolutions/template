@@ -11,7 +11,7 @@ import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_AMOUNTS } from "@/constants/faucet";
 
 const AMOUNTS = FAUCET_AMOUNTS;
-type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number };
+type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number };
 type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number };
 
 export function Faucet() {
@@ -45,9 +45,13 @@ export function Faucet() {
   }, [fc, recipient, validRecipient]);
   const boosted = listen.phase === "unlocked";
 
-  // Cosmetic only: ghosts and bats after a real successful claim.
+  // Cosmetic only: ghost overlay plus ghosts and bats after a real successful claim.
+  // The amount shown is the one the faucet API returned for this claim.
   useEffect(() => {
-    if (msg?.kind === "ok") celebrate();
+    if (msg?.kind !== "ok") return;
+    const bits = [msg.boosted ? "Listen boost applied" : "Claimed",
+      msg.streak ? `${msg.streak}-day streak${msg.multiplier && msg.multiplier > 1 ? ` (${msg.multiplier}x)` : ""}` : ""];
+    celebrate(msg.amount ? { amount: msg.amount, subtitle: bits.filter(Boolean).join(" · ") } : undefined);
   }, [msg]);
   const [streak, setStreak] = useState<Streak | null>(null);
 
@@ -106,6 +110,8 @@ export function Faucet() {
           url: res.url,
           amount: res.amount,
           streak: res.streak,
+          boosted: Boolean(res.listenBonus),
+          multiplier: res.multiplier,
         });
         void loadStreak();
       } else {

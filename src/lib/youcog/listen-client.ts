@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { LISTEN_SONG_SECONDS, LISTEN_TOLERANCE_SECONDS, SOUNDCLOUD_TRACK_URL } from "@/constants/listen";
+import { LISTEN_BONUS_AMOUNT, LISTEN_SONG_SECONDS, LISTEN_TOLERANCE_SECONDS, SOUNDCLOUD_TRACK_URL } from "@/constants/listen";
+import { celebrate } from "@/lib/youcog/celebrate";
 import { resetPlayedTracking, restartSoundtrack, subscribePlayback } from "@/lib/youcog/soundtrack";
 
 /**
@@ -101,8 +102,11 @@ export async function listenFullPlay(playedSeconds: number) {
   set({ phase: "verifying", played: state.duration });
   try {
     const r = (await post("/api/listen/finish", { sessionId, playedSeconds })) as { ok: boolean; reason?: string };
-    if (r.ok) set({ phase: "unlocked", error: null });
-    else set({ phase: "error", error: r.reason ?? "That listen didn't count. Try again." });
+    if (r.ok) {
+      set({ phase: "unlocked", error: null });
+      // Cosmetic: the server verified the full listen. Nothing is paid yet; the next claim is boosted.
+      celebrate({ title: "Boost unlocked", subtitle: `Your next claim pays ${LISTEN_BONUS_AMOUNT.toLocaleString("en-US")} YOUCOG` });
+    } else set({ phase: "error", error: r.reason ?? "That listen didn't count. Try again." });
   } catch {
     set({ phase: "error", error: "Couldn't verify the listen. Try again." });
   }

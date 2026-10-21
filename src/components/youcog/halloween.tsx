@@ -4,13 +4,9 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
  * Halloween cosmetics. Purely visual: nothing here touches faucet, wallet,
  * token or AI logic. Other components fire window events to trigger effects.
  */
-export const CELEBRATE_EVENT = "youcog:celebrate";
+export { CELEBRATE_EVENT, celebrate, type CelebrateDetail } from "@/lib/youcog/celebrate";
+import { CELEBRATE_EVENT } from "@/lib/youcog/celebrate";
 export const BURN_STATIC_EVENT = "youcog:burn-static";
-
-export function celebrate() {
-  if (typeof window !== "undefined")
-    window.dispatchEvent(new Event(CELEBRATE_EVENT));
-}
 
 export function burnStatic() {
   if (typeof window !== "undefined")

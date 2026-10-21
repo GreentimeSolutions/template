@@ -1,6 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { GhostCelebration } from "@/components/youcog/ghost-celebration";
 import { SITE_DESCRIPTION } from "@/constants/site";
 import appCss from "../styles.css?url";
 
@@ -42,6 +43,7 @@ export const Route = createRootRoute({
         <AuthProvider>
           <Outlet />
         </AuthProvider>
+        <GhostCelebration />
         <Scripts />
       </body>
     </html>

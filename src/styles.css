@@ -750,3 +750,221 @@
   box-shadow: 0 0 10px rgb(196 181 253 / 0.7);
   transition: width 0.25s linear;
 }
+
+/* Ghost reward celebration (ghost-celebration.tsx). Cosmetic overlay, tap to dismiss. */
+.ghost-cel {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  animation: ghost-cel-in 0.22s ease-out both;
+}
+.ghost-cel.is-leaving {
+  animation: ghost-cel-out 0.32s ease-in forwards;
+}
+.ghost-cel-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 40% at 50% 40%, rgb(124 58 237 / 0.55), transparent 70%),
+    radial-gradient(120% 90% at 50% 45%, rgb(38 11 68 / 0.96), rgb(6 2 12 / 0.985) 75%);
+}
+.ghost-cel-stage {
+  position: relative;
+  width: 260px;
+  height: 230px;
+  display: grid;
+  place-items: center;
+}
+.ghost-cel-burst,
+.ghost-cel-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.ghost-cel-burst {
+  width: 240px;
+  height: 240px;
+  margin: -120px 0 0 -120px;
+  background: radial-gradient(circle, rgb(196 181 253 / 0.85), rgb(139 92 246 / 0.45) 38%, transparent 68%);
+  animation: ghost-cel-burst 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) 0.18s both;
+}
+.ghost-cel-ring {
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  border: 3px solid rgb(196 181 253 / 0.9);
+  box-shadow: 0 0 24px rgb(167 139 250 / 0.9), inset 0 0 18px rgb(167 139 250 / 0.6);
+  animation: ghost-cel-ring 0.9s ease-out 0.3s both;
+}
+.ghost-cel-ring-2 {
+  animation-delay: 0.5s;
+  border-width: 2px;
+}
+.ghost-cel-ghost {
+  position: relative;
+  width: 150px;
+  animation:
+    ghost-cel-rise 0.7s cubic-bezier(0.2, 1.3, 0.4, 1) both,
+    ghost-cel-bob 1.6s ease-in-out 0.7s infinite;
+  filter: drop-shadow(0 0 18px rgb(167 139 250 / 0.95)) drop-shadow(0 0 42px rgb(124 58 237 / 0.8));
+}
+.ghost-cel-ghost img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  /* Fade the robe into the glow so it reads as a ghost, not a cutout. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 98%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 98%);
+}
+/* A glint on the right lens: the ghost's wink behind the shades. */
+.ghost-cel-glint {
+  position: absolute;
+  left: 66%;
+  top: 41%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  background: radial-gradient(circle, #fff 0 12%, transparent 13%),
+    conic-gradient(from 0deg, transparent 0 20deg, #fff 22deg 23deg, transparent 25deg 88deg, #fff 90deg 91deg, transparent 93deg 178deg, #fff 180deg 181deg, transparent 183deg 268deg, #fff 270deg 271deg, transparent 273deg);
+  border-radius: 9999px;
+  filter: drop-shadow(0 0 6px #e9d5ff);
+  opacity: 0;
+  animation: ghost-cel-glint 0.6s ease-out 0.85s both;
+}
+.ghost-cel-coin,
+.ghost-cel-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: ghost-cel-fly 1.35s cubic-bezier(0.15, 0.75, 0.35, 1) both;
+}
+.ghost-cel-coin {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  font: 700 13px/1 "Outfit", ui-sans-serif, sans-serif;
+  color: #5b2a00;
+  background: radial-gradient(circle at 35% 30%, #fff7c2, #fbbf24 45%, #b45309 100%);
+  box-shadow: 0 0 0 1.5px #92400e inset, 0 0 10px rgb(251 191 36 / 0.7);
+}
+.ghost-cel-spark {
+  background: #f5f3ff;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  filter: drop-shadow(0 0 4px #c4b5fd);
+}
+.ghost-cel-text {
+  position: relative;
+  text-align: center;
+  margin-top: -6px;
+}
+.ghost-cel-amount {
+  font-family: var(--font-spooky);
+  font-size: clamp(56px, 17vw, 84px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #f5f3ff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 14px rgb(196 181 253 / 0.95), 0 0 36px rgb(124 58 237 / 0.9), 0 3px 0 #2a0d4a;
+  animation: ghost-cel-pop 0.55s cubic-bezier(0.2, 1.5, 0.4, 1) 0.25s both;
+}
+.ghost-cel-title {
+  font-size: clamp(44px, 13vw, 64px);
+}
+.ghost-cel-unit {
+  margin-top: 2px;
+  font: 600 22px/1.1 "Outfit", ui-sans-serif, sans-serif;
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  color: #c4b5fd;
+  text-shadow: 0 0 12px rgb(139 92 246 / 0.9);
+  animation: ghost-cel-up 0.45s ease-out 0.45s both;
+}
+.ghost-cel-sub {
+  margin-top: 10px;
+  font: 500 16px/1.35 "Outfit", ui-sans-serif, sans-serif;
+  color: #ece9f5;
+  animation: ghost-cel-up 0.45s ease-out 0.6s both;
+}
+.ghost-cel-hint {
+  margin-top: 18px;
+  font: 400 12px/1 "Outfit", ui-sans-serif, sans-serif;
+  letter-spacing: 0.08em;
+  color: rgb(196 184 214 / 0.7);
+  animation: ghost-cel-up 0.4s ease-out 0.9s both;
+}
+
+@keyframes ghost-cel-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ghost-cel-out { to { opacity: 0; transform: translateY(-14px); } }
+@keyframes ghost-cel-rise {
+  0% { transform: translateY(90px) scale(0.6); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes ghost-cel-bob {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-8px) rotate(-2deg); }
+}
+@keyframes ghost-cel-burst {
+  0% { transform: scale(0.2); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: scale(1.35); opacity: 0.35; }
+}
+@keyframes ghost-cel-ring {
+  0% { transform: scale(0.3); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes ghost-cel-glint {
+  0% { opacity: 0; transform: scale(0.2) rotate(0); }
+  40% { opacity: 1; transform: scale(1.15) rotate(45deg); }
+  100% { opacity: 0; transform: scale(0.4) rotate(90deg); }
+}
+@keyframes ghost-cel-fly {
+  0% { transform: translate(0, 0) scale(0.3) rotate(0); opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), calc(var(--dy) + 40px)) scale(1) rotate(var(--spin)); opacity: 0; }
+}
+@keyframes ghost-cel-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes ghost-cel-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Reduced motion: a still success card, no movement. */
+.ghost-cel.is-reduced,
+.ghost-cel.is-reduced.is-leaving,
+.ghost-cel.is-reduced * {
+  animation: none !important;
+}
+.ghost-cel.is-reduced .ghost-cel-burst { opacity: 0.4; }
+.ghost-cel.is-reduced .ghost-cel-ring { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ghost-cel,
+  .ghost-cel * {
+    animation: none !important;
+  }
+  .ghost-cel-ring,
+  .ghost-cel-coin,
+  .ghost-cel-spark,
+  .ghost-cel-glint { display: none; }
+  .ghost-cel-burst { opacity: 0.4; }
+}
