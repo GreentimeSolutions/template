@@ -39,7 +39,7 @@ export const FEEDBACK_QUESTIONS: readonly FeedbackQuestion[] = [
     id: "q9",
     kind: "single",
     label: "Which upcoming idea sounds most fun?",
-    options: ["Forge DeFi tutorial quests", "NFT upgrades and boosts", "DAO voting with NITO", "More games"],
+    options: ["Forge DeFi tutorial quests", "NFT upgrades and boosts", "DAO voting with nito", "More games"],
   },
   { id: "q10", kind: "scale", label: "How likely are you to tell a friend about Youcognito?", min: 0, max: 10, minLabel: "Not likely", maxLabel: "Very likely" },
   { id: "comment", kind: "text", label: "Anything else you want Andy and Youcog to know?", placeholder: "Optional", minLength: 0, optional: true },

@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/feedback")({
         const { dbSource, getSql } = await import("@/lib/db");
         // Anti-farming needs the shared database; never pay from an in-memory fallback on serverless.
         if (dbSource !== "neon" && process.env.VERCEL) {
-          return json(200, { ok: false, reason: "Feedback rewards aren't open yet. Check back soon." });
+          return json(200, { ok: false, reason: "Feedback gifts aren't open yet. Check back soon." });
         }
         const { clients, faucetBalances, sendYoucog, hashIp, FAUCET_MIN_GAS_WEI } = await import("@/lib/youcog/faucet.server");
         const { submitFeedback } = await import("@/lib/youcog/feedback.server");

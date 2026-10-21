@@ -35,7 +35,7 @@ async function sellAmountWei(): Promise<string> {
   return wei.toString();
 }
 
-export function BuyYoucogButton({ label = "Get 10M YOUCOG (about $1)", className = "" }: { label?: string; className?: string }) {
+export function BuyYoucogButton({ label = "Get 10M YOUCOG", className = "" }: { label?: string; className?: string }) {
   const { inMiniApp } = useMiniApp();
   const [busy, setBusy] = useState(false);
 

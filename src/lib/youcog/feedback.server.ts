@@ -61,7 +61,7 @@ export async function submitFeedback(
   const ipHash = fid ? null : input.ipHash || null;
   if (!fid && !ipHash) return refuse("Couldn't verify your connection. Try again later.");
 
-  if (!payer) return refuse("Feedback rewards aren't open yet. Check back soon.");
+  if (!payer) return refuse("Feedback gifts aren't open yet. Check back soon.");
   if (address.toLowerCase() === payer.address.toLowerCase()) return refuse("The faucet can't send to itself.");
 
   const prior = await sql<{ fid: unknown; address: string; ip_hash: string | null }>`
@@ -73,10 +73,10 @@ export async function submitFeedback(
     const p = prior[0];
     return refuse(
       fid && p.fid != null && Number(p.fid) === fid
-        ? "Your Farcaster account already got the feedback reward. Thanks again!"
+        ? "Your Farcaster account already got the feedback thank-you gift. Thanks again!"
         : p.address.toLowerCase() === address.toLowerCase()
-          ? "This wallet already got the feedback reward. Thanks again!"
-          : "Someone on your connection already got the feedback reward. It's one per person.",
+          ? "This wallet already got the feedback thank-you gift. Thanks again!"
+          : "Someone on your connection already got the feedback thank-you gift. It's one per person.",
       { done: true },
     );
   }
@@ -88,8 +88,8 @@ export async function submitFeedback(
     if (!claimed.length) {
       return refuse(
         fid
-          ? "Claim from the daily faucet once first, then come back for the feedback reward."
-          : "Claim from the daily faucet with this address once first, then come back for the feedback reward.",
+          ? "Claim from the daily faucet once first, then come back to share feedback."
+          : "Claim from the daily faucet with this address once first, then come back to share feedback.",
       );
     }
   }
@@ -100,7 +100,7 @@ export async function submitFeedback(
   try {
     const { eth, tokens } = await payer.balances();
     if (eth < payer.minGasWei) return refuse("The faucet is out of gas (ETH). Try again after it's topped up.");
-    if (tokens - amountWei < minLeftWei) return refuse("The feedback reward pool is low right now. Try again after it's topped up.");
+    if (tokens - amountWei < minLeftWei) return refuse("The feedback gift pool is low right now. Try again after it's topped up.");
   } catch {
     return refuse("Couldn't reach the Base network. Try again in a minute.");
   }
@@ -111,7 +111,7 @@ export async function submitFeedback(
     on conflict (day) do update set rewards = feedback_days.rewards + 1
     where feedback_days.rewards < ${feedbackDailyCap()}
     returning rewards`;
-  if (!bumped.length) return refuse("Today's feedback rewards are all used. Come back after midnight UTC.");
+  if (!bumped.length) return refuse("Today's feedback thank-you gifts are all used. Come back after midnight UTC.");
   const release = () => sql`update feedback_days set rewards = rewards - 1 where day = ${day}`;
 
   // Reserve first: the unique indexes stop concurrent double rewards per FID, wallet and connection.
@@ -124,7 +124,7 @@ export async function submitFeedback(
     id = Number(rows[0].id);
   } catch {
     await release();
-    return refuse("You already sent feedback. It's one reward per person.", { done: true });
+    return refuse("You already sent feedback. It's one thank-you gift per person.", { done: true });
   }
 
   try {

@@ -31,7 +31,7 @@ function loadScApi(): Promise<ScGlobal> {
   });
 }
 
-/** SoundCloud embed: real plays count on SoundCloud; PLAY/FINISH drive the server-verified listen. */
+/** SoundCloud embed; PLAY/FINISH drive the server-verified listen. */
 function SoundCloudListen() {
   const ref = useRef<HTMLIFrameElement>(null);
   useEffect(() => {
@@ -108,14 +108,14 @@ export function ListenBoost({ ready }: { ready: boolean }) {
             <Sparkles className="size-4 text-amber-300" aria-hidden="true" />
             <span className="font-spooky text-xl whitespace-nowrap tracking-wide text-amber-200">Boost unlocked</span>
           </p>
-          <p className="text-sm text-mist">Today's claim pays {bonus} YOUCOG, whichever amount is picked.</p>
+          <p className="text-sm text-mist">Today's faucet gift is {bonus} YOUCOG, whichever amount is picked, while supplies last.</p>
         </div>
       ) : listen.phase === "used" ? (
         <p className="text-sm text-mist">You used today's listen boost. Come back tomorrow for another.</p>
       ) : (
         <p className="text-sm leading-relaxed text-ink">
-          Listen to the full <span className="font-medium text-violet-200">{LISTEN_TRACK_TITLE}</span> to boost today's
-          claim to <span className="font-semibold text-amber-200">{bonus} YOUCOG</span>.
+          Finish <span className="font-medium text-violet-200">{LISTEN_TRACK_TITLE}</span> to unlock a bigger faucet gift
+          today (<span className="font-semibold text-amber-200">{bonus} YOUCOG</span>), while supplies last.
         </p>
       )}
 

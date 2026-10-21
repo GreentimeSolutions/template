@@ -140,8 +140,8 @@ export function Faucet() {
       </div>
       <p className="mt-1 text-sm leading-relaxed text-mist">
         {fc
-          ? `Claim YOUCOG on Base once per day${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
-          : "Claim YOUCOG on Base once per day. One claim per address and per connection."}
+          ? `Claim a small YOUCOG gift on Base once a day while supplies last${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
+          : "Claim a small YOUCOG gift on Base once a day while supplies last. YOUCOG has no promised value. One claim per address and per connection."}
       </p>
       <p className="mt-2 text-xs leading-relaxed text-mist">
         Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Missing a day resets.

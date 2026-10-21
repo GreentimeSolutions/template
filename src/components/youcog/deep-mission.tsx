@@ -123,7 +123,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
         </form>
       ) : (
         <div data-testid="perk-locked" className="mt-3 flex flex-col gap-3">
-          <p className="text-sm text-ink">Hold {min} $YOUCOG (about $1) to unlock.</p>
+          <p className="text-sm text-ink">Hold {min} $YOUCOG to unlock. Prices change and can go to zero.</p>
           {status?.verified && !status.holder ? (
             <p className="text-xs text-mist">
               {status.excluded ? "The faucet wallet can't use holder perks. " : ""}

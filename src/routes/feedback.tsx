@@ -5,12 +5,10 @@ import { SiteFooter } from "@/components/youcog/site-footer";
 import { celebrate } from "@/components/youcog/halloween";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { connectedBaseAddress } from "@/lib/youcog/wallet";
-import { FEEDBACK_REWARD_YOUCOG } from "@/constants/feedback";
 import { FEEDBACK_NA, FEEDBACK_QUESTIONS, validateFeedback, type FeedbackAnswers } from "@/lib/youcog/feedback-core";
 
-const REWARD = FEEDBACK_REWARD_YOUCOG.toLocaleString("en-US");
-const TITLE = "Give feedback, earn YOUCOG · Youcognito";
-const DESC = `Answer 10 quick questions about Youcognito and get ${REWARD} YOUCOG on Base, once per person.`;
+const TITLE = "Share feedback · Youcognito";
+const DESC = "Answer 10 quick questions about Youcognito. As a thank-you, a one-time YOUCOG gift may be sent while supplies last.";
 
 export const Route = createFileRoute("/feedback")({
   head: () => ({
@@ -121,10 +119,10 @@ function FeedbackPage() {
     <main className="mx-auto flex min-h-dvh max-w-xl flex-col gap-4 bg-canvas px-4 py-6 text-ink sm:py-10">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-spooky text-3xl tracking-wide text-ink">Give feedback, earn YOUCOG</h1>
+          <h1 className="font-spooky text-3xl tracking-wide text-ink">Share feedback</h1>
           <p className="mt-1 text-base leading-relaxed text-mist">
-            10 quick questions, about 3 minutes. Finish them and get <span className="font-medium text-ink">{REWARD} YOUCOG</span> on Base,
-            once per person.
+            10 quick questions, about 3 minutes, to help decide what gets built. As a thank-you, a one-time YOUCOG gift may be
+            sent from the faucet while supplies last. It is a giveaway, not payment. YOUCOG has no promised value.
           </p>
         </div>
         <Link to="/" className="press shrink-0 rounded-seal border border-line px-3 py-2 text-sm">
@@ -144,14 +142,14 @@ function FeedbackPage() {
         </section>
       ) : done ? (
         <section className="rounded-panel border border-line bg-panel p-4 text-base leading-relaxed text-mist">
-          You already sent feedback and got your YOUCOG. Thanks for helping shape Youcognito!
+          You already sent feedback. Thanks for helping shape Youcognito!
         </section>
       ) : (
         <form className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
           <p className="text-sm text-mist">
             {fc
-              ? `One reward per Farcaster account${miniApp.user?.username ? ` (@${miniApp.user.username})` : ""} and per wallet.`
-              : "One reward per wallet and per connection."}{" "}
+              ? `One thank-you gift per Farcaster account${miniApp.user?.username ? ` (@${miniApp.user.username})` : ""} and per wallet.`
+              : "One thank-you gift per wallet and per connection."}{" "}
             You need at least one faucet claim first.
           </p>
 
@@ -252,7 +250,7 @@ function FeedbackPage() {
             id="fb-address"
             className={`scroll-mt-4 rounded-panel border bg-panel p-4 ${result && !result.ok && result.field === "address" ? "border-danger" : "border-line"}`}
           >
-            <p className="text-base font-medium text-ink">Where should we send your {REWARD} YOUCOG?</p>
+            <p className="text-base font-medium text-ink">Where should we send the thank-you gift?</p>
             {fc && walletAddr ? (
               <div className="mt-2 flex flex-col gap-1 text-sm text-mist">
                 <span>
@@ -297,7 +295,7 @@ function FeedbackPage() {
             disabled={busy}
             className="press inline-flex h-12 items-center justify-center rounded-seal bg-accent px-4 text-base font-medium text-accent-fg disabled:opacity-50"
           >
-            {busy ? "Sending…" : `Send feedback and get ${REWARD} YOUCOG`}
+            {busy ? "Sending…" : "Send feedback"}
           </button>
           <p className="text-center text-sm text-mist">
             {answered} of {required} answered

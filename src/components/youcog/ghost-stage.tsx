@@ -47,7 +47,7 @@ function ago(iso: string) {
 }
 
 function buyText(b: Buy) {
-  return `Someone just bought ${compact(b.tokens)} YOUCOG ($${b.usd.toFixed(2)}), ${shortAddr(b.from)}, ${ago(b.at)}`;
+  return `Recent buy: ${compact(b.tokens)} YOUCOG, ${shortAddr(b.from)}, ${ago(b.at)}`;
 }
 
 /** First on-screen-rendered element for a tip target (skips display:none copies). */
@@ -268,9 +268,9 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
 
   const slides = useMemo<Slide[]>(() => {
     const tips: Slide[] = [
-      { kind: "tip", text: "Hold 10M YOUCOG (about $1) to unlock Deep Mission.", target: "deep" },
+      { kind: "tip", text: "Hold 10M YOUCOG to unlock Deep Mission.", target: "deep" },
       { kind: "tip", text: "Check in at the daily YOUCOG faucet.", target: "faucet" },
-      { kind: "tip", text: `Listen to the full ${LISTEN_TRACK_TITLE} to boost today's claim to 100,000 YOUCOG.`, target: "faucet" },
+      { kind: "tip", text: `Finish ${LISTEN_TRACK_TITLE} to unlock a bigger faucet gift today.`, target: "faucet" },
       { kind: "tip", text: "Play Youcognito Run.", target: "game" },
     ];
     if (YOUTUBE_SHORT.url) tips.push({ kind: "tip", text: "Watch the Youcognito Short.", target: "short" });
