@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { APP_URL } from "@/lib/youcog/miniapp";
 import { SiteFooter } from "@/components/youcog/site-footer";
+import { BuildBoardCard } from "@/components/youcog/buildboard-card";
 
 type Stats = {
   updatedAt: string;
@@ -125,6 +126,7 @@ function StatsPage() {
           </section>
         </>
       )}
+      <BuildBoardCard />
       <SiteFooter className="mt-2" />
     </main>
   );
