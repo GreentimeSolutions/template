@@ -16,7 +16,7 @@ export function domainFromRequest(request: Request): string {
 
 export const miniAppEmbed = {
   version: "1",
-  imageUrl: `${APP_URL}/miniapp-embed.jpg`,
+  imageUrl: `${APP_URL}/miniapp-embed.jpg?v=gift`,
   button: {
     title: "Open Youcognito",
     action: {
