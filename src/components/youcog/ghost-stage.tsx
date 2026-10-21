@@ -1,4 +1,5 @@
 import { LISTEN_TRACK_TITLE } from "@/constants/listen";
+import { RCST_PROMO_ENABLED } from "@/constants/rcst";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { Pause, Pencil, Play } from "lucide-react";
 import {
@@ -276,7 +277,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
     if (YOUTUBE_SHORT.url) tips.push({ kind: "tip", text: "Watch the Youcognito Short.", target: "short" });
     if (music.available) tips.push({ kind: "tip", text: "Turn on the spooky soundtrack.", target: "music" });
     tips.push({ kind: "tip", text: "Burn your session when you're done, no trace.", target: "burn" });
-    if (hasRcst) tips.push({ kind: "tip", text: "Quote-cast the launch for 1,111 $RCST.", target: "rcst" });
+    if (RCST_PROMO_ENABLED && hasRcst) tips.push({ kind: "tip", text: "Quote-cast the launch for 1,111 $RCST.", target: "rcst" });
     const out: Slide[] = [];
     tips.forEach((tip, i) => {
       out.push(tip);

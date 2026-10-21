@@ -9,6 +9,7 @@ import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
+import { RCST_PROMO_ENABLED } from "@/constants/rcst";
 import { GameCard } from "@/components/youcog/game-card";
 import { FeedbackCard } from "@/components/youcog/feedback-card";
 import { TopBanner } from "@/components/youcog/top-banner";
@@ -146,9 +147,11 @@ function Welcome() {
         <div data-tip-target="faucet">
           <Faucet />
         </div>
-        <div data-tip-target="rcst">
-          <RcstClaim />
-        </div>
+        {RCST_PROMO_ENABLED ? (
+          <div data-tip-target="rcst">
+            <RcstClaim />
+          </div>
+        ) : null}
         <GameCard />
         <FeedbackCard />
         <Leaderboard />
@@ -659,9 +662,11 @@ export function YoucogApp() {
               <Faucet />
             </div>
           ) : null}
-          <div data-tip-target="rcst">
-            <RcstClaim />
-          </div>
+          {RCST_PROMO_ENABLED ? (
+            <div data-tip-target="rcst">
+              <RcstClaim />
+            </div>
+          ) : null}
           <GameCard />
           <FeedbackCard />
           <DeepMission onOpenUrl={openUrl} />
