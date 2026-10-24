@@ -11,6 +11,7 @@ import {
   useListen,
 } from "@/lib/youcog/listen-client";
 import { pauseSoundtrack, toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
+import { safeUnbindAll, SC_LISTEN_EVENTS } from "@/lib/youcog/sc-widget";
 
 type ScWidget = {
   bind: (event: string, cb: (e?: { currentPosition?: number }) => void) => void;
@@ -38,10 +39,12 @@ function SoundCloudListen() {
     const el = ref.current;
     if (!el) return;
     let widget: ScWidget | null = null;
+    let disposed = false;
     let played = 0;
     let last = 0;
     void loadScApi()
       .then((SC) => {
+        if (disposed || !el.isConnected) return; // unmounted before the SC api loaded
         widget = SC.Widget(el);
         const E = SC.Widget.Events;
         widget.bind(E.PLAY, () => {
@@ -67,8 +70,10 @@ function SoundCloudListen() {
       })
       .catch(() => undefined);
     return () => {
-      if (!widget) return;
-      for (const ev of ["play", "playProgress", "seek", "finish"]) widget.unbind(ev);
+      disposed = true;
+      // The iframe is usually already detached here; SC's unbind would throw on its null contentWindow.
+      safeUnbindAll(widget, el, SC_LISTEN_EVENTS);
+      widget = null;
     };
   }, []);
   const src = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SOUNDCLOUD_TRACK_URL)}&color=%237c3aed&auto_play=false&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&visual=true`;
