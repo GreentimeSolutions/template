@@ -11,6 +11,7 @@ import { ImageMaker } from "@/components/youcog/image-maker";
 import { RcstClaim } from "@/components/youcog/rcst-claim";
 import { RCST_PROMO_ENABLED } from "@/constants/rcst";
 import { GameCard } from "@/components/youcog/game-card";
+import { PlayCard } from "@/components/youcog/play-card";
 import { FeedbackCard } from "@/components/youcog/feedback-card";
 import { TopBanner } from "@/components/youcog/top-banner";
 import { GhostStage, OPEN_FAUCET_EVENT, findTarget } from "@/components/youcog/ghost-stage";
@@ -668,6 +669,7 @@ export function YoucogApp() {
             </div>
           ) : null}
           <GameCard />
+          <PlayCard />
           <FeedbackCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />

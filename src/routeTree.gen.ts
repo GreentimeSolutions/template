@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as PlayRouteImport } from './routes/play'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const FeedbackRoute = FeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -153,6 +159,7 @@ const ApiListenStatusRoute = ApiListenStatusRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/feedback': typeof FeedbackRoute
+  '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/feedback': typeof FeedbackRoute
+  '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/feedback': typeof FeedbackRoute
+  '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/feedback'
+    | '/play'
     | '/privacy'
     | '/stats'
     | '/terms'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/feedback'
+    | '/play'
     | '/privacy'
     | '/stats'
     | '/terms'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/feedback'
+    | '/play'
     | '/privacy'
     | '/stats'
     | '/terms'
@@ -307,6 +319,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FeedbackRoute: typeof FeedbackRoute
+  PlayRoute: typeof PlayRoute
   PrivacyRoute: typeof PrivacyRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
@@ -344,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof FeedbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -499,6 +519,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FeedbackRoute: FeedbackRoute,
+  PlayRoute: PlayRoute,
   PrivacyRoute: PrivacyRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
