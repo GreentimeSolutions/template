@@ -26,6 +26,7 @@ import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
 import { Route as ApiImageRouteImport } from './routes/api/image'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
 import { Route as ApiRcstClaimRouteImport } from './routes/api/rcst-claim'
+import { Route as ApiSaveBonusRouteImport } from './routes/api/save-bonus'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
@@ -120,6 +121,11 @@ const ApiRcstClaimRoute = ApiRcstClaimRouteImport.update({
   path: '/api/rcst-claim',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSaveBonusRoute = ApiSaveBonusRouteImport.update({
+  id: '/api/save-bonus',
+  path: '/api/save-bonus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStatsRoute = ApiStatsRouteImport.update({
   id: '/api/stats',
   path: '/api/stats',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
+  '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
+  '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
+  '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
+    | '/api/save-bonus'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
+    | '/api/save-bonus'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/image'
     | '/api/leaderboard'
     | '/api/rcst-claim'
+    | '/api/save-bonus'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   ApiImageRoute: typeof ApiImageRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
   ApiRcstClaimRoute: typeof ApiRcstClaimRoute
+  ApiSaveBonusRoute: typeof ApiSaveBonusRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRcstClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/save-bonus': {
+      id: '/api/save-bonus'
+      path: '/api/save-bonus'
+      fullPath: '/api/save-bonus'
+      preLoaderRoute: typeof ApiSaveBonusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stats': {
       id: '/api/stats'
       path: '/api/stats'
@@ -534,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiImageRoute: ApiImageRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
   ApiRcstClaimRoute: ApiRcstClaimRoute,
+  ApiSaveBonusRoute: ApiSaveBonusRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,

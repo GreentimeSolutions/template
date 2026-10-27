@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "test:listen": "node --import jiti/register --test src/lib/youcog/listen.test.ts",
     "test:feedback": "node --import jiti/register --test src/lib/youcog/feedback.test.ts",
+    "test:save-bonus": "node --import jiti/register --test src/lib/youcog/save-bonus.test.ts",
     "test:sc-widget": "node --import jiti/register --test src/lib/youcog/sc-widget.test.ts"
   },
   "dependencies": {

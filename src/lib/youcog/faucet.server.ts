@@ -49,7 +49,7 @@ function dailyCap(): number {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 100;
 }
 
-function dailyTokenBudget(): number {
+export function dailyTokenBudget(): number {
   const n = Number(process.env.FAUCET_DAILY_TOKEN_BUDGET);
   // Doubled on 2026-10-19 with the claim tiers (was 250,000).
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : FAUCET_DAILY_TOKEN_BUDGET_DEFAULT;
