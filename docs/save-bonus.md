@@ -1,6 +1,6 @@
 # Save bonus (+10%)
 
-Approved by Andy on 2026-10-27. Local branch `save-bonus`; not deployed.
+Approved by Andy on 2026-10-27. Deployed to production 2026-10-27 by Vercel CLI from local branch `save-bonus` (not yet on GitHub).
 
 ## What it does
 A faucet claim whose YOUCOG is still in the receiving wallet 7 days later can collect an
@@ -18,10 +18,13 @@ rounded down), once per claim. The user taps **Claim save bonus** in the faucet 
 ## How the check works
 1. `GET /api/save-bonus` (Quick Auth FID in the Mini App, `?address=` on the web) lists the
    identity's sent claims with no live save bonus yet: ready (7 to 37 days old), the next unlock time.
-2. `POST /api/save-bonus` groups ready claims by the address they were sent to, reads
-   `balanceOf(address)` on Base right then (no cache), and pays only addresses whose balance is at
-   least the total claimed being settled for it. One transfer per address, always back to the
-   claim's own address.
+2. `POST /api/save-bonus` groups ready claims by the address they were sent to and checks each address:
+   - **now:** `balanceOf(address)` must be at least the total claimed being settled for it;
+   - **through the week:** `balanceOf` at past Base blocks at each claim's day 1..7 marks (merged within 6h,
+     max 24) plus 2 random times in the span. At each checkpoint the wallet must hold every claim still inside
+     its own 7-day window then (claims past their 7 days are free to spend). Historical reads go to
+     `BASE_RPC_URL`, falling back to the public Base RPC; any failed read pays nothing (fails closed).
+   Only addresses that pass are paid. One transfer per address, always back to the claim's own address.
 3. Each claim gets a `save_bonuses` row reserved before sending; a unique index on `claim_id`
    (where status <> 'failed') makes it once per claim even with concurrent taps. A failed send marks
    the row failed and frees it.
@@ -31,7 +34,7 @@ rounded down), once per claim. The user taps **Claim save bonus** in the faucet 
   it doesn't use a daily claim slot.
 - Faucet floor: pauses if paying would leave the faucet under 2,000,000 YOUCOG (the listen boost floor).
 - Gas check, faucet address excluded, no shared DB on Vercel = closed, rate limit 3/min per identity, 30/min global.
-- Collect window: 30 days after unlock (bounds what's owed). Max 60 claims per tap.
+- Collect window: 30 days after unlock (bounds what's owed). Max 14 claims per tap (bounds the payout and the Base reads).
 
 ## Turning it on
 Off by default. Set `SAVE_BONUS_SINCE` (ISO time, e.g. `2026-11-01T00:00:00Z`) in the Vercel env;
@@ -39,13 +42,11 @@ only claims made at or after that time qualify, so there is no back-pay of older
 Migration `0011_save_bonus.sql` (numbered after the Forge branch's 0009/0010) runs on deploy.
 
 ## Known gaps (honest-check limits)
-- It's a point-in-time balance read. Someone can move tokens out and back before tapping,
-  or borrow/buy YOUCOG just to pass. Proving continuous holding would need Transfer-log history
-  (the public Base RPC rejects getLogs) or a snapshot job.
-- Claims mature one per day, so a user settling each day only needs to hold about one claim's
-  amount at a time, not their whole history.
+- Checkpoints are samples, not every block: someone could move tokens out and back between
+  checkpoints. The random checkpoints make that hard to time, and the payout is small.
+- It checks the balance, not the exact tokens: buying or receiving YOUCOG to cover a sale also passes.
 - On the web, anyone can trigger the check for any address; the bonus still goes only to that address.
 
 ## Verify
-`npm run test:save-bonus` (PGLite + fake chain, 10 tests). `npx tsc --noEmit`, eslint on the new files,
+`npm run test:save-bonus` (PGLite + fake chain, 13 tests). `npx tsc --noEmit`, eslint on the new files,
 and `vite build` pass.

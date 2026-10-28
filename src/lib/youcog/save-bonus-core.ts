@@ -63,3 +63,44 @@ export function groupByAddress(claims: SaveClaim[]): AddressGroup[] {
 export function holdsEnough(balanceWei: bigint, requiredTokens: number): boolean {
   return balanceWei >= BigInt(Math.max(0, Math.floor(requiredTokens))) * 10n ** 18n;
 }
+
+/** A claim counts as "landed" in the wallet this long after its row was created. */
+const LAND_MS = 10 * 60_000;
+/** Checkpoints closer together than this are merged (bounds the number of Base reads). */
+const MERGE_MS = 6 * 3_600_000;
+/** Hard cap on fixed checkpoints per address per tap (plus the random ones). */
+export const MAX_FIXED_CHECKPOINTS = 24;
+export const RANDOM_CHECKPOINTS = 2;
+
+/**
+ * YOUCOG an address must hold at time t: every claim sent to it that has landed
+ * and is still inside its 7-day hold window at t. Claims past their 7 days are
+ * free to spend, so a wallet only ever has to hold what is still "locked".
+ */
+export function requiredAt(tMs: number, windowClaims: SaveClaim[]): number {
+  let n = 0;
+  for (const c of windowClaims) if (c.createdMs + LAND_MS <= tMs && tMs <= unlockMs(c.createdMs)) n += c.amount;
+  return n;
+}
+
+/**
+ * Times to read the address's past balance for the claims being settled:
+ * each claim's day 1..7 marks (merged when close together, capped), plus a few
+ * random times in the span so the checks can't be timed around.
+ */
+export function holdCheckpoints(settling: SaveClaim[], nowMs: number, rand: () => number = Math.random): number[] {
+  if (!settling.length) return [];
+  const marks: number[] = [];
+  for (const c of settling) for (let k = 1; k <= SAVE_BONUS_HOLD_DAYS; k++) marks.push(c.createdMs + k * DAY_MS);
+  marks.sort((a, b) => a - b);
+  let fixed: number[] = [];
+  for (const t of marks) if (t <= nowMs && (!fixed.length || t - fixed[fixed.length - 1] >= MERGE_MS)) fixed.push(t);
+  if (fixed.length > MAX_FIXED_CHECKPOINTS) {
+    const step = (fixed.length - 1) / (MAX_FIXED_CHECKPOINTS - 1);
+    fixed = Array.from({ length: MAX_FIXED_CHECKPOINTS }, (_, i) => fixed[Math.round(i * step)]);
+  }
+  const start = Math.min(...settling.map((c) => c.createdMs)) + LAND_MS;
+  const end = Math.min(nowMs, Math.max(...settling.map((c) => unlockMs(c.createdMs))));
+  const extra = end > start ? Array.from({ length: RANDOM_CHECKPOINTS }, () => Math.floor(start + rand() * (end - start))) : [];
+  return [...fixed, ...extra].sort((a, b) => a - b);
+}

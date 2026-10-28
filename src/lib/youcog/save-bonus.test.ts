@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
-import { classify, groupByAddress, holdsEnough, parseSince, saveBonusAmount } from "./save-bonus-core";
+import { classify, groupByAddress, holdCheckpoints, holdsEnough, parseSince, requiredAt, saveBonusAmount } from "./save-bonus-core";
 import { claimSaveBonus, saveBonusStatus, type SaveBonusDeps, type SaveSql } from "./save-bonus.server";
 
 const DAY = 86_400_000;
@@ -83,6 +83,8 @@ function deps(sql: SaveSql, over: Partial<SaveBonusDeps> & { balances?: Record<s
     minFaucetTokens: 2_000_000,
     minGasWei: 1n,
     balanceOf: async (a) => over.balances?.[a.toLowerCase()] ?? 0n,
+    balanceAt: async (a) => over.balances?.[a.toLowerCase()] ?? 0n,
+    rand: () => 0.5,
     faucetBalances: async () => ({ eth: 10n ** 15n, tokens: 100_000_000n * WEI }),
     send: async (to, wei) => {
       sends.push({ to, wei });
@@ -204,4 +206,45 @@ test("two taps at once pay a claim only once", async () => {
   const [r1, r2] = await Promise.all([claimSaveBonus(d, { fid: 12 }), claimSaveBonus(d, { address: A })]);
   assert.equal([r1, r2].filter((r) => r.ok).length, 1);
   assert.equal(sends.length, 1);
+});
+
+test("hold window: required balance counts only claims still inside their 7 days", () => {
+  const c = (id: number, createdMs: number, amount: number) => ({ id, address: A, fid: 1, amount, createdMs });
+  const claims = [c(1, T0, 13938), c(2, T0 + 2 * DAY, 2222)];
+  assert.equal(requiredAt(T0 + DAY, claims), 13938);
+  assert.equal(requiredAt(T0 + 3 * DAY, claims), 16160);
+  assert.equal(requiredAt(T0 + 8 * DAY, claims), 2222, "claim 1 is free to spend after its 7 days");
+  const pts = holdCheckpoints([claims[0]], T0 + 8 * DAY, () => 0.5);
+  assert.equal(pts.length, 7 + 2);
+  assert.ok(pts.every((t) => t > T0 && t <= T0 + 7 * DAY));
+  const many = Array.from({ length: 14 }, (_, i) => c(i, T0 + i * DAY, 840));
+  assert.ok(holdCheckpoints(many, T0 + 40 * DAY).length <= 24 + 2, "Base reads stay bounded");
+});
+
+test("selling mid-week and buying back before the tap does not qualify", async () => {
+  const sql = await db();
+  await addClaim(sql, { address: A, fid: 13, amount: 13938, atMs: T0 });
+  const { d, sends } = deps(sql, {
+    balances: { [A.toLowerCase()]: 10n ** 30n },
+    // Held now, but empty on day 4 of the week.
+    balanceAt: async (_a, t) => (t > T0 + 3.5 * DAY && t < T0 + 4.5 * DAY ? 0n : 10n ** 30n),
+  });
+  const r = await claimSaveBonus(d, { fid: 13 });
+  assert.equal(r.ok, false);
+  assert.equal(sends.length, 0);
+  assert.match(r.ok ? "" : r.reason, /full 7 days/);
+});
+
+test("a failed history read pays nothing (fails closed)", async () => {
+  const sql = await db();
+  await addClaim(sql, { address: A, fid: 14, amount: 2222, atMs: T0 });
+  const { d, sends } = deps(sql, {
+    balances: { [A.toLowerCase()]: 10n ** 30n },
+    balanceAt: async () => {
+      throw new Error("missing trie node");
+    },
+  });
+  const r = await claimSaveBonus(d, { fid: 14 });
+  assert.equal(r.ok, false);
+  assert.equal(sends.length, 0);
 });

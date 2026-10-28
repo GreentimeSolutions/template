@@ -4,7 +4,7 @@
  * whole flow runs against PGLite and a fake chain in tests.
  */
 import { SAVE_BONUS_MAX_CLAIMS_PER_TAP, SAVE_BONUS_RATE_LABEL } from "../../constants/save-bonus";
-import { classify, expireMs, groupByAddress, holdsEnough, saveBonusAmount, unlockMs, type SaveClaim } from "./save-bonus-core";
+import { classify, expireMs, groupByAddress, holdCheckpoints, holdsEnough, requiredAt, saveBonusAmount, unlockMs, type SaveClaim } from "./save-bonus-core";
 
 export type SaveSql = <T = Record<string, unknown>>(strings: TemplateStringsArray, ...values: unknown[]) => Promise<T[]>;
 
@@ -22,6 +22,10 @@ export type SaveBonusDeps = {
   minFaucetTokens: number;
   minGasWei: bigint;
   balanceOf: (address: `0x${string}`) => Promise<bigint>;
+  /** The address's YOUCOG balance at a past time (archive read on Base). Must throw if it can't tell. */
+  balanceAt: (address: `0x${string}`, atMs: number) => Promise<bigint>;
+  /** Random source for the unpredictable checkpoints (tests pin it). */
+  rand?: () => number;
   faucetBalances: () => Promise<{ eth: bigint; tokens: bigint }>;
   send: (to: `0x${string}`, amountWei: bigint) => Promise<string>;
 };
@@ -106,6 +110,35 @@ export async function saveBonusStatus(
  * now, and if it covers the claims being settled, pay 10% of each claim in one
  * transfer to that address. Each claim can be paid once (unique index).
  */
+/** Sent claims to this address (from SAVE_BONUS_SINCE on) whose 7-day window overlaps [fromMs, toMs]. */
+async function windowClaims(deps: SaveBonusDeps, address: string, fromMs: number, toMs: number): Promise<SaveClaim[]> {
+  const rows = await deps.sql<{ id: number; address: string; fid: number | null; amount: number; created_ms: number }>`
+    select c.id, c.address, c.fid, c.amount, (extract(epoch from c.created_at) * 1000)::float8 as created_ms
+    from faucet_claims c
+    where c.status = 'sent' and lower(c.address) = lower(${address})
+      and c.created_at >= ${new Date(Math.max(deps.sinceMs ?? 0, fromMs - 8 * 86_400_000)).toISOString()}
+      and c.created_at <= ${new Date(toMs).toISOString()}
+    order by c.created_at limit 400`;
+  return rows.map((r) => ({ id: Number(r.id), address: String(r.address), fid: r.fid == null ? null : Number(r.fid), amount: Number(r.amount), createdMs: Number(r.created_ms) }));
+}
+
+/**
+ * True when, at every checkpoint across the settling claims' 7-day windows, the
+ * address held at least all its claims that were still inside their window then.
+ * A failed read throws (fail closed: no proof, no bonus).
+ */
+async function heldThroughWindow(deps: SaveBonusDeps, address: string, settling: SaveClaim[], nowMs: number): Promise<boolean> {
+  const points = holdCheckpoints(settling, nowMs, deps.rand);
+  if (!points.length) return false;
+  const claims = await windowClaims(deps, address, points[0], points[points.length - 1]);
+  for (let i = 0; i < points.length; i += 4) {
+    const batch = points.slice(i, i + 4);
+    const bals = await Promise.all(batch.map((t) => deps.balanceAt(address as `0x${string}`, t)));
+    for (let j = 0; j < batch.length; j++) if (!holdsEnough(bals[j], requiredAt(batch[j], claims))) return false;
+  }
+  return true;
+}
+
 export async function claimSaveBonus(deps: SaveBonusDeps, who: SaveWho): Promise<SaveBonusResult> {
   if (deps.sinceMs == null) return { ok: false, reason: "The save bonus isn't open yet." };
   const { sql } = deps;
@@ -133,11 +166,25 @@ export async function claimSaveBonus(deps: SaveBonusDeps, who: SaveWho): Promise
     } catch {
       return { ok: false, reason: "Couldn't reach the Base network. Try again in a minute." };
     }
-    if (holdsEnough(bal, g.required)) passing.push({ group: g, balance: bal });
-    else
+    if (!holdsEnough(bal, g.required)) {
       skipped.push({
         address: g.address,
         reason: `${short(g.address)} holds ${fmt(Number(bal / WEI))} YOUCOG, less than the ${fmt(g.required)} it claimed. The save bonus needs the claimed YOUCOG still in that wallet.`,
+      });
+      continue;
+    }
+    // The 7-day hold: read the wallet's balance at past times across each claim's 7 days.
+    let held: boolean;
+    try {
+      held = await heldThroughWindow(deps, g.address, g.claims, now);
+    } catch {
+      return { ok: false, reason: "Couldn't check your wallet's history on Base. Try again in a minute." };
+    }
+    if (held) passing.push({ group: g, balance: bal });
+    else
+      skipped.push({
+        address: g.address,
+        reason: `${short(g.address)} didn't keep the claimed YOUCOG for the full 7 days. The save bonus needs it held the whole week, so these claims don't qualify.`,
       });
   }
   if (!passing.length) return { ok: false, reason: skipped[0]?.reason ?? "No wallet qualified.", skipped };

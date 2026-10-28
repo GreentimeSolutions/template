@@ -69,8 +69,8 @@ export function SaveBonus({ fc, address, refreshKey }: { fc: boolean; address: s
       <p>
         <span className="font-medium text-ink">Save bonus:</span> keep the YOUCOG you claim in the same wallet for{" "}
         {SAVE_BONUS_HOLD_DAYS} days, then tap Claim save bonus for an extra {SAVE_BONUS_RATE_LABEL} of that claim, once per
-        claim. We check the wallet's YOUCOG balance on Base when you tap. Paid from the daily faucet budget while supplies
-        last. YOUCOG has no promised value.
+        claim. When you tap, we check on Base that the wallet held it through all {SAVE_BONUS_HOLD_DAYS} days. Paid from the
+        daily faucet budget while supplies last. YOUCOG has no promised value.
       </p>
       {status.ready > 0 ? (
         <button

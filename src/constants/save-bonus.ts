@@ -11,5 +11,5 @@ export const SAVE_BONUS_RATE_LABEL = "10%";
 export const SAVE_BONUS_HOLD_DAYS = 7;
 /** After it unlocks, a claim's save bonus can be collected for this many days. */
 export const SAVE_BONUS_WINDOW_DAYS = 30;
-/** At most this many matured claims are settled per tap (bounds one payout). */
-export const SAVE_BONUS_MAX_CLAIMS_PER_TAP = 60;
+/** At most this many matured claims are settled per tap (bounds one payout and the Base reads). */
+export const SAVE_BONUS_MAX_CLAIMS_PER_TAP = 14;
