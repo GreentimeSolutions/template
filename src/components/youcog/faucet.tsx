@@ -9,6 +9,7 @@ import { ListenBoost } from "@/components/youcog/listen-boost";
 import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_AMOUNTS } from "@/constants/faucet";
+import { SaveBonus } from "@/components/youcog/save-bonus";
 
 const AMOUNTS = FAUCET_AMOUNTS;
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number };
@@ -54,6 +55,7 @@ export function Faucet() {
     celebrate(msg.amount ? { amount: msg.amount, subtitle: bits.filter(Boolean).join(" · ") } : undefined);
   }, [msg]);
   const [streak, setStreak] = useState<Streak | null>(null);
+  const [claims, setClaims] = useState(0);
 
   async function loadStreak() {
     try {
@@ -114,6 +116,7 @@ export function Faucet() {
           multiplier: res.multiplier,
         });
         void loadStreak();
+        setClaims((n) => n + 1);
       } else {
         setMsg({ kind: "err", text: res.reason });
       }
@@ -156,6 +159,7 @@ export function Faucet() {
               : ""}
         </p>
       ) : null}
+      <SaveBonus fc={fc} address={recipient} refreshKey={claims} />
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
           <div className="flex flex-col gap-1 text-sm text-mist">

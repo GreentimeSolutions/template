@@ -35,6 +35,7 @@ function PrivacyPage() {
           <li><span className="text-ink">Wallet address</span> you claim to, verify, or tip from.</li>
           <li><span className="text-ink">Farcaster ID (fid)</span> when you use the Mini App, so each account claims once a day.</li>
           <li><span className="text-ink">Claim records:</span> day, amount, streak, and the Base transaction hash (also for $RCST quote-cast claims).</li>
+          <li><span className="text-ink">Save bonus records:</span> which claim it was for, the wallet's public YOUCOG balance on Base when you tapped and at points during the 7 days, the amount, and the transaction hash.</li>
           <li><span className="text-ink">Listen sessions</span> for the soundtrack boost: start and finish times, linked to your fid or address.</li>
           <li><span className="text-ink">Feedback survey answers</span> if you fill it out, linked to your fid or address so the YOUCOG thank-you gift is sent only once per person. We read them to improve the app.</li>
           <li><span className="text-ink">IP address,</span> stored only as a salted hash, used for rate limits and one-claim-per-day checks.</li>

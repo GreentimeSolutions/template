@@ -41,7 +41,7 @@ function TermsPage() {
       </LegalSection>
       <LegalSection title="The faucet">
         <p>
-          The daily faucet is a community giveaway while supplies last. Amounts, streak bonuses, the listen boost, and
+          The daily faucet is a community giveaway while supplies last. Amounts, streak bonuses, the listen boost, the save bonus, and
           limits can change or stop at any time. One claim per person per day.
         </p>
       </LegalSection>
