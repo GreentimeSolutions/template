@@ -73,7 +73,10 @@ test("streak counter labels", () => {
   const now = streakBadge({ streak: 6, claimedToday: false, nextStreak: 7 });
   assert.equal(now.bonusNow, true);
   assert.equal(now.label, "Day 7: 3x claim! Claim 3x YOUCOG today");
-  assert.equal(streakBadge({ streak: 13, claimedToday: false, nextStreak: 14 }).bonusNow, true);
+  const d14 = streakBadge({ streak: 13, claimedToday: false, nextStreak: 14 });
+  assert.equal(d14.bonusNow, true);
+  assert.equal(d14.label, "Day 14: 3x claim! Claim 3x YOUCOG today");
+  assert.equal(streakBadge({ streak: 13, claimedToday: true, nextStreak: 13 }).label, "Day 6 of 7 — claim tomorrow for 3x");
   assert.match(streakBadge({ streak: 7, claimedToday: true, nextStreak: 7 }).label, /^Day 7: 3x claimed today/);
   assert.equal(streakBadge({ streak: 0, claimedToday: false, nextStreak: 1 }).label, "Day 1 of 7 — claim today to start your streak");
   for (const s of [1, 6, 7, 13, 14]) {

@@ -61,12 +61,12 @@ export type StreakState = { streak: number; claimedToday: boolean; nextStreak: n
 export function streakBadge(s: StreakState): { day: number; label: string; bonusNow: boolean } {
   if (!s.claimedToday) {
     const day = cycleDay(s.nextStreak);
-    if (isStreakBonusDay(s.nextStreak)) return { day, label: `Day ${STREAK_BONUS_EVERY}: 3x claim! Claim 3x YOUCOG today`, bonusNow: true };
+    if (isStreakBonusDay(s.nextStreak)) return { day, label: `Day ${s.nextStreak}: 3x claim! Claim 3x YOUCOG today`, bonusNow: true };
     if (day === STREAK_BONUS_EVERY - 1) return { day, label: `Day ${day} of ${STREAK_BONUS_EVERY} — claim today, then tomorrow is 3x`, bonusNow: false };
     return { day, label: `Day ${day} of ${STREAK_BONUS_EVERY} — claim today to ${s.nextStreak === 1 ? "start" : "keep"} your streak`, bonusNow: false };
   }
   const day = cycleDay(s.streak);
-  if (day === STREAK_BONUS_EVERY) return { day, label: `Day ${STREAK_BONUS_EVERY}: 3x claimed today. Next 3x in ${STREAK_BONUS_EVERY} days`, bonusNow: false };
+  if (day === STREAK_BONUS_EVERY) return { day, label: `Day ${s.streak}: 3x claimed today. Next 3x in ${STREAK_BONUS_EVERY} days`, bonusNow: false };
   if (day === STREAK_BONUS_EVERY - 1) return { day, label: `Day ${day} of ${STREAK_BONUS_EVERY} — claim tomorrow for 3x`, bonusNow: false };
   const left = STREAK_BONUS_EVERY - day;
   return { day, label: `Day ${day} of ${STREAK_BONUS_EVERY} — ${left} more days to a 3x claim`, bonusNow: false };
