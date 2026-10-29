@@ -13,6 +13,7 @@ export const bondAbi = parseAbi([
   "function burn(address token, uint256 tokensToBurn, uint256 minRefund, address receiver) returns (uint256)",
 ]);
 const erc20Abi = parseAbi([
+  "function name() view returns (string)",
   "function symbol() view returns (string)",
   "function totalSupply() view returns (uint256)",
   "function balanceOf(address) view returns (uint256)",
@@ -23,6 +24,8 @@ const erc20Abi = parseAbi([
 const client = createPublicClient({ chain: base, transport: http("https://mainnet.base.org") });
 
 export type BondState = {
+  name: string;
+  symbol: string;
   steps: Step[];
   supply: bigint;
   mintRoyaltyBps: number;
@@ -33,14 +36,18 @@ export type BondState = {
 };
 
 export async function readBond(token: Address): Promise<BondState> {
-  const [steps, bond, supply] = await Promise.all([
+  const [steps, bond, supply, name, symbol] = await Promise.all([
     client.readContract({ address: MC_BOND, abi: bondAbi, functionName: "getSteps", args: [token] }),
     client.readContract({ address: MC_BOND, abi: bondAbi, functionName: "tokenBond", args: [token] }),
     client.readContract({ address: token, abi: erc20Abi, functionName: "totalSupply" }),
+    client.readContract({ address: token, abi: erc20Abi, functionName: "name" }),
+    client.readContract({ address: token, abi: erc20Abi, functionName: "symbol" }),
   ]);
   const [, mintRoyalty, burnRoyalty, , reserveToken, reserveBalance] = bond;
   const reserveSymbol = await client.readContract({ address: reserveToken, abi: erc20Abi, functionName: "symbol" });
   return {
+    name,
+    symbol,
     steps: steps.map((s) => ({ rangeTo: s.rangeTo, price: s.price })),
     supply,
     mintRoyaltyBps: mintRoyalty,
