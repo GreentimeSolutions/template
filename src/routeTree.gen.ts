@@ -10,9 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CurveRouteImport } from './routes/curve'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as StakeRouteImport } from './routes/stake'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
@@ -40,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CurveRoute = CurveRouteImport.update({
+  id: '/curve',
+  path: '/curve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeedbackRoute = FeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
@@ -53,6 +60,11 @@ const PlayRoute = PlayRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StakeRoute = StakeRouteImport.update({
+  id: '/stake',
+  path: '/stake',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatsRoute = StatsRouteImport.update({
@@ -164,9 +176,11 @@ const ApiListenStatusRoute = ApiListenStatusRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
+  '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
@@ -191,9 +205,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
+  '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
@@ -219,9 +235,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
+  '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
@@ -248,9 +266,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/curve'
     | '/feedback'
     | '/play'
     | '/privacy'
+    | '/stake'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
@@ -275,9 +295,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/curve'
     | '/feedback'
     | '/play'
     | '/privacy'
+    | '/stake'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
@@ -302,9 +324,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/curve'
     | '/feedback'
     | '/play'
     | '/privacy'
+    | '/stake'
     | '/stats'
     | '/terms'
     | '/.well-known/farcaster.json'
@@ -330,9 +354,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CurveRoute: typeof CurveRoute
   FeedbackRoute: typeof FeedbackRoute
   PlayRoute: typeof PlayRoute
   PrivacyRoute: typeof PrivacyRoute
+  StakeRoute: typeof StakeRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
@@ -365,6 +391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/curve': {
+      id: '/curve'
+      path: '/curve'
+      fullPath: '/curve'
+      preLoaderRoute: typeof CurveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/feedback': {
       id: '/feedback'
       path: '/feedback'
@@ -384,6 +417,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stake': {
+      id: '/stake'
+      path: '/stake'
+      fullPath: '/stake'
+      preLoaderRoute: typeof StakeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stats': {
@@ -538,9 +578,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CurveRoute: CurveRoute,
   FeedbackRoute: FeedbackRoute,
   PlayRoute: PlayRoute,
   PrivacyRoute: PrivacyRoute,
+  StakeRoute: StakeRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
