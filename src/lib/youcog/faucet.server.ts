@@ -19,6 +19,9 @@ import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE } from "@/constants/list
 import { listenIdentity, pickClaimAmount } from "@/lib/youcog/listen-core";
 import { FAUCET_AMOUNTS, FAUCET_DAILY_TOKEN_BUDGET_DEFAULT, FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
 import { findBonusListen, releaseBonusListen, claimBonusListen } from "@/lib/youcog/listen.server";
+import { claimStreak, dayOffset, isStreakBonusDay, regularMultiplier, runEndingAt, streakMultiplier } from "@/lib/youcog/streak-core";
+
+export { streakMultiplier };
 
 export const TOKEN = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3" as const;
 export const AMOUNTS = FAUCET_AMOUNTS;
@@ -39,6 +42,8 @@ export type ClaimResult =
       url: string;
       /** True when a verified full listen upgraded this claim to LISTEN_BONUS_AMOUNT. */
       listenBonus?: boolean;
+      /** True when this claim was a 3x streak day (every 7th consecutive day). */
+      streakBonus?: boolean;
     }
   | { ok: false; reason: string };
 
@@ -53,28 +58,6 @@ export function dailyTokenBudget(): number {
   const n = Number(process.env.FAUCET_DAILY_TOKEN_BUDGET);
   // Doubled on 2026-10-19 with the claim tiers (was 250,000).
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : FAUCET_DAILY_TOKEN_BUDGET_DEFAULT;
-}
-
-/** Streak bonus: day 3+ = 1.25x, day 7+ = 1.5x (capped at 1.5x). */
-export function streakMultiplier(streak: number): number {
-  return streak >= 7 ? 1.5 : streak >= 3 ? 1.25 : 1;
-}
-
-function dayOffset(day: string, delta: number): string {
-  const d = new Date(`${day}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + delta);
-  return d.toISOString().slice(0, 10);
-}
-
-/** Consecutive sent-claim days ending at `endDay` (inclusive), from a list of distinct days. */
-function runEndingAt(days: Set<string>, endDay: string): number {
-  let n = 0;
-  let d = endDay;
-  while (days.has(d)) {
-    n++;
-    d = dayOffset(d, -1);
-  }
-  return n;
 }
 
 type Sql = Awaited<ReturnType<typeof getSql>>;
@@ -96,7 +79,14 @@ export async function streakInfo(who: { fid?: number; address?: string }) {
   const claimedToday = days.has(today);
   const streak = claimedToday ? runEndingAt(days, today) : runEndingAt(days, dayOffset(today, -1));
   const nextStreak = claimedToday ? streak : streak + 1;
-  return { streak, claimedToday, nextStreak, nextMultiplier: streakMultiplier(nextStreak) };
+  return {
+    streak,
+    claimedToday,
+    nextStreak,
+    nextMultiplier: streakMultiplier(nextStreak),
+    /** True when the next claim (today) is a 3x day. */
+    nextIsBonusDay: !claimedToday && isStreakBonusDay(nextStreak),
+  };
 }
 
 function utcDay(): string {
@@ -175,9 +165,13 @@ export async function claimFromFaucet(input: {
   const sql = await getSql();
   const day = utcDay();
   const days = await claimDays(sql, fid ? { fid } : { address });
-  const streak = runEndingAt(days, dayOffset(day, -1)) + 1;
-  const multiplier = streakMultiplier(streak);
-  const normalAmount = Math.round(input.amount * multiplier);
+  // Server-side only: the streak and the 3x day come from sent claims in the DB, never from the client.
+  const streak = claimStreak(days, day);
+  let multiplier = streakMultiplier(streak);
+  let normalAmount = Math.round(input.amount * multiplier);
+  // Fallback when a 3x claim can't fit today's budget or the faucet balance: the regular streak amount.
+  const fallbackMultiplier = regularMultiplier(streak);
+  const fallbackAmount = Math.round(input.amount * fallbackMultiplier);
   let sendAmount = normalAmount;
 
   // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
@@ -207,6 +201,13 @@ export async function claimFromFaucet(input: {
     sendAmount = pick.amount;
     bonus = pick.bonus;
     amountWei = parseUnits(String(sendAmount), 18);
+    if (tokens < amountWei && !bonus && multiplier !== fallbackMultiplier && tokens >= parseUnits(String(fallbackAmount), 18)) {
+      // Not enough YOUCOG left for the 3x day: pay the regular streak amount instead.
+      multiplier = fallbackMultiplier;
+      normalAmount = fallbackAmount;
+      sendAmount = normalAmount;
+      amountWei = parseUnits(String(sendAmount), 18);
+    }
     if (tokens < amountWei) return refuse("The faucet is out of YOUCOG for that amount. Try a smaller amount.");
   } catch {
     return refuse("Couldn't reach the Base network. Try again in a minute.");
@@ -248,6 +249,14 @@ export async function claimFromFaucet(input: {
     amountWei = parseUnits(String(sendAmount), 18);
     reserved = await reserve(sendAmount);
   }
+  if (!reserved.length && !bonus && multiplier !== fallbackMultiplier) {
+    // Not enough budget left today for the 3x day: fall back to the regular streak amount.
+    multiplier = fallbackMultiplier;
+    normalAmount = fallbackAmount;
+    sendAmount = normalAmount;
+    amountWei = parseUnits(String(sendAmount), 18);
+    reserved = await reserve(sendAmount);
+  }
   if (!reserved.length) {
     await sql`update faucet_days set claims = claims - 1 where day = ${day}`;
     return refuse("Today's faucet budget is nearly used up. Try a smaller amount or come back after midnight UTC.");
@@ -285,6 +294,7 @@ export async function claimFromFaucet(input: {
       baseAmount: input.amount,
       streak,
       multiplier: bonus ? 1 : multiplier,
+      streakBonus: !bonus && isStreakBonusDay(streak) && multiplier > fallbackMultiplier,
       txHash,
       url: `https://basescan.org/tx/${txHash}`,
       listenBonus: bonus,

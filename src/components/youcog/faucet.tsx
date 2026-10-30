@@ -10,10 +10,11 @@ import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/liste
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_AMOUNTS } from "@/constants/faucet";
 import { SaveBonus } from "@/components/youcog/save-bonus";
+import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
 
 const AMOUNTS = FAUCET_AMOUNTS;
-type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number };
-type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number };
+type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number; streakBonus?: boolean };
+type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number; nextIsBonusDay?: boolean };
 
 export function Faucet() {
   const [address, setAddress] = useState("");
@@ -50,7 +51,7 @@ export function Faucet() {
   // The amount shown is the one the faucet API returned for this claim.
   useEffect(() => {
     if (msg?.kind !== "ok") return;
-    const bits = [msg.boosted ? "Listen boost applied" : "Claimed",
+    const bits = [msg.boosted ? "Listen boost applied" : msg.streakBonus ? `Day ${msg.streak}: 3x claim` : "Claimed",
       msg.streak ? `${msg.streak}-day streak${msg.multiplier && msg.multiplier > 1 ? ` (${msg.multiplier}x)` : ""}` : ""];
     celebrate(msg.amount ? { amount: msg.amount, subtitle: bits.filter(Boolean).join(" · ") } : undefined);
   }, [msg]);
@@ -84,7 +85,7 @@ export function Faucet() {
     setMsg(null);
     try {
       let res:
-        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean }
+        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean; streakBonus?: boolean }
         | { ok: false; reason: string };
       if (fc) {
         const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -106,7 +107,7 @@ export function Faucet() {
         if (res.listenBonus) markListenUsed();
         setMsg({
           kind: "ok",
-          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${res.listenBonus ? " Listen boost applied." : ""}${
+          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${res.listenBonus ? " Listen boost applied." : ""}${res.streakBonus ? ` Day ${res.streak}: 3x claim!` : ""}${
             res.streak ? ` ${res.streak}-day streak${res.multiplier && res.multiplier > 1 ? ` (${res.multiplier}x bonus)` : ""}.` : ""
           }`,
           url: res.url,
@@ -114,6 +115,7 @@ export function Faucet() {
           streak: res.streak,
           boosted: Boolean(res.listenBonus),
           multiplier: res.multiplier,
+          streakBonus: Boolean(res.streakBonus),
         });
         void loadStreak();
         setClaims((n) => n + 1);
@@ -147,18 +149,10 @@ export function Faucet() {
           : "Claim a small YOUCOG gift on Base once a day while supplies last. YOUCOG has no promised value. One claim per address and per connection."}
       </p>
       <p className="mt-2 text-xs leading-relaxed text-mist">
-        Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Missing a day resets.
+        Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Every {STREAK_BONUS_EVERY}th day in a row
+        (day 7, 14, 21…) you can claim 3x YOUCOG. Missing a day resets.
       </p>
-      {streak && (streak.streak > 0 || streak.nextMultiplier > 1) ? (
-        <p data-testid="streak" className="mt-2 text-sm text-ink">
-          🔥 {streak.streak}-day streak
-          {streak.claimedToday
-            ? " · claimed today"
-            : streak.nextMultiplier > 1
-              ? ` · next claim ${streak.nextMultiplier}x`
-              : ""}
-        </p>
-      ) : null}
+      {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} /> : null}
       <SaveBonus fc={fc} address={recipient} refreshKey={claims} />
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
@@ -245,7 +239,9 @@ export function Faucet() {
             ? "Sending…"
             : boosted
               ? `Claim ${LISTEN_BONUS_AMOUNT.toLocaleString()} YOUCOG (boosted)`
-              : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG`}
+              : `Claim ${Math.round(amount * (streak && !streak.claimedToday ? streak.nextMultiplier : 1)).toLocaleString()} YOUCOG${
+                  streak && !streak.claimedToday && streak.nextIsBonusDay ? " (3x)" : ""
+                }`}
         </button>
         </HauntedButtonFrame>
       </form>
@@ -277,5 +273,40 @@ export function Faucet() {
         </p>
       ) : null}
     </section>
+  );
+}
+
+/** "Day 6 of 7" counter with seven pips; the 7th pip is the 3x day. */
+function StreakCounter({ streak }: { streak: Streak }) {
+  const badge = streakBadge(streak);
+  return (
+    <div
+      data-testid="streak"
+      className={`mt-2 rounded-seal border px-3 py-2 ${badge.bonusNow ? "border-accent bg-accent/10" : "border-line"}`}
+    >
+      <p className="text-sm text-ink">
+        🔥 {streak.streak}-day streak{streak.claimedToday ? " · claimed today" : ""}
+      </p>
+      <div className="mt-1.5 flex items-center gap-1" aria-hidden="true">
+        {Array.from({ length: STREAK_BONUS_EVERY }, (_, i) => {
+          const filled = i < (streak.claimedToday ? badge.day : badge.day - 1);
+          const isToday = !streak.claimedToday && i === badge.day - 1;
+          const last = i === STREAK_BONUS_EVERY - 1;
+          return (
+            <span
+              key={i}
+              className={`flex h-6 flex-1 items-center justify-center rounded-full text-[10px] font-semibold ${
+                filled ? "bg-accent text-accent-fg" : isToday ? "border border-accent text-ink" : "border border-line text-faint"
+              }`}
+            >
+              {last ? "3x" : i + 1}
+            </span>
+          );
+        })}
+      </div>
+      <p data-testid="streak-label" className={`mt-1.5 text-xs ${badge.bonusNow ? "font-semibold text-ink" : "text-mist"}`}>
+        {badge.label}
+      </p>
+    </div>
   );
 }
