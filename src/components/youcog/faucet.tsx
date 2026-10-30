@@ -11,6 +11,7 @@ import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_AMOUNTS } from "@/constants/faucet";
 import { SaveBonus } from "@/components/youcog/save-bonus";
 import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
+import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_RATE_LABEL } from "@/constants/ycurv-bonus";
 
 const AMOUNTS = FAUCET_AMOUNTS;
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number; streakBonus?: boolean };
@@ -85,7 +86,7 @@ export function Faucet() {
     setMsg(null);
     try {
       let res:
-        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean; streakBonus?: boolean }
+        | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean; streakBonus?: boolean; ycurvBonus?: number }
         | { ok: false; reason: string };
       if (fc) {
         const { sdk } = await import("@farcaster/miniapp-sdk");
@@ -107,7 +108,7 @@ export function Faucet() {
         if (res.listenBonus) markListenUsed();
         setMsg({
           kind: "ok",
-          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${res.listenBonus ? " Listen boost applied." : ""}${res.streakBonus ? ` Day ${res.streak}: 3x claim!` : ""}${
+          text: `Sent ${res.amount.toLocaleString()} YOUCOG to your address.${res.listenBonus ? " Listen boost applied." : ""}${res.ycurvBonus ? ` Includes +${res.ycurvBonus.toLocaleString()} YCURV holder extra.` : ""}${res.streakBonus ? ` Day ${res.streak}: 3x claim!` : ""}${
             res.streak ? ` ${res.streak}-day streak${res.multiplier && res.multiplier > 1 ? ` (${res.multiplier}x bonus)` : ""}.` : ""
           }`,
           url: res.url,
@@ -152,6 +153,13 @@ export function Faucet() {
         Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Every {STREAK_BONUS_EVERY}th day in a row
         (day 7, 14, 21…) you can claim 3x YOUCOG. Missing a day resets.
       </p>
+      {import.meta.env.VITE_YCURV_BONUS_ON === "1" ? (
+        <p data-testid="ycurv-bonus-note" className="mt-2 text-xs leading-relaxed text-mist">
+          YCURV holder extra: if the address you claim to has held at least {YCURV_BONUS_MIN} YCURV on Base for the past {YCURV_BONUS_HOLD_HOURS} hours,
+          your daily claim includes an extra {YCURV_BONUS_RATE_LABEL} of the amount you pick (up to {YCURV_BONUS_CAP.toLocaleString("en-US")} YOUCOG). It adds on top of
+          the streak bonus. Not paid on listen-boost claims. While supplies last; YCURV and YOUCOG have no promised value.
+        </p>
+      ) : null}
       {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} /> : null}
       <SaveBonus fc={fc} address={recipient} refreshKey={claims} />
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>

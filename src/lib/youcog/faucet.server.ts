@@ -20,6 +20,8 @@ import { listenIdentity, pickClaimAmount } from "@/lib/youcog/listen-core";
 import { FAUCET_AMOUNTS, FAUCET_DAILY_TOKEN_BUDGET_DEFAULT, FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
 import { findBonusListen, releaseBonusListen, claimBonusListen } from "@/lib/youcog/listen.server";
 import { claimStreak, dayOffset, isStreakBonusDay, regularMultiplier, runEndingAt, streakMultiplier } from "@/lib/youcog/streak-core";
+import { ycurvBonusExtra } from "@/lib/youcog/ycurv-bonus-core";
+import { isYcurvHolder, ycurvBonusOn } from "@/lib/youcog/ycurv-bonus.server";
 
 export { streakMultiplier };
 
@@ -44,6 +46,8 @@ export type ClaimResult =
       listenBonus?: boolean;
       /** True when this claim was a 3x streak day (every 7th consecutive day). */
       streakBonus?: boolean;
+      /** Extra YOUCOG included in `amount` for holding YCURV (0 when none). */
+      ycurvBonus?: number;
     }
   | { ok: false; reason: string };
 
@@ -168,10 +172,13 @@ export async function claimFromFaucet(input: {
   // Server-side only: the streak and the 3x day come from sent claims in the DB, never from the client.
   const streak = claimStreak(days, day);
   let multiplier = streakMultiplier(streak);
-  let normalAmount = Math.round(input.amount * multiplier);
+  // YCURV holder bonus (off unless YCURV_BONUS_ON=1): a flat extra on the tier, added after the streak multiplier.
+  // Checked server-side on the payout address at claim time and 24h back; any read error means no extra.
+  const ycurvExtra = ycurvBonusOn() && (await isYcurvHolder(c.pub as never, address)) ? ycurvBonusExtra(input.amount) : 0;
+  let normalAmount = Math.round(input.amount * multiplier) + ycurvExtra;
   // Fallback when a 3x claim can't fit today's budget or the faucet balance: the regular streak amount.
   const fallbackMultiplier = regularMultiplier(streak);
-  const fallbackAmount = Math.round(input.amount * fallbackMultiplier);
+  const fallbackAmount = Math.round(input.amount * fallbackMultiplier) + ycurvExtra;
   let sendAmount = normalAmount;
 
   // FID claims key the ip slot on the FID so shared Wi-Fi doesn't block Farcaster users.
@@ -198,7 +205,8 @@ export async function claimFromFaucet(input: {
       faucetBalanceTokens: Number(formatUnits(tokens, 18)),
       minFaucetBalanceTokens: LISTEN_MIN_FAUCET_BALANCE,
     });
-    sendAmount = pick.amount;
+    // The flat listen boost replaces the streak amount (and the YCURV extra); otherwise pay the streak amount + extra.
+    sendAmount = pick.bonus ? pick.amount : normalAmount;
     bonus = pick.bonus;
     amountWei = parseUnits(String(sendAmount), 18);
     if (tokens < amountWei && !bonus && multiplier !== fallbackMultiplier && tokens >= parseUnits(String(fallbackAmount), 18)) {
@@ -267,8 +275,8 @@ export async function claimFromFaucet(input: {
   let id: number;
   try {
     const rows = await sql<{ id: number }>`
-      insert into faucet_claims (day, address, ip_hash, amount, fid, base_amount, streak, listen_bonus)
-      values (${day}, ${address}, ${ipHash}, ${sendAmount}, ${fid ?? null}, ${input.amount}, ${streak}, ${bonus})
+      insert into faucet_claims (day, address, ip_hash, amount, fid, base_amount, streak, listen_bonus, ycurv_bonus)
+      values (${day}, ${address}, ${ipHash}, ${sendAmount}, ${fid ?? null}, ${input.amount}, ${streak}, ${bonus}, ${bonus ? 0 : ycurvExtra})
       returning id`;
     id = rows[0].id;
   } catch {
@@ -282,7 +290,7 @@ export async function claimFromFaucet(input: {
     bonus = false;
     sendAmount = normalAmount;
     amountWei = parseUnits(String(sendAmount), 18);
-    await sql`update faucet_claims set amount = ${sendAmount}, listen_bonus = false where id = ${id}`;
+    await sql`update faucet_claims set amount = ${sendAmount}, listen_bonus = false, ycurv_bonus = ${ycurvExtra} where id = ${id}`;
   }
 
   try {
@@ -298,6 +306,7 @@ export async function claimFromFaucet(input: {
       txHash,
       url: `https://basescan.org/tx/${txHash}`,
       listenBonus: bonus,
+      ycurvBonus: bonus ? 0 : ycurvExtra,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message.slice(0, 300) : "send failed";
