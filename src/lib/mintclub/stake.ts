@@ -1,6 +1,7 @@
 import { createPublicClient, encodeFunctionData, http, parseAbi, type Address } from "viem";
 import { base } from "viem/chains";
 import { MC_STAKE } from "@/constants/stake";
+import { withSuffix } from "@/lib/youcog/builder-code";
 
 /** Browser-side reads and tx encoding for Mint Club Stake V1.2 on Base. */
 export const stakeAbi = parseAbi([
@@ -66,7 +67,7 @@ export async function readPool(id: bigint): Promise<PoolInfo> {
 type Provider = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> };
 
 async function send(p: Provider, from: Address, to: Address, data: `0x${string}`) {
-  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data, chainId: "0x2105" }] })) as `0x${string}`;
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data: withSuffix(data), chainId: "0x2105" }] })) as `0x${string}`;
   await client.waitForTransactionReceipt({ hash, timeout: 120_000 });
   return hash;
 }

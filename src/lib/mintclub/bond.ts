@@ -2,6 +2,7 @@ import { createPublicClient, encodeFunctionData, http, parseAbi, type Address } 
 import { base } from "viem/chains";
 import { MC_BOND, SLIPPAGE_BPS } from "@/constants/curve";
 import type { Step } from "./curve";
+import { withSuffix } from "@/lib/youcog/builder-code";
 
 /** Browser-side reads and tx encoding for Mint Club V2 on Base (same contract calls the mint.club-v2-sdk makes). */
 export const bondAbi = parseAbi([
@@ -73,7 +74,7 @@ async function waitFor(hash: `0x${string}`) {
   await client.waitForTransactionReceipt({ hash, timeout: 120_000 });
 }
 async function send(p: Provider, from: Address, to: Address, data: `0x${string}`) {
-  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data, chainId: "0x2105" }] })) as `0x${string}`;
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data: withSuffix(data), chainId: "0x2105" }] })) as `0x${string}`;
   await waitFor(hash);
   return hash;
 }
