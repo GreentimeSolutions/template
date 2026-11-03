@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CurveRouteImport } from './routes/curve'
 import { Route as FeedbackRouteImport } from './routes/feedback'
+import { Route as LabRouteImport } from './routes/lab'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StakeRouteImport } from './routes/stake'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
@@ -52,6 +54,11 @@ const FeedbackRoute = FeedbackRouteImport.update({
   path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LabRoute = LabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlayRoute = PlayRouteImport.update({
   id: '/play',
   path: '/play',
@@ -75,6 +82,11 @@ const StatsRoute = StatsRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WardrobeRoute = WardrobeRouteImport.update({
+  id: '/wardrobe',
+  path: '/wardrobe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownFarcasterDotjsonRoute =
@@ -178,11 +190,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
+  '/lab': typeof LabRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -207,11 +221,13 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
+  '/lab': typeof LabRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -237,11 +253,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
+  '/lab': typeof LabRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -268,11 +286,13 @@ export interface FileRouteTypes {
     | '/'
     | '/curve'
     | '/feedback'
+    | '/lab'
     | '/play'
     | '/privacy'
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -297,11 +317,13 @@ export interface FileRouteTypes {
     | '/'
     | '/curve'
     | '/feedback'
+    | '/lab'
     | '/play'
     | '/privacy'
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -326,11 +348,13 @@ export interface FileRouteTypes {
     | '/'
     | '/curve'
     | '/feedback'
+    | '/lab'
     | '/play'
     | '/privacy'
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -356,11 +380,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CurveRoute: typeof CurveRoute
   FeedbackRoute: typeof FeedbackRoute
+  LabRoute: typeof LabRoute
   PlayRoute: typeof PlayRoute
   PrivacyRoute: typeof PrivacyRoute
   StakeRoute: typeof StakeRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
+  WardrobeRoute: typeof WardrobeRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
@@ -405,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lab': {
+      id: '/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/play': {
       id: '/play'
       path: '/play'
@@ -438,6 +471,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wardrobe': {
+      id: '/wardrobe'
+      path: '/wardrobe'
+      fullPath: '/wardrobe'
+      preLoaderRoute: typeof WardrobeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/farcaster.json': {
@@ -580,11 +620,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CurveRoute: CurveRoute,
   FeedbackRoute: FeedbackRoute,
+  LabRoute: LabRoute,
   PlayRoute: PlayRoute,
   PrivacyRoute: PrivacyRoute,
   StakeRoute: StakeRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
+  WardrobeRoute: WardrobeRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,
