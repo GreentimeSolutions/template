@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StakeRouteImport } from './routes/stake'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
 import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
@@ -75,6 +76,11 @@ const StatsRoute = StatsRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WardrobeRoute = WardrobeRouteImport.update({
+  id: '/wardrobe',
+  path: '/wardrobe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotwellKnownFarcasterDotjsonRoute =
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/stake': typeof StakeRoute
   '/stats': typeof StatsRoute
   '/terms': typeof TermsRoute
+  '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/stake'
     | '/stats'
     | '/terms'
+    | '/wardrobe'
     | '/.well-known/farcaster.json'
     | '/api/buys'
     | '/api/deep-mission'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   StakeRoute: typeof StakeRoute
   StatsRoute: typeof StatsRoute
   TermsRoute: typeof TermsRoute
+  WardrobeRoute: typeof WardrobeRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
   ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
@@ -438,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wardrobe': {
+      id: '/wardrobe'
+      path: '/wardrobe'
+      fullPath: '/wardrobe'
+      preLoaderRoute: typeof WardrobeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/farcaster.json': {
@@ -585,6 +605,7 @@ const rootRouteChildren: RootRouteChildren = {
   StakeRoute: StakeRoute,
   StatsRoute: StatsRoute,
   TermsRoute: TermsRoute,
+  WardrobeRoute: WardrobeRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
   ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,
