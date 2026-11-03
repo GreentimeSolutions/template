@@ -80,7 +80,7 @@ export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number
                 <GhostCanvas outfit={{ skin: "skin-classic", [STORE_ITEMS.find((i) => i.id === q.reward)!.cat]: q.reward }} px={1.5} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 10, fontWeight: 700 }}>{q.name}</div>
-                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: q.source === "real" ? "#39ff14" : q.source === "local" ? "#9cc0ff" : "#f5b301" }}>[{q.source === "real" ? "REAL" : q.source === "local" ? "THIS DEVICE" : "SIMULATED"}]</span></div>
+                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: q.source === "real" ? (sigSrc === "live" ? "#39ff14" : "#f5b301") : q.source === "local" ? "#9cc0ff" : "#f5b301" }}>[{q.source === "real" ? (sigSrc === "live" ? "REAL" : sigSrc === "demo" ? "DEMO DATA" : "REAL · NOT LOADED") : q.source === "local" ? "THIS DEVICE" : "SIMULATED"}]</span></div>
                   <div style={{ height: 6, background: "#0a0f2c", borderRadius: 3, marginTop: 3, overflow: "hidden" }}><div style={{ width: `${pr.pct}%`, height: "100%", background: pr.done ? "#39ff14" : "#3a86ff", transition: "width .6s" }} /></div>
                   <div style={{ fontSize: 8, color: "#8892b0", marginTop: 2 }}>{pr.have.toLocaleString("en-US", { maximumFractionDigits: 1 })} / {pr.goal}{q.note ? ` · ${q.note}` : ""}</div>
                 </div>
