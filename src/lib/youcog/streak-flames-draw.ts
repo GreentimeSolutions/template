@@ -63,9 +63,16 @@ export function drawFlame(ctx: CanvasRenderingContext2D, tier: FlameTier, t: num
     );
     // flame tongues licking up both sides and over the hat
     for (const side of [-1, 1]) {
-      const x0 = side < 0 ? gx - 1 : gx + 16;
-      const h = 9 + Math.round(2 * Math.sin(t / 120 + side));
-      for (let y = 0; y < h; y++) cell(x0 + (y > h - 3 ? -side : 0), base - y, y < h / 2 ? m : o);
+      // 2-cell-wide tongues (inner bright, outer dark) so they read at 40px
+      const inner = side < 0 ? gx - 1 : gx + 16;
+      const outer = inner + side;
+      const h = 12 + Math.round(2 * Math.sin(t / 120 + side));
+      for (let y = 0; y < h; y++) {
+        const top = y >= h - 3;
+        cell(inner, base - y, y < h * 0.45 ? c : m);
+        if (!top || y === h - 3) cell(outer, base - y, y < h * 0.6 ? m : o);
+        if (top && y === h - 1) cell(inner - side, base - y, o); // tip curls toward the ghost
+      }
     }
     for (let i = 0; i < 4; i++) cell(gx + 3 + i * 3, gy - 1 - (Math.floor(t / 110 + i) % 2), i % 2 ? m : o);
   }
