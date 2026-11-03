@@ -5,6 +5,8 @@ import {
   type ForgeClaimResolve,
   type ForgeClaimStart,
 } from "@/lib/youcog/forge-claim";
+import { COLORS, GHOST } from "@/lib/youcog/ghost-sprite";
+import { FORGE_CLAIM_DONE } from "@/lib/youcog/streak-flames";
 
 /**
  * Forge claim cinematic: a pixel spy ghost whose laser eyes "write" the claim
@@ -14,23 +16,6 @@ import {
  */
 
 // 16x14 ghost sprite. H=hat, B=band, G=body, S=shades, L=lens glint, .=empty
-const GHOST = [
-  "....HHHHHHHH....",
-  "....HHHHHHHH....",
-  "....HBBBBBBH....",
-  "HHHHHHHHHHHHHHHH",
-  "..GGGGGGGGGGGG..",
-  ".GGSSSSGGSSSSGG.",
-  ".GGSLSSSSSLSSGG.",
-  ".GGSSSSGGSSSSGG.",
-  ".GGGGGGGGGGGGGG.",
-  ".GGGGGGGGGGGGGG.",
-  ".GGGGGGGGGGGGGG.",
-  ".GGGGGGGGGGGGGG.",
-  ".GG.GGG..GGG.GG.",
-  ".G...G....G...G.",
-];
-const COLORS: Record<string, string> = { H: "#ffffff", B: "#0a0f2c", G: "#f4f7ff", S: "#000000", L: "#5b8cff" };
 // eye centers in sprite cells
 const EYES: [number, number][] = [[5, 6], [10, 6]];
 
@@ -72,6 +57,7 @@ export function ForgeClaim() {
   }, []);
 
   function close() {
+    if (runRef.current) window.dispatchEvent(new CustomEvent(FORGE_CLAIM_DONE));
     runRef.current = null;
     setRun(null);
   }

@@ -12,6 +12,8 @@ import { FAUCET_AMOUNTS } from "@/constants/faucet";
 import { forgeClaimEnabled, forgeClaimResolve, forgeClaimStart } from "@/lib/youcog/forge-claim";
 import { SaveBonus } from "@/components/youcog/save-bonus";
 import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
+import { flameTier, lastKnownStreak, rememberStreak, streakFlamesEnabled, streakLevelUp, streakTransition, tierName } from "@/lib/youcog/streak-flames";
+import { StreakFlame } from "@/components/youcog/streak-flames";
 import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_RATE_LABEL } from "@/constants/ycurv-bonus";
 
 const AMOUNTS = FAUCET_AMOUNTS;
@@ -87,6 +89,8 @@ export function Faucet() {
     setBusy(true);
     setMsg(null);
     const forge = forgeClaimEnabled();
+    const flameKey = fc ? "fc" : recipient;
+    const prevStreak = Math.max(streak?.streak ?? 0, streakFlamesEnabled() ? lastKnownStreak(flameKey) : 0);
     if (forge) forgeClaimStart({ address: recipient, amount, streakDay: streak && !streak.claimedToday ? streak.nextStreak : undefined });
     try {
       let res:
@@ -110,6 +114,11 @@ export function Faucet() {
       }
       if (forge) forgeClaimResolve(res.ok ? { ok: true, amount: res.amount, streak: res.streak } : { ok: false, reason: res.reason });
       if (res.ok) {
+        if (streakFlamesEnabled() && typeof res.streak === "number") {
+          const tr = streakTransition(prevStreak, res.streak);
+          if (tr) streakLevelUp(tr);
+          rememberStreak(flameKey, res.streak);
+        }
         if (res.listenBonus) markListenUsed();
         setMsg({
           kind: "ok",
@@ -166,7 +175,7 @@ export function Faucet() {
           the streak bonus. Not paid on listen-boost claims. While supplies last; YCURV and YOUCOG have no promised value.
         </p>
       ) : null}
-      {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} /> : null}
+      {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} flameKey={fc ? "fc" : recipient} /> : null}
       <SaveBonus fc={fc} address={recipient} refreshKey={claims} />
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
@@ -291,16 +300,30 @@ export function Faucet() {
 }
 
 /** "Day 6 of 7" counter with seven pips; the 7th pip is the 3x day. */
-function StreakCounter({ streak }: { streak: Streak }) {
+function StreakCounter({ streak, flameKey }: { streak: Streak; flameKey: string }) {
   const badge = streakBadge(streak);
+  const flames = streakFlamesEnabled();
+  const tier = flameTier(streak.streak);
+  const wasReset = flames && streak.streak === 0 && !streak.claimedToday && lastKnownStreak(flameKey) >= 2;
   return (
     <div
       data-testid="streak"
       className={`mt-2 rounded-seal border px-3 py-2 ${badge.bonusNow ? "border-accent bg-accent/10" : "border-line"}`}
     >
-      <p className="text-sm text-ink">
-        🔥 {streak.streak}-day streak{streak.claimedToday ? " · claimed today" : ""}
-      </p>
+      {flames ? (
+        <div className="flex items-center gap-2">
+          {tier ? <StreakFlame streak={streak.streak} tier={tier} size={40} /> : null}
+          <p className="text-sm text-ink">
+            {wasReset ? "Streak reset. Start a new flame today." : `${streak.streak}-day streak`}
+            {streak.claimedToday ? " · claimed today" : ""}
+            {tier ? <span className="block text-[10px] tracking-widest text-mist">{tierName(tier)}</span> : null}
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-ink">
+          🔥 {streak.streak}-day streak{streak.claimedToday ? " · claimed today" : ""}
+        </p>
+      )}
       <div className="mt-1.5 flex items-center gap-1" aria-hidden="true">
         {Array.from({ length: STREAK_BONUS_EVERY }, (_, i) => {
           const filled = i < (streak.claimedToday ? badge.day : badge.day - 1);

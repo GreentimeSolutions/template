@@ -3,6 +3,8 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { GhostCelebration } from "@/components/youcog/ghost-celebration";
 import { ForgeClaim } from "@/components/youcog/forge-claim";
+import { StreakLevelUp } from "@/components/youcog/streak-flames";
+import { streakFlamesEnabled } from "@/lib/youcog/streak-flames";
 import { forgeClaimEnabled } from "@/lib/youcog/forge-claim";
 import { SITE_DESCRIPTION } from "@/constants/site";
 import appCss from "../styles.css?url";
@@ -47,6 +49,7 @@ export const Route = createRootRoute({
         </AuthProvider>
         <GhostCelebration />
         {forgeClaimEnabled() ? <ForgeClaim /> : null}
+        {streakFlamesEnabled() ? <StreakLevelUp /> : null}
         <Scripts />
       </body>
     </html>
