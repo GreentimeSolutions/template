@@ -66,7 +66,7 @@ export function dailyTokenBudget(): number {
 
 type Sql = Awaited<ReturnType<typeof getSql>>;
 
-async function claimDays(sql: Sql, who: { fid?: number; address?: string }): Promise<Set<string>> {
+export async function claimDays(sql: Sql, who: { fid?: number; address?: string }): Promise<Set<string>> {
   const rows = who.fid
     ? await sql<{ day: string }>`select distinct to_char(day, 'YYYY-MM-DD') as day from faucet_claims where status = 'sent' and fid = ${who.fid} order by 1 desc limit 400`
     : await sql<{ day: string }>`select distinct to_char(day, 'YYYY-MM-DD') as day from faucet_claims where status = 'sent' and address = ${who.address ?? ""} order by 1 desc limit 400`;

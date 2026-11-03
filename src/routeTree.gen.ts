@@ -29,6 +29,7 @@ import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
 import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
 import { Route as ApiImageRouteImport } from './routes/api/image'
 import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
+import { Route as ApiQuestsRouteImport } from './routes/api/quests'
 import { Route as ApiRcstClaimRouteImport } from './routes/api/rcst-claim'
 import { Route as ApiSaveBonusRouteImport } from './routes/api/save-bonus'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
@@ -141,6 +142,11 @@ const ApiLeaderboardRoute = ApiLeaderboardRouteImport.update({
   path: '/api/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiQuestsRoute = ApiQuestsRouteImport.update({
+  id: '/api/quests',
+  path: '/api/quests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRcstClaimRoute = ApiRcstClaimRouteImport.update({
   id: '/api/rcst-claim',
   path: '/api/rcst-claim',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/api/holder-verify': typeof ApiHolderVerifyRoute
   '/api/image': typeof ApiImageRoute
   '/api/leaderboard': typeof ApiLeaderboardRoute
+  '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
   '/api/stats': typeof ApiStatsRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/api/holder-verify'
     | '/api/image'
     | '/api/leaderboard'
+    | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
     | '/api/stats'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/api/holder-verify'
     | '/api/image'
     | '/api/leaderboard'
+    | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
     | '/api/stats'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/api/holder-verify'
     | '/api/image'
     | '/api/leaderboard'
+    | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
     | '/api/stats'
@@ -409,6 +421,7 @@ export interface RootRouteChildren {
   ApiHolderVerifyRoute: typeof ApiHolderVerifyRoute
   ApiImageRoute: typeof ApiImageRoute
   ApiLeaderboardRoute: typeof ApiLeaderboardRoute
+  ApiQuestsRoute: typeof ApiQuestsRoute
   ApiRcstClaimRoute: typeof ApiRcstClaimRoute
   ApiSaveBonusRoute: typeof ApiSaveBonusRoute
   ApiStatsRoute: typeof ApiStatsRoute
@@ -563,6 +576,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/quests': {
+      id: '/api/quests'
+      path: '/api/quests'
+      fullPath: '/api/quests'
+      preLoaderRoute: typeof ApiQuestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/rcst-claim': {
       id: '/api/rcst-claim'
       path: '/api/rcst-claim'
@@ -657,6 +677,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHolderVerifyRoute: ApiHolderVerifyRoute,
   ApiImageRoute: ApiImageRoute,
   ApiLeaderboardRoute: ApiLeaderboardRoute,
+  ApiQuestsRoute: ApiQuestsRoute,
   ApiRcstClaimRoute: ApiRcstClaimRoute,
   ApiSaveBonusRoute: ApiSaveBonusRoute,
   ApiStatsRoute: ApiStatsRoute,
