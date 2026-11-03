@@ -35,6 +35,7 @@ import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
+import { Route as LabShopRouteImport } from './routes/lab_.shop'
 import { Route as ApiListenFinishRouteImport } from './routes/api/listen/finish'
 import { Route as ApiListenStartRouteImport } from './routes/api/listen/start'
 import { Route as ApiListenStatusRouteImport } from './routes/api/listen/status'
@@ -170,6 +171,11 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
   path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LabShopRoute = LabShopRouteImport.update({
+  id: '/lab_/shop',
+  path: '/lab/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiListenFinishRoute = ApiListenFinishRouteImport.update({
   id: '/api/listen/finish',
   path: '/api/listen/finish',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/lab/shop': typeof LabShopRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/lab/shop': typeof LabShopRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/lab_/shop': typeof LabShopRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/lab/shop'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/lab/shop'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/api/streak'
     | '/api/tip'
     | '/api/tts'
+    | '/lab_/shop'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
   ApiTtsRoute: typeof ApiTtsRoute
+  LabShopRoute: typeof LabShopRoute
   ApiListenFinishRoute: typeof ApiListenFinishRoute
   ApiListenStartRoute: typeof ApiListenStartRoute
   ApiListenStatusRoute: typeof ApiListenStatusRoute
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lab_/shop': {
+      id: '/lab_/shop'
+      path: '/lab/shop'
+      fullPath: '/lab/shop'
+      preLoaderRoute: typeof LabShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/listen/finish': {
       id: '/api/listen/finish'
       path: '/api/listen/finish'
@@ -643,6 +663,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,
   ApiTtsRoute: ApiTtsRoute,
+  LabShopRoute: LabShopRoute,
   ApiListenFinishRoute: ApiListenFinishRoute,
   ApiListenStartRoute: ApiListenStartRoute,
   ApiListenStatusRoute: ApiListenStatusRoute,

@@ -62,7 +62,21 @@ export const COSMETICS: Cosmetic[] = [
   C("prop-wand", "Magic Wand", "prop", "epic", "wand", "#151515", "#f5b301"),
   C("prop-duck", "Rubber Duck", "prop", "rare", "duck", "#ffd60a", "#ff9f1c"),
 ];
-export const byId = (id?: string | null) => COSMETICS.find((x) => x.id === id);
+/**
+ * Store-only extras (PREVIEW). Kept OUT of COSMETICS on purpose: COSMETICS order maps to the
+ * on-chain trait indices of the ghosts contract, so these are not mintable traits yet.
+ */
+export const STORE_EXTRAS: (Cosmetic & { seasonal?: boolean })[] = [
+  { ...C("prop-medal", "Medal Necklace", "prop", "epic", "medal", "#f5b301", "#d7263d"), via: "quest" },
+  { ...C("prop-badge", "Minter Badge", "prop", "rare", "badge", "#0052ff", "#ffffff"), via: "quest" },
+  { ...C("hat-pumpkin", "Pumpkin Head", "hat", "rare", "pumpkin", "#ff7a00", "#2e7d32"), via: "buy", seasonal: true },
+  { ...C("hat-witch", "Witch Hat", "hat", "epic", "witch", "#3d1a6e", "#39ff14"), via: "buy", seasonal: true },
+  { ...C("hat-santa", "Santa Hat", "hat", "rare", "santa", "#d7263d", "#ffffff"), via: "buy", seasonal: true },
+  { ...C("aura-snow", "Snowfall", "aura", "common", "snow", "#ffffff", "#bde0ff"), via: "buy", seasonal: true },
+  { ...C("prop-candy", "Candy Bucket", "prop", "common", "candy", "#ff7a00", "#1b1b2f"), via: "buy", seasonal: true },
+  { ...C("aura-hearts", "Heart Aura", "aura", "legendary", "hearts", "#ff3d7f", "#ffd1e0"), via: "buy", seasonal: true },
+];
+export const byId = (id?: string | null) => COSMETICS.find((x) => x.id === id) ?? STORE_EXTRAS.find((x) => x.id === id);
 export type Outfit = Partial<Record<Category, string>>;
 export const DEFAULT_OUTFIT: Outfit = { hat: "fedora-white", shades: "shades-black", skin: "skin-classic" };
 export const DEFAULT_OWNED = ["fedora-white", "shades-black", "skin-classic"];
@@ -98,6 +112,9 @@ function hat(p: P, ck?: Cosmetic) {
     case "crown": p(10, 6, 12, 4, a); p(10, 4, 2, 2, a); p(15, 3, 2, 3, a); p(20, 4, 2, 2, a); p(13, 7, 2, 2, b); p(18, 7, 2, 2, b); break;
     case "cap": p(10, 7, 12, 4, a); p(20, 9, 6, 2, b); p(15, 6, 2, 1, b); break;
     case "propeller": p(10, 7, 12, 4, a); p(15, 4, 2, 3, o); p(11, 3, 10, 1, b); break;
+    case "pumpkin": p(9, 5, 14, 6, a); p(15, 3, 2, 2, b); p(12, 6, 1, 4, "#c25e00"); p(19, 6, 1, 4, "#c25e00"); break;
+    case "witch": p(7, 10, 18, 1, a); p(11, 7, 10, 3, a); p(13, 4, 6, 3, a); p(15, 1, 3, 3, a); p(11, 9, 10, 1, b); break;
+    case "santa": p(10, 7, 12, 3, a); p(13, 4, 7, 3, a); p(19, 3, 3, 2, a); p(22, 3, 2, 2, b); p(9, 10, 14, 1, b); break;
     case "party": p(14, 3, 4, 2, a); p(13, 5, 6, 2, b); p(12, 7, 8, 3, a); p(15, 1, 2, 2, b); break;
   }
 }
@@ -120,6 +137,8 @@ function aura(p: P, ck: Cosmetic | undefined, t: number) {
     case "glow": for (let y = 7; y < 30; y += 2) { p(5 + ph, y, 1, 1, a); p(26 - ph, y, 1, 1, a); } for (let x = 7; x < 26; x += 2) p(x + ph, 30, 1, 1, a); break;
     case "ring": for (let i = 0; i < 16; i++) { const an = (i / 16) * Math.PI * 2 + t / 600; p(Math.round(16 + Math.cos(an) * 13), Math.round(18 + Math.sin(an) * 13), 1, 1, i % 2 ? a : b); } break;
     case "sparkle": [[4, 8], [27, 12], [5, 24], [26, 26], [16, 1]].forEach(([x, y], i) => { if ((Math.floor(t / 180) + i) % 3) { p(x, y, 1, 1, a); p(x - 1, y, 1, 1, b); p(x + 1, y, 1, 1, b); p(x, y - 1, 1, 1, b); p(x, y + 1, 1, 1, b); } }); break;
+    case "snow": [[4, 4], [27, 9], [6, 18], [25, 21], [14, 1], [20, 5]].forEach(([x, y], i) => p(x, (y + Math.floor(t / 160) + i * 3) % 31, 1, 1, i % 2 ? a : b)); break;
+    case "hearts": [[4, 10], [26, 14], [6, 24], [24, 26]].forEach(([x, y], i) => { const yy = y - ((Math.floor(t / 200) + i) % 3); p(x, yy, 1, 1, a); p(x + 2, yy, 1, 1, a); p(x - 1 + 1, yy + 1, 3, 1, a); p(x + 1, yy + 2, 1, 1, b); }); break;
     case "halo": p(11, 1 + ph, 10, 1, a); p(10, 2 + ph, 1, 1, a); p(21, 2 + ph, 1, 1, a); p(11, 3 + ph, 10, 1, b); break;
   }
 }
@@ -143,6 +162,9 @@ function prop(p: P, ck?: Cosmetic) {
     case "balloon": p(25, 3, 5, 6, a); p(26, 4, 1, 1, b); p(27, 9, 1, 12, o); break;
     case "laptop": p(23, 20, 8, 5, a); p(24, 21, 6, 3, o); p(25, 22, 3, 1, b); p(22, 25, 10, 1, a); break;
     case "wand": p(24, 16, 1, 10, a); p(23, 14, 3, 1, b); p(24, 13, 1, 3, b); break;
+    case "medal": p(12, 17, 1, 3, b); p(19, 17, 1, 3, b); p(13, 20, 6, 1, b); p(14, 21, 4, 4, a); p(15, 22, 2, 2, "#fff3b0"); break;
+    case "badge": p(18, 18, 5, 5, a); p(19, 19, 3, 1, b); p(20, 20, 1, 2, b); break;
+    case "candy": p(23, 21, 7, 6, a); p(23, 20, 7, 1, b); p(25, 23, 1, 1, b); p(27, 23, 1, 1, b); p(25, 25, 3, 1, b); p(22, 18, 1, 3, b); p(30, 18, 1, 3, b); break;
     case "duck": p(24, 22, 6, 4, a); p(27, 19, 3, 3, a); p(30, 20, 1, 1, b); p(28, 20, 1, 1, o); break;
   }
 }

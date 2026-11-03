@@ -104,6 +104,7 @@ export function GhostLab() {
         })}
       </div>
       <button data-testid="quest" onClick={quest} disabled={owned.includes(QUESTS[0].reward)} style={{ width: "100%", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #f5b301", background: "#111a44", color: "#f5b301", fontSize: 11 }}>FORGE QUEST: {QUESTS[0].name.toUpperCase()} (PREVIEW)</button>
+      <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP (PREVIEW)</a>
       <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Shop and quests are a preview. Any outfit can be minted.</div>
       {!addr && !demo && <div style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>Minting opens soon.</div>}
       {chain && chain.status !== "open" && <div data-testid="status" style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>{STATUS[chain.status]}</div>}
