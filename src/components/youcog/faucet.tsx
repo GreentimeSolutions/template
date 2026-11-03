@@ -9,6 +9,7 @@ import { ListenBoost } from "@/components/youcog/listen-boost";
 import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_AMOUNTS } from "@/constants/faucet";
+import { forgeClaimEnabled, forgeClaimResolve, forgeClaimStart } from "@/lib/youcog/forge-claim";
 import { SaveBonus } from "@/components/youcog/save-bonus";
 import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
 import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_RATE_LABEL } from "@/constants/ycurv-bonus";
@@ -52,6 +53,7 @@ export function Faucet() {
   // The amount shown is the one the faucet API returned for this claim.
   useEffect(() => {
     if (msg?.kind !== "ok") return;
+    if (forgeClaimEnabled()) return; // the Forge cinematic shows the result instead
     const bits = [msg.boosted ? "Listen boost applied" : msg.streakBonus ? `Day ${msg.streak}: 3x claim` : "Claimed",
       msg.streak ? `${msg.streak}-day streak${msg.multiplier && msg.multiplier > 1 ? ` (${msg.multiplier}x)` : ""}` : ""];
     celebrate(msg.amount ? { amount: msg.amount, subtitle: bits.filter(Boolean).join(" · ") } : undefined);
@@ -84,6 +86,8 @@ export function Faucet() {
     if (busy) return;
     setBusy(true);
     setMsg(null);
+    const forge = forgeClaimEnabled();
+    if (forge) forgeClaimStart({ address: recipient, amount, streakDay: streak && !streak.claimedToday ? streak.nextStreak : undefined });
     try {
       let res:
         | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean; streakBonus?: boolean; ycurvBonus?: number }
@@ -104,6 +108,7 @@ export function Faucet() {
           data: { address: recipient, amount, website },
         });
       }
+      if (forge) forgeClaimResolve(res.ok ? { ok: true, amount: res.amount, streak: res.streak } : { ok: false, reason: res.reason });
       if (res.ok) {
         if (res.listenBonus) markListenUsed();
         setMsg({
@@ -124,6 +129,7 @@ export function Faucet() {
         setMsg({ kind: "err", text: res.reason });
       }
     } catch (error) {
+      if (forge) forgeClaimResolve({ ok: false });
       const text =
         error instanceof Error ? error.message.replace(/^Error:\s*/, "") : "";
       setMsg({
