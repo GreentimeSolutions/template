@@ -4,7 +4,7 @@
  * SIMULATED in this branch: no wallet calls, no token transfers, no contract.
  * Behind VITE_GHOST_WARDROBE === "1" (off by default).
  */
-export const ghostWardrobeEnabled = () => import.meta.env.VITE_GHOST_WARDROBE === "1";
+export const ghostWardrobeEnabled = () => import.meta.env.VITE_GHOST_LAB === "1";
 
 export type Category = "hat" | "shades" | "skin" | "aura" | "trail" | "prop";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
