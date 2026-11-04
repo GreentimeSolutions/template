@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, COSMETICS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, QUEST_ONLY, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
+import { STORE_ITEMS } from "@/lib/youcog/cosmetics-store";
+import { CATEGORIES, COSMETICS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
 import { labStatus, outfitToTraits, publicLeft, type LabStatus } from "@/lib/youcog/ghost-lab-core";
 import { ownedFromApi, peekWallet, connectedOwner, ownerMintTo, ownerUnpause, demoMode, friendlyError, ghostsContract, mintGhost, previewSvg, readLab, type MintStep } from "@/lib/youcog/ghost-lab";
 import { GhostCanvas } from "./ghost-wardrobe";
@@ -15,6 +16,8 @@ const CODE = ["ghost.dress(outfit)", "traits -> uint8[6]", "mint() on Base", "to
 type Done = { id: number; hash: string; name: string; image: string };
 
 /** Ghost Lab: dress your ghost, then mint 1 of 1,000. */
+/** Quest-only labels (every quest reward is quest-only and never sold). */
+const QO: Record<string, string> = Object.fromEntries(STORE_ITEMS.filter((i) => i.questOnly).map((i) => [i.id, i.questOnly!]));
 export function GhostLab() {
   const addr = ghostsContract();
   const demo = demoMode();
@@ -56,7 +59,7 @@ export function GhostLab() {
   const tap = (id: string) => {
     const c = COSMETICS.find((x) => x.id === id)!;
     if (outfit[c.cat] === id) return setOutfit({ ...outfit, [c.cat]: undefined });
-    if (!owned.includes(id) && QUEST_ONLY[id]) return flash(`Earn it: ${QUEST_ONLY[id]}`);
+    if (!owned.includes(id) && QO[id]) return flash(`Earn it: ${QO[id]}`);
     if (!owned.includes(id)) { location.href = `/lab/shop?item=${encodeURIComponent(id)}`; return; }
     setOutfit({ ...outfit, [c.cat]: id });
   };
@@ -98,7 +101,7 @@ export function GhostLab() {
             <button key={c.id} data-item={c.id} onClick={() => tap(c.id)} style={{ padding: 4, borderRadius: 10, border: `2px solid ${on ? "#f5b301" : "#2a3570"}`, background: "#111a44", color: "#fff", fontSize: 9 }}>
               <GhostCanvas outfit={{ skin: "skin-classic", [c.cat]: c.id }} px={2} />
               <div>{c.name}</div>
-              <div style={{ color: RC[c.rarity] }}>{on ? "WEARING" : have ? "OWNED" : QUEST_ONLY[c.id] ? "QUEST" : `${RARITY_PRICE[c.rarity]} · ${c.rarity}`}</div>
+              <div style={{ color: RC[c.rarity] }}>{on ? "WEARING" : have ? "OWNED" : QO[c.id] ? "QUEST" : `${RARITY_PRICE[c.rarity]} · ${c.rarity}`}</div>
             </button>
           );
         })}
