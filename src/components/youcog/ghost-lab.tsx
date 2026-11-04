@@ -24,14 +24,14 @@ export function GhostLab() {
   // to payments or on-chain state yet. The mint below does NOT depend on them (the contract doesn't check).
   const [owned, setOwned] = useState<string[]>(DEFAULT_OWNED);
   const [toast, setToast] = useState<string | null>(null);
-  const [chain, setChain] = useState<null | { status: LabStatus; price: bigint; left: number }>(null);
+  const [chain, setChain] = useState<null | { status: LabStatus; price: bigint; left: number; paused?: boolean; minted?: number }>(null);
   const [svg, setSvg] = useState<string | null>(null);
   const [step, setStep] = useState<MintStep | null>(null);
   const [done, setDone] = useState<Done | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [owner, setOwner] = useState<string | null>(null);
   const [ownerMsg, setOwnerMsg] = useState<string | null>(null);
-  const refresh = () => addr && readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c) })).catch(() => {});
+  const refresh = () => addr && readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c), paused: c.paused, minted: c.totalSupply })).catch(() => {});
   const ownerAct = async (f: () => Promise<string>, label: string) => {
     setOwnerMsg(`${label}: confirm in wallet…`);
     try { const h = await f(); setOwnerMsg(`${label} done: https://basescan.org/tx/${h}`); refresh(); }
@@ -43,7 +43,7 @@ export function GhostLab() {
   useEffect(() => {
     if (demo) { setChain({ status: "open", price: 0n, left: 989 }); return; }
     if (!addr) return;
-    readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c) })).catch(() => setChain(null));
+    readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c), paused: c.paused, minted: c.totalSupply })).catch(() => setChain(null));
   }, [addr, demo]);
   useEffect(() => {
     if (!addr || demo) return;
@@ -70,7 +70,7 @@ export function GhostLab() {
     if (!addr) return;
     try { setDone(await mintGhost(addr, traits, setStep)); }
     catch (e) { setErr(friendlyError(e)); }
-    finally { setStep(null); readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c) })).catch(() => {}); }
+    finally { setStep(null); readLab(addr).then((c) => setChain({ status: labStatus(c), price: c.price, left: publicLeft(c), paused: c.paused, minted: c.totalSupply })).catch(() => {}); }
   };
 
   const canMint = (demo || !!addr) && chain?.status === "open" && !step;
@@ -107,6 +107,7 @@ export function GhostLab() {
       <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP (PREVIEW)</a>
       <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Shop and quests are a preview. Any outfit can be minted.</div>
       {!addr && !demo && <div style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>Minting opens soon.</div>}
+      {chain && chain.minted !== undefined && <div data-testid="chain-state" style={{ marginTop: 10, textAlign: "center", fontSize: 10, color: "#8892b0" }}>ON-CHAIN: {chain.paused ? "PAUSED" : "LIVE"} · {chain.minted}/1000 MINTED</div>}
       {chain && chain.status !== "open" && <div data-testid="status" style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>{STATUS[chain.status]}</div>}
       <button data-testid="mint" onClick={doMint} disabled={!canMint} style={{ width: "100%", marginTop: 10, padding: 14, borderRadius: 12, border: 0, background: canMint ? "#0052ff" : "#2a3570", color: "#fff", fontWeight: 700, letterSpacing: ".15em" }}>
         MINT 1/1000{chain?.status === "open" ? ` · ${priceLabel}` : ""}
