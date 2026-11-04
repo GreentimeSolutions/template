@@ -130,6 +130,8 @@ export async function mintGhost(addr: Address, traits: number[], onStep: (s: Min
 export const friendlyError = (e: unknown) => {
   const m = (e as { shortMessage?: string; message?: string })?.shortMessage ?? (e as Error)?.message ?? "Something went wrong.";
   if (/reject|denied/i.test(m)) return "Transaction cancelled.";
+  if (/insufficient funds|gas required exceeds/i.test(m)) return "Not enough ETH on Base for gas.";
+  if (/transfer amount exceeds balance/i.test(m)) return "Not enough YOUCOG in this wallet.";
   if (/PriceAboveMax/.test(m)) return "The mint price changed. Check the new price and try again.";
   if (/AlreadyMinted/.test(m)) return "This wallet already minted its ghost.";
   if (/SoldOut/.test(m)) return "All public ghosts have been minted.";
@@ -150,4 +152,58 @@ export async function ownerMintTo(addr: Address, traits: number[]) {
 export async function ownerUnpause(addr: Address) {
   const { p, from } = await connect();
   return send(p, from, addr, encodeFunctionData({ abi: ghostsAbi, functionName: "unpause" }));
+}
+
+// ---------- Ghost Shop: real YOUCOG purchases ----------
+export const SHOP_FAUCET: Address = "0x3067ab541253746ab353b842fdc0970ffbde13c7";
+const transferAbi = parseAbi(["function transfer(address to, uint256 amount) returns (bool)"]);
+const WEI = 10n ** 18n; // YOUCOG decimals() = 18 (checked on-chain)
+
+/** Read-only YOUCOG balance (whole tokens, floored) for a wallet. */
+export async function youcogBalance(who: Address): Promise<number> {
+  const b = await client.readContract({ address: YOUCOG, abi: erc20Abi, functionName: "balanceOf", args: [who] });
+  return Number(b / WEI);
+}
+/** Connected wallet address without prompting, if the wallet already exposes one. */
+export async function peekWallet(): Promise<Address | null> {
+  const p = await getProvider();
+  if (!p) return null;
+  const a = (await p.request({ method: "eth_accounts" }).catch(() => [])) as string[];
+  return (a?.[0] as Address) ?? null;
+}
+export async function ownedFromApi(who: Address): Promise<string[]> {
+  const r = await fetch(`/api/shop?address=${who}`);
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || "Couldn't load your items.");
+  return j.owned as string[];
+}
+export type VerifyResult = { ok: true; owned: string[] } | { ok: false; pending?: boolean; error: string };
+export async function verifyPurchaseApi(address: Address, itemId: string, txHash: Hex): Promise<VerifyResult> {
+  try {
+    const r = await fetch("/api/shop", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ address, itemId, txHash }) });
+    const j = await r.json();
+    return j.ok ? { ok: true, owned: j.owned } : { ok: false, pending: !!j.pending || r.status >= 500, error: j.error || "Verification failed." };
+  } catch { return { ok: false, pending: true, error: "Couldn't reach the server. Tap retry." }; }
+}
+export type BuyStep = "connect" | "send" | "confirm" | "verify";
+/** Sends transfer(faucet, price) from the user's wallet, waits for it, then asks the server to verify. */
+export async function buyCosmetic(itemId: string, price: number, onStep: (s: BuyStep) => void, onHash?: (h: Hex, from: Address) => void): Promise<VerifyResult & { hash?: Hex }> {
+  onStep("connect");
+  const { p, from } = await connect();
+  const amount = BigInt(price) * WEI;
+  const [bal, eth] = await Promise.all([
+    client.readContract({ address: YOUCOG, abi: erc20Abi, functionName: "balanceOf", args: [from] }),
+    client.getBalance({ address: from }),
+  ]);
+  if (bal < amount) throw new Error(`Not enough YOUCOG. This costs ${price.toLocaleString("en-US")} and the wallet has ${Number(bal / WEI).toLocaleString("en-US")}.`);
+  if (eth < 2_000_000_000_000n) throw new Error("Not enough ETH on Base for gas. Add a little ETH on Base and try again.");
+  onStep("send");
+  const data = encodeFunctionData({ abi: transferAbi, functionName: "transfer", args: [SHOP_FAUCET, amount] });
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to: YOUCOG, data: withSuffix(data), value: "0x0" }] })) as Hex;
+  onHash?.(hash, from);
+  onStep("confirm");
+  const rc = await client.waitForTransactionReceipt({ hash });
+  if (rc.status !== "success") throw new Error("The transfer failed on-chain. No YOUCOG was spent (only gas).");
+  onStep("verify");
+  return { ...(await verifyPurchaseApi(from, itemId, hash)), hash };
 }

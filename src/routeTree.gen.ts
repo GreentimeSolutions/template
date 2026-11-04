@@ -32,6 +32,7 @@ import { Route as ApiLeaderboardRouteImport } from './routes/api/leaderboard'
 import { Route as ApiQuestsRouteImport } from './routes/api/quests'
 import { Route as ApiRcstClaimRouteImport } from './routes/api/rcst-claim'
 import { Route as ApiSaveBonusRouteImport } from './routes/api/save-bonus'
+import { Route as ApiShopRouteImport } from './routes/api/shop'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
@@ -157,6 +158,11 @@ const ApiSaveBonusRoute = ApiSaveBonusRouteImport.update({
   path: '/api/save-bonus',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShopRoute = ApiShopRouteImport.update({
+  id: '/api/shop',
+  path: '/api/shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStatsRoute = ApiStatsRouteImport.update({
   id: '/api/stats',
   path: '/api/stats',
@@ -222,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
+  '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
+  '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/api/quests': typeof ApiQuestsRoute
   '/api/rcst-claim': typeof ApiRcstClaimRoute
   '/api/save-bonus': typeof ApiSaveBonusRoute
+  '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
   '/api/tip': typeof ApiTipRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
+    | '/api/shop'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
+    | '/api/shop'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -390,6 +401,7 @@ export interface FileRouteTypes {
     | '/api/quests'
     | '/api/rcst-claim'
     | '/api/save-bonus'
+    | '/api/shop'
     | '/api/stats'
     | '/api/streak'
     | '/api/tip'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   ApiQuestsRoute: typeof ApiQuestsRoute
   ApiRcstClaimRoute: typeof ApiRcstClaimRoute
   ApiSaveBonusRoute: typeof ApiSaveBonusRoute
+  ApiShopRoute: typeof ApiShopRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
   ApiTipRoute: typeof ApiTipRoute
@@ -597,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSaveBonusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shop': {
+      id: '/api/shop'
+      path: '/api/shop'
+      fullPath: '/api/shop'
+      preLoaderRoute: typeof ApiShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stats': {
       id: '/api/stats'
       path: '/api/stats'
@@ -680,6 +700,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiQuestsRoute: ApiQuestsRoute,
   ApiRcstClaimRoute: ApiRcstClaimRoute,
   ApiSaveBonusRoute: ApiSaveBonusRoute,
+  ApiShopRoute: ApiShopRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
   ApiTipRoute: ApiTipRoute,

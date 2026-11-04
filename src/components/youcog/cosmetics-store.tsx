@@ -1,55 +1,91 @@
 import { useEffect, useState } from "react";
 import { EMPTY_SIGNALS, QUESTS, QUEST_FOR_ITEM, progress, type Signals } from "@/lib/youcog/quests-core";
 import { DEFAULT_OUTFIT, DEFAULT_OWNED, type Outfit } from "@/lib/youcog/ghost-wardrobe";
-import { STORE_ITEMS, STORE_TABS, itemsForTab, simulateBuy, type StoreItem, type StoreTab } from "@/lib/youcog/cosmetics-store";
+import { STORE_ITEMS, STORE_TABS, itemsForTab, type StoreItem, type StoreTab } from "@/lib/youcog/cosmetics-store";
+import { buyCosmetic, connect, friendlyError, ownedFromApi, peekWallet, verifyPurchaseApi, youcogBalance, type BuyStep } from "@/lib/youcog/ghost-lab";
+import type { Address, Hex } from "viem";
 import { GhostCanvas } from "./ghost-wardrobe";
 
 const RC: Record<string, string> = { common: "#8892b0", rare: "#3a86ff", epic: "#b15cff", legendary: "#f5b301" };
 const fmt = (n: number) => n.toLocaleString("en-US");
 
-/** Cosmetics store, PREVIEW ONLY: mock balance, simulated purchases, no wallet or token calls. */
-export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number }) {
+const BUY_STEP: Record<BuyStep, string> = { connect: "Connecting wallet…", send: "Confirm the YOUCOG transfer in your wallet…", confirm: "Waiting for Base to confirm…", verify: "Verifying your purchase…" };
+export const DISCLAIMER = "Cosmetics are just for fun. YOUCOG has no promised value. Not investment advice. You pay a little Base gas.";
+
+/** Ghost Shop: buy cosmetics with real YOUCOG (transfer to the faucet on Base), verified server-side. */
+export function CosmeticsStore() {
   const [tab, setTab] = useState<StoreTab>("hats");
   const [owned, setOwned] = useState<string[]>(DEFAULT_OWNED);
   const [equipped, setEquipped] = useState<Outfit>(DEFAULT_OUTFIT);
   const [tryOn, setTryOn] = useState<StoreItem | null>(null);
   const [sheet, setSheet] = useState<StoreItem | null>(null);
-  const [bal, setBal] = useState(startBalance);
+  const [wallet, setWallet] = useState<Address | null>(null);
+  const [bal, setBal] = useState<number | null>(null);
+  const [step, setStep] = useState<BuyStep | null>(null);
+  const [buyErr, setBuyErr] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ hash: Hex; from: Address; itemId: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [view, setView] = useState<"shop" | "quests">("shop");
   const [sig, setSig] = useState<Signals>(EMPTY_SIGNALS);
   const [sigSrc, setSigSrc] = useState<"loading" | "live" | "demo" | "none" | "error">("loading");
   const [claimed, setClaimed] = useState<string[]>([]);
-  const [simDone, setSimDone] = useState<string[]>([]);
-  const [bought, setBought] = useState(0);
+  const simDone: string[] = [];
+  const [purchased, setPurchased] = useState<string[]>([]);
+  const bought = purchased.length;
   useEffect(() => { loadSignals().then(([s, src]) => { setSig(s); setSigSrc(src); }); }, []);
+  const loadWallet = async (w: Address) => {
+    setWallet(w);
+    youcogBalance(w).then(setBal).catch(() => setBal(null));
+    ownedFromApi(w).then((o) => { setPurchased(o); setOwned((cur) => [...new Set([...cur, ...o])]); }).catch((e) => flash(friendlyError(e)));
+  };
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("item");
+    const it = id ? STORE_ITEMS.find((i) => i.id === id) : undefined;
+    if (it) { setTryOn(it); const t = STORE_TABS.find((x) => itemsForTab(x.id).includes(it)); if (t) setTab(t.id); }
+  }, []);
+  useEffect(() => { peekWallet().then((w) => w && loadWallet(w)).catch(() => {}); }, []);
+  const doConnect = () => connect().then(({ from }) => loadWallet(from)).catch((e) => setBuyErr(friendlyError(e)));
+  const applyOwned = (o: string[], it: StoreItem) => { setPurchased(o); setOwned((cur) => [...new Set([...cur, ...o])]); setPending(null); setSheet(null); setTryOn(it); flash(`Bought ${it.name}`); if (wallet) youcogBalance(wallet).then(setBal).catch(() => {}); };
   const local = { owned, bought, categoriesOwned: new Set(STORE_ITEMS.filter((i) => owned.includes(i.id)).map((i) => i.cat)).size };
   const claimQuest = (qid: string) => {
     const q = QUESTS.find((x) => x.id === qid)!;
     if (!progress(q, sig, local, simDone).done || claimed.includes(qid)) return;
     setClaimed((c) => [...c, qid]);
+    if (q.source === "sim") return;
     if (!owned.includes(q.reward)) setOwned((o) => [...o, q.reward]);
     const it = STORE_ITEMS.find((i) => i.id === q.reward)!;
-    setTryOn(it); flash(`Unlocked ${q.rewardName} (preview inventory)`);
+    setTryOn(it); flash(`Unlocked ${q.rewardName} on this device (quest rewards aren't saved yet)`);
   };
   const flash = (s: string) => { setToast(s); setTimeout(() => setToast(null), 1600); };
   const shown: Outfit = tryOn ? { ...equipped, [tryOn.cat]: tryOn.id } : equipped;
   const sel = tryOn;
   const equip = (it: StoreItem) => { setEquipped((o) => ({ ...o, [it.cat]: o[it.cat] === it.id ? undefined : it.id })); setTryOn(null); flash(equipped[it.cat] === it.id ? `Took off ${it.name}` : `Equipped ${it.name}`); };
-  const buy = (it: StoreItem) => {
-    const r = simulateBuy(it, bal, owned);
-    setSheet(null);
-    if (!r.ok) return flash(r.reason === "insufficient" ? "Not enough preview YOUCOG" : r.reason === "owned" ? "Already owned" : "Earn this in Forge quests");
-    setBal(r.balance); setOwned(r.owned); setBought((b) => b + 1); flash(`Bought ${it.name} (preview)`);
+  const buy = async (it: StoreItem) => {
+    if (it.questOnly) return flash("Earn this in Forge quests");
+    if (purchased.includes(it.id)) return flash("Already owned");
+    setBuyErr(null);
+    try {
+      const r = await buyCosmetic(it.id, it.price, setStep, (hash, from) => setPending({ hash, from, itemId: it.id }));
+      if (r.ok) applyOwned(r.owned, it);
+      else setBuyErr(r.pending ? `Payment sent, verification pending: ${r.error}` : r.error);
+    } catch (e) { setBuyErr(friendlyError(e)); }
+    finally { setStep(null); }
+  };
+  const retryVerify = async (it: StoreItem) => {
+    if (!pending) return;
+    setBuyErr(null); setStep("verify");
+    const r = await verifyPurchaseApi(pending.from, pending.itemId, pending.hash);
+    setStep(null);
+    if (r.ok) applyOwned(r.owned, it); else setBuyErr(r.pending ? `Verification pending: ${r.error}` : r.error);
   };
 
   return (
     <div data-testid="cosmetics-store" style={{ color: "#fff", fontFamily: "ui-monospace,monospace", maxWidth: 390, margin: "0 auto", padding: "8px 14px 120px" }}>
-      <div data-testid="preview-banner" style={{ textAlign: "center", fontSize: 10, letterSpacing: ".08em", color: "#0a0f2c", background: "#f5b301", borderRadius: 6, padding: "4px 6px", fontWeight: 700 }}>PREVIEW: NO REAL YOUCOG SPENT</div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
         <a href="/lab" style={{ color: "#9cc0ff", fontSize: 11, textDecoration: "none" }}>‹ Lab</a>
         <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: ".1em" }}>GHOST SHOP</div>
-        <div data-testid="balance" style={{ fontSize: 11, color: "#f5b301" }}>{fmt(bal)} YOUCOG*</div>
+        {wallet ? <div data-testid="balance" style={{ fontSize: 11, color: "#f5b301" }}>{bal === null ? "…" : fmt(bal)} YOUCOG</div>
+          : <button data-testid="connect" onClick={doConnect} style={{ ...btn("#0052ff", "#fff"), fontSize: 10, padding: "5px 8px" }}>CONNECT</button>}
       </div>
       <div style={{ position: "relative", display: "flex", justifyContent: "center", margin: "8px 0", background: "#111a44", border: `1px solid ${sel ? RC[sel.rarity] : "#2a3570"}`, borderRadius: 14 }}>
         <GhostCanvas outfit={shown} px={6} />
@@ -60,7 +96,7 @@ export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number
           <div style={{ flex: 1, fontSize: 11 }}><b>{sel.name}</b><div style={{ color: "#8892b0", fontSize: 9 }}>{sel.questOnly ? `🔒 Earn in Forge quests: ${sel.questOnly}` : owned.includes(sel.id) ? "Owned" : `${fmt(sel.price)} YOUCOG`}</div></div>
           {owned.includes(sel.id) ? <button data-testid="equip" onClick={() => equip(sel)} style={btn("#39ff14", "#0a0f2c")}>{equipped[sel.cat] === sel.id ? "UNEQUIP" : "EQUIP"}</button>
             : sel.questOnly ? <button data-testid="see-quest" onClick={() => { setView("quests"); setTryOn(null); }} style={{ fontSize: 9, color: "#f5b301", background: "none", border: "1px solid #f5b301", borderRadius: 8, padding: "6px 8px" }}>QUEST ONLY · {QUEST_FOR_ITEM[sel.id] ? `${progress(QUEST_FOR_ITEM[sel.id], sig, local, simDone).pct}%` : ""}</button>
-            : <button data-testid="buy" onClick={() => setSheet(sel)} style={btn("#0052ff", "#fff")}>BUY</button>}
+            : <button data-testid="buy" onClick={() => { setBuyErr(null); setSheet(sel); }} style={btn("#0052ff", "#fff")}>BUY</button>}
           <button onClick={() => setTryOn(null)} style={btn("#2a3570", "#fff")}>✕</button>
         </div>
       )}
@@ -80,18 +116,18 @@ export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number
                 <GhostCanvas outfit={{ skin: "skin-classic", [STORE_ITEMS.find((i) => i.id === q.reward)!.cat]: q.reward }} px={1.5} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 10, fontWeight: 700 }}>{q.name}</div>
-                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: q.source === "real" ? (sigSrc === "live" ? "#39ff14" : "#f5b301") : q.source === "local" ? "#9cc0ff" : "#f5b301" }}>[{q.source === "real" ? (sigSrc === "live" ? "REAL" : sigSrc === "demo" ? "DEMO DATA" : "REAL · NOT LOADED") : q.source === "local" ? "THIS DEVICE" : "SIMULATED"}]</span></div>
+                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: q.source === "real" ? (sigSrc === "live" ? "#39ff14" : "#f5b301") : q.source === "local" ? "#9cc0ff" : "#f5b301" }}>[{q.source === "real" ? (sigSrc === "live" ? "REAL" : sigSrc === "demo" ? "DEMO DATA" : "REAL · NOT LOADED") : q.source === "local" ? "THIS DEVICE" : "COMING LATER"}]</span></div>
                   <div style={{ height: 6, background: "#0a0f2c", borderRadius: 3, marginTop: 3, overflow: "hidden" }}><div style={{ width: `${pr.pct}%`, height: "100%", background: pr.done ? "#39ff14" : "#3a86ff", transition: "width .6s" }} /></div>
                   <div style={{ fontSize: 8, color: "#8892b0", marginTop: 2 }}>{pr.have.toLocaleString("en-US", { maximumFractionDigits: 1 })} / {pr.goal}{q.note ? ` · ${q.note}` : ""}</div>
                 </div>
                 {got ? <div style={{ fontSize: 9, color: "#39ff14" }}>CLAIMED</div>
                   : pr.done ? <button data-claim={q.id} onClick={() => claimQuest(q.id)} style={btn("#39ff14", "#0a0f2c")}>CLAIM</button>
-                  : q.source === "sim" ? <button data-sim={q.id} onClick={() => setSimDone((d) => [...d, q.id])} style={{ ...btn("#2a3570", "#f5b301"), fontSize: 8, padding: "6px 6px" }}>SIMULATE</button>
+                  : q.source === "sim" ? <div data-sim={q.id} style={{ fontSize: 8, color: "#f5b301", textAlign: "center" }}>NOT YET<br />EARNABLE</div>
                   : <div style={{ fontSize: 9, color: "#8892b0" }}>{pr.pct}%</div>}
               </div>
             );
           })}
-          <div style={{ fontSize: 9, color: "#8892b0", textAlign: "center", lineHeight: 1.5 }}>REAL quests read your faucet claims and YCURV balance (read-only). SIMULATED quests have no real signal yet. Claiming only unlocks the item in this preview, with no transaction.</div>
+          <div style={{ fontSize: 9, color: "#8892b0", textAlign: "center", lineHeight: 1.5 }}>REAL quests read your faucet claims and YCURV balance (read-only). COMING LATER quests can't be earned yet. Quest rewards unlock on this device only for now and aren't saved.</div>
         </div>
       )}
       {view === "shop" && <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 10 }}>
@@ -109,10 +145,10 @@ export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number
         })}
       </div>}
       <div style={{ fontSize: 9, color: "#8892b0", marginTop: 10, textAlign: "center", lineHeight: 1.5 }}>
-        *Mock preview balance. Cosmetics are just for fun and have no cash value. Prices are placeholders. Shop-only seasonal items aren't mintable traits yet.
+        {DISCLAIMER} Purchases are saved to your wallet address. Shop-only seasonal items aren't mintable traits yet.
       </div>
       {sheet && (
-        <div onClick={() => setSheet(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "flex-end" }}>
+        <div onClick={() => !step && setSheet(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "flex-end" }}>
           <div data-testid="buy-sheet" onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 390, margin: "0 auto", background: "#111a44", borderTop: `3px solid ${RC[sheet.rarity]}`, borderRadius: "16px 16px 0 0", padding: 16 }}>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
               <GhostCanvas outfit={{ ...equipped, [sheet.cat]: sheet.id }} px={3} />
@@ -120,10 +156,18 @@ export function CosmeticsStore({ startBalance = 15000 }: { startBalance?: number
                 <div style={{ fontSize: 18, marginTop: 4 }}>{fmt(sheet.price)} YOUCOG</div></div>
             </div>
             <div style={{ fontSize: 11, color: "#c9d1e6", marginTop: 10, lineHeight: 1.5 }}>The YOUCOG you spend goes back to the faucet, so other people can claim it.</div>
-            <div style={{ fontSize: 11, color: "#f5b301", marginTop: 6 }}>Preview: no real YOUCOG spent. Balance after: {fmt(bal - sheet.price)}*</div>
+            {wallet && bal !== null && <div style={{ fontSize: 11, color: "#f5b301", marginTop: 6 }}>Your balance: {fmt(bal)} YOUCOG{bal >= sheet.price ? ` · after: ${fmt(bal - sheet.price)}` : ""}</div>}
+            {!wallet && <div style={{ fontSize: 11, color: "#f5b301", marginTop: 6 }}>Connect your wallet to buy.</div>}
+            <div data-testid="disclaimer" style={{ fontSize: 9, color: "#8892b0", marginTop: 8, lineHeight: 1.5 }}>{DISCLAIMER}</div>
+            {step && <div data-testid="buy-step" style={{ fontSize: 11, color: "#39ff14", marginTop: 8 }}>{BUY_STEP[step]}</div>}
+            {buyErr && <div role="alert" data-testid="buy-error" style={{ fontSize: 11, color: "#ff8080", marginTop: 8, wordBreak: "break-word" }}>{buyErr}</div>}
+            {pending && pending.itemId === sheet.id && !step && <a href={`https://basescan.org/tx/${pending.hash}`} target="_blank" rel="noreferrer" style={{ display: "block", fontSize: 10, color: "#9cc0ff", marginTop: 6 }}>View transfer on Basescan</a>}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-              <button onClick={() => setSheet(null)} style={{ ...btn("#2a3570", "#fff"), flex: 1, padding: 12 }}>CANCEL</button>
-              <button data-testid="confirm-buy" onClick={() => buy(sheet)} disabled={bal < sheet.price} style={{ ...btn("#0052ff", "#fff"), flex: 2, padding: 12 }}>{bal < sheet.price ? "NOT ENOUGH" : "CONFIRM (PREVIEW)"}</button>
+              <button onClick={() => setSheet(null)} disabled={!!step} style={{ ...btn("#2a3570", "#fff"), flex: 1, padding: 12 }}>CANCEL</button>
+              {pending && pending.itemId === sheet.id
+                ? <button data-testid="retry-verify" onClick={() => retryVerify(sheet)} disabled={!!step} style={{ ...btn("#f5b301", "#0a0f2c"), flex: 2, padding: 12 }}>RETRY VERIFY</button>
+                : !wallet ? <button onClick={doConnect} style={{ ...btn("#0052ff", "#fff"), flex: 2, padding: 12 }}>CONNECT WALLET</button>
+                : <button data-testid="confirm-buy" onClick={() => buy(sheet)} disabled={!!step || (bal !== null && bal < sheet.price)} style={{ ...btn("#0052ff", "#fff"), flex: 2, padding: 12 }}>{bal !== null && bal < sheet.price ? "NOT ENOUGH YOUCOG" : step ? "WORKING…" : `PAY ${fmt(sheet.price)} YOUCOG`}</button>}
             </div>
           </div>
         </div>

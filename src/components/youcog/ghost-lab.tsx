@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, COSMETICS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, QUEST_ONLY, QUESTS, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
+import { CATEGORIES, COSMETICS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, QUEST_ONLY, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
 import { labStatus, outfitToTraits, publicLeft, type LabStatus } from "@/lib/youcog/ghost-lab-core";
-import { connectedOwner, ownerMintTo, ownerUnpause, demoMode, friendlyError, ghostsContract, mintGhost, previewSvg, readLab, type MintStep } from "@/lib/youcog/ghost-lab";
+import { ownedFromApi, peekWallet, connectedOwner, ownerMintTo, ownerUnpause, demoMode, friendlyError, ghostsContract, mintGhost, previewSvg, readLab, type MintStep } from "@/lib/youcog/ghost-lab";
 import { GhostCanvas } from "./ghost-wardrobe";
 
 const RC: Record<string, string> = { common: "#8892b0", rare: "#3a86ff", epic: "#b15cff", legendary: "#f5b301" };
@@ -20,9 +20,10 @@ export function GhostLab() {
   const demo = demoMode();
   const [cat, setCat] = useState<Category>("hat");
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
-  // SIMULATED / LOCAL ONLY: cosmetic ownership, YOUCOG shop purchases and quest unlocks are not wired
-  // to payments or on-chain state yet. The mint below does NOT depend on them (the contract doesn't check).
+  // Cosmetic ownership = starter items + Ghost Shop purchases (verified YOUCOG transfers, from /api/shop).
+  // The mint below does NOT depend on them (the contract doesn't check).
   const [owned, setOwned] = useState<string[]>(DEFAULT_OWNED);
+  useEffect(() => { if (demo) return; peekWallet().then((w) => w && ownedFromApi(w)).then((o) => o && setOwned((cur) => [...new Set([...cur, ...o])])).catch(() => {}); }, [demo]);
   const [toast, setToast] = useState<string | null>(null);
   const [chain, setChain] = useState<null | { status: LabStatus; price: bigint; left: number; paused?: boolean; minted?: number }>(null);
   const [svg, setSvg] = useState<string | null>(null);
@@ -56,10 +57,9 @@ export function GhostLab() {
     const c = COSMETICS.find((x) => x.id === id)!;
     if (outfit[c.cat] === id) return setOutfit({ ...outfit, [c.cat]: undefined });
     if (!owned.includes(id) && QUEST_ONLY[id]) return flash(`Earn it: ${QUEST_ONLY[id]}`);
-    if (!owned.includes(id)) { setOwned([...owned, id]); flash(`Unlocked ${c.name} (shop coming soon, free in preview)`); }
+    if (!owned.includes(id)) { location.href = `/lab/shop?item=${encodeURIComponent(id)}`; return; }
     setOutfit({ ...outfit, [c.cat]: id });
   };
-  const quest = () => { const q = QUESTS[0]; const c = COSMETICS.find((x) => x.id === q.reward)!; setOwned((o) => [...o, c.id]); setOutfit((o) => ({ ...o, [c.cat]: c.id })); setCat(c.cat); flash(`Quest preview: unlocked ${c.name}`); };
 
   const doMint = async () => {
     setErr(null);
@@ -103,9 +103,8 @@ export function GhostLab() {
           );
         })}
       </div>
-      <button data-testid="quest" onClick={quest} disabled={owned.includes(QUESTS[0].reward)} style={{ width: "100%", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #f5b301", background: "#111a44", color: "#f5b301", fontSize: 11 }}>FORGE QUEST: {QUESTS[0].name.toUpperCase()} (PREVIEW)</button>
-      <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP (PREVIEW)</a>
-      <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Shop and quests are a preview. Any outfit can be minted.</div>
+      <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP</a>
+      <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Tap an item you don't own to buy it in the shop. Any outfit you own can be minted.</div>
       {!addr && !demo && <div style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>Minting opens soon.</div>}
       {chain && chain.minted !== undefined && <div data-testid="chain-state" style={{ marginTop: 10, textAlign: "center", fontSize: 10, color: "#8892b0" }}>ON-CHAIN: {chain.paused ? "PAUSED" : "LIVE"} · {chain.minted}/1000 MINTED</div>}
       {chain && chain.status !== "open" && <div data-testid="status" style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>{STATUS[chain.status]}</div>}
