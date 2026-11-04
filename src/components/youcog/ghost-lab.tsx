@@ -20,10 +20,10 @@ export function GhostLab() {
   const demo = demoMode();
   const [cat, setCat] = useState<Category>("hat");
   const [outfit, setOutfit] = useState<Outfit>(DEFAULT_OUTFIT);
-  // Cosmetic ownership = starter items + Ghost Shop purchases (verified YOUCOG transfers, from /api/shop).
+  // Cosmetic ownership = starter items + Ghost Shop purchases + server-verified quest unlocks (from /api/shop). ?address= reads a wallet read-only.
   // The mint below does NOT depend on them (the contract doesn't check).
   const [owned, setOwned] = useState<string[]>(DEFAULT_OWNED);
-  useEffect(() => { if (demo) return; peekWallet().then((w) => w && ownedFromApi(w)).then((o) => o && setOwned((cur) => [...new Set([...cur, ...o])])).catch(() => {}); }, [demo]);
+  useEffect(() => { if (demo) return; const qa = new URLSearchParams(location.search).get("address"); (qa && /^0x[0-9a-fA-F]{40}$/.test(qa) ? Promise.resolve(qa as `0x${string}`) : peekWallet()).then((w) => w && ownedFromApi(w)).then((o) => o && setOwned((cur) => [...new Set([...cur, ...o])])).catch(() => {}); }, [demo]);
   const [toast, setToast] = useState<string | null>(null);
   const [chain, setChain] = useState<null | { status: LabStatus; price: bigint; left: number; paused?: boolean; minted?: number }>(null);
   const [svg, setSvg] = useState<string | null>(null);

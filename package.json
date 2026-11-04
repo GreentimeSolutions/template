@@ -25,7 +25,7 @@
     "test:sc-widget": "node --import jiti/register --test src/lib/youcog/sc-widget.test.ts",
     "test:streak": "node --import jiti/register --test src/lib/youcog/streak.test.ts",
     "test:ycurv-bonus": "node --import jiti/register --test src/lib/youcog/ycurv-bonus.test.ts",
-    "test:shop": "node --import jiti/register --test src/lib/youcog/shop-verify.test.ts"
+    "test:shop": "node --import jiti/register --test src/lib/youcog/shop-verify.test.ts src/lib/youcog/quest-unlocks.test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

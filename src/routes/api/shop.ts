@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-/** Ghost Shop. GET ?address= -> owned cosmetics. POST {address,itemId,txHash} -> verify YOUCOG transfer on Base, record. */
+/** Ghost Shop. GET ?address= -> owned cosmetics (verified purchases + server-verified quest unlocks). POST {address,itemId,txHash} -> verify YOUCOG transfer on Base, record. */
 export const Route = createFileRoute("/api/shop")({
   server: {
     handlers: {
@@ -11,8 +11,8 @@ export const Route = createFileRoute("/api/shop")({
         const { isAddr } = await import("@/lib/youcog/shop-verify-core");
         if (!isAddr(address)) return Response.json({ ok: false, error: "Bad wallet address." }, { status: 400, headers: h });
         try {
-          const [{ getSql }, { ownedItems }] = await Promise.all([import("@/lib/db"), import("@/lib/youcog/shop.server")]);
-          return Response.json({ ok: true, owned: await ownedItems(await getSql(), address) }, { headers: h });
+          const [{ getSql }, { ownedWithQuests }] = await Promise.all([import("@/lib/db"), import("@/lib/youcog/shop.server")]);
+          return Response.json({ ok: true, ...(await ownedWithQuests(await getSql(), address)) }, { headers: h });
         } catch { return Response.json({ ok: false, error: "Couldn't load your items right now." }, { status: 503, headers: h }); }
       },
       POST: async ({ request }) => {

@@ -3,6 +3,7 @@
  * Purchases are simulated against a mock balance. In the real version, spent YOUCOG
  * goes back to the faucet.
  */
+import { QUEST_FOR_ITEM } from "./quests-core";
 import { BUY_ONLY, COSMETICS, QUEST_ONLY, RARITY_PRICE, STORE_EXTRAS, type Category, type Cosmetic } from "./ghost-wardrobe";
 
 export type StoreTab = "hats" | "eyes" | "body" | "accessories" | "trails" | "seasonal";
@@ -17,7 +18,7 @@ export type StoreItem = Cosmetic & { seasonal?: boolean; price: number; questOnl
 const QUEST_EXTRA: Record<string, string> = { "prop-medal": "Collect 10 medals", "prop-badge": "Mint your ghost" };
 
 export const STORE_ITEMS: StoreItem[] = [...COSMETICS, ...STORE_EXTRAS].map((c) => {
-  const questOnly = QUEST_ONLY[c.id] ?? QUEST_EXTRA[c.id];
+  const questOnly = QUEST_FOR_ITEM[c.id]?.name ?? QUEST_ONLY[c.id] ?? QUEST_EXTRA[c.id];
   return { ...c, price: RARITY_PRICE[c.rarity], questOnly, buyOnly: BUY_ONLY.includes(c.id) || !!(c as { seasonal?: boolean }).seasonal };
 });
 export const itemsForTab = (t: StoreTab) =>

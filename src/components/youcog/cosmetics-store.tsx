@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { EMPTY_SIGNALS, QUESTS, QUEST_FOR_ITEM, progress, type Signals } from "@/lib/youcog/quests-core";
+import { EMPTY_SIGNALS, QUESTS, QUEST_FOR_ITEM, QUEST_REWARD_IDS, progress, type Signals } from "@/lib/youcog/quests-core";
 import { DEFAULT_OUTFIT, DEFAULT_OWNED, type Outfit } from "@/lib/youcog/ghost-wardrobe";
 import { STORE_ITEMS, STORE_TABS, itemsForTab, type StoreItem, type StoreTab } from "@/lib/youcog/cosmetics-store";
 import { buyCosmetic, connect, friendlyError, ownedFromApi, peekWallet, verifyPurchaseApi, youcogBalance, type BuyStep } from "@/lib/youcog/ghost-lab";
@@ -28,10 +28,9 @@ export function CosmeticsStore() {
   const [view, setView] = useState<"shop" | "quests">("shop");
   const [sig, setSig] = useState<Signals>(EMPTY_SIGNALS);
   const [sigSrc, setSigSrc] = useState<"loading" | "live" | "demo" | "none" | "error">("loading");
-  const [claimed, setClaimed] = useState<string[]>([]);
   const simDone: string[] = [];
   const [purchased, setPurchased] = useState<string[]>([]);
-  const bought = purchased.length;
+  const bought = purchased.filter((id) => !QUEST_REWARD_IDS.has(id)).length;
   useEffect(() => { loadSignals().then(([s, src]) => { setSig(s); setSigSrc(src); }); }, []);
   const loadWallet = async (w: Address) => {
     setWallet(w);
@@ -43,19 +42,15 @@ export function CosmeticsStore() {
     const it = id ? STORE_ITEMS.find((i) => i.id === id) : undefined;
     if (it) { setTryOn(it); const t = STORE_TABS.find((x) => itemsForTab(x.id).includes(it)); if (t) setTab(t.id); }
   }, []);
-  useEffect(() => { peekWallet().then((w) => w && loadWallet(w)).catch(() => {}); }, []);
+  useEffect(() => {
+    // ?address= shows a wallet's saved items read-only (no wallet needed); a connected wallet takes over for buying.
+    const a = new URLSearchParams(location.search).get("address");
+    if (a && /^0x[0-9a-fA-F]{40}$/.test(a)) ownedFromApi(a as Address).then((o) => { setPurchased(o); setOwned((cur) => [...new Set([...cur, ...o])]); }).catch(() => {});
+    peekWallet().then((w) => w && loadWallet(w)).catch(() => {});
+  }, []);
   const doConnect = () => connect().then(({ from }) => loadWallet(from)).catch((e) => setBuyErr(friendlyError(e)));
   const applyOwned = (o: string[], it: StoreItem) => { setPurchased(o); setOwned((cur) => [...new Set([...cur, ...o])]); setPending(null); setSheet(null); setTryOn(it); flash(`Bought ${it.name}`); if (wallet) youcogBalance(wallet).then(setBal).catch(() => {}); };
   const local = { owned, bought, categoriesOwned: new Set(STORE_ITEMS.filter((i) => owned.includes(i.id)).map((i) => i.cat)).size };
-  const claimQuest = (qid: string) => {
-    const q = QUESTS.find((x) => x.id === qid)!;
-    if (!progress(q, sig, local, simDone).done || claimed.includes(qid)) return;
-    setClaimed((c) => [...c, qid]);
-    if (q.source === "sim") return;
-    if (!owned.includes(q.reward)) setOwned((o) => [...o, q.reward]);
-    const it = STORE_ITEMS.find((i) => i.id === q.reward)!;
-    setTryOn(it); flash(`Unlocked ${q.rewardName} on this device (quest rewards aren't saved yet)`);
-  };
   const flash = (s: string) => { setToast(s); setTimeout(() => setToast(null), 1600); };
   const shown: Outfit = tryOn ? { ...equipped, [tryOn.cat]: tryOn.id } : equipped;
   const sel = tryOn;
@@ -104,30 +99,30 @@ export function CosmeticsStore() {
         {STORE_TABS.map((t) => (
           <button key={t.id} data-tab={t.id} onClick={() => { setTab(t.id); setView("shop"); }} style={{ padding: "7px 0", fontSize: 11, borderRadius: 8, border: "1px solid #2a3570", background: view === "shop" && tab === t.id ? "#f5b301" : "#111a44", color: view === "shop" && tab === t.id ? "#0a0f2c" : "#fff" }}>{t.icon} {t.label}</button>
         ))}
-        <button data-tab="quests" onClick={() => { setView("quests"); setTryOn(null); }} style={{ gridColumn: "1 / -1", padding: "8px 0", fontSize: 11, fontWeight: 700, borderRadius: 8, border: "1px solid #39ff14", background: view === "quests" ? "#39ff14" : "#111a44", color: view === "quests" ? "#0a0f2c" : "#39ff14" }}>⚒ FORGE QUESTS · {QUESTS.filter((q) => progress(q, sig, local, simDone).done && !claimed.includes(q.id)).length} ready</button>
+        <button data-tab="quests" onClick={() => { setView("quests"); setTryOn(null); }} style={{ gridColumn: "1 / -1", padding: "8px 0", fontSize: 11, fontWeight: 700, borderRadius: 8, border: "1px solid #39ff14", background: view === "quests" ? "#39ff14" : "#111a44", color: view === "quests" ? "#0a0f2c" : "#39ff14" }}>⚒ FORGE QUESTS · {QUESTS.filter((q) => q.saves && owned.includes(q.reward)).length} earned</button>
       </div>
       {view === "quests" && (
         <div data-testid="quests" style={{ marginTop: 10 }}>
           <div data-testid="signal-src" style={{ fontSize: 9, color: "#8892b0", marginBottom: 6 }}>{SRC[sigSrc]}</div>
           {QUESTS.map((q) => {
-            const pr = progress(q, sig, local, simDone), got = claimed.includes(q.id);
+            const pr = progress(q, sig, local, simDone), got = !!q.saves && owned.includes(q.reward), earnable = !!q.saves;
             return (
-              <div key={q.id} data-quest={q.id} style={{ display: "flex", gap: 8, alignItems: "center", padding: 6, marginBottom: 6, borderRadius: 10, background: "#111a44", border: `1px solid ${pr.done && !got ? "#39ff14" : "#2a3570"}` }}>
+              <div key={q.id} data-quest={q.id} style={{ display: "flex", gap: 8, alignItems: "center", padding: 6, marginBottom: 6, borderRadius: 10, background: "#111a44", border: `1px solid ${got ? "#39ff14" : "#2a3570"}` }}>
                 <GhostCanvas outfit={{ skin: "skin-classic", [STORE_ITEMS.find((i) => i.id === q.reward)!.cat]: q.reward }} px={1.5} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 10, fontWeight: 700 }}>{q.name}</div>
-                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: q.source === "real" ? (sigSrc === "live" ? "#39ff14" : "#f5b301") : q.source === "local" ? "#9cc0ff" : "#f5b301" }}>[{q.source === "real" ? (sigSrc === "live" ? "REAL" : sigSrc === "demo" ? "DEMO DATA" : "REAL · NOT LOADED") : q.source === "local" ? "THIS DEVICE" : "COMING LATER"}]</span></div>
+                  <div style={{ fontSize: 9, color: "#9cc0ff" }}>{q.rewardName}{STORE_ITEMS.find((i) => i.id === q.reward)?.questOnly ? " · quest-only" : ""} <span style={{ color: earnable && sigSrc === "live" ? "#39ff14" : "#f5b301" }}>[{!earnable ? "COMING LATER" : sigSrc === "live" ? "VERIFIED" : sigSrc === "demo" ? "DEMO DATA" : "NOT LOADED"}]</span></div>
                   <div style={{ height: 6, background: "#0a0f2c", borderRadius: 3, marginTop: 3, overflow: "hidden" }}><div style={{ width: `${pr.pct}%`, height: "100%", background: pr.done ? "#39ff14" : "#3a86ff", transition: "width .6s" }} /></div>
                   <div style={{ fontSize: 8, color: "#8892b0", marginTop: 2 }}>{pr.have.toLocaleString("en-US", { maximumFractionDigits: 1 })} / {pr.goal}{q.note ? ` · ${q.note}` : ""}</div>
                 </div>
-                {got ? <div style={{ fontSize: 9, color: "#39ff14" }}>CLAIMED</div>
-                  : pr.done ? <button data-claim={q.id} onClick={() => claimQuest(q.id)} style={btn("#39ff14", "#0a0f2c")}>CLAIM</button>
-                  : q.source === "sim" ? <div data-sim={q.id} style={{ fontSize: 8, color: "#f5b301", textAlign: "center" }}>NOT YET<br />EARNABLE</div>
+                {got ? <div data-unlocked={q.id} style={{ fontSize: 9, color: "#39ff14", textAlign: "center" }}>UNLOCKED<br />SAVED</div>
+                  : earnable && pr.done ? <div style={{ fontSize: 8, color: "#39ff14", textAlign: "center" }}>EARNED<br />SYNCING</div>
+                  : !earnable ? <div data-sim={q.id} style={{ fontSize: 8, color: "#f5b301", textAlign: "center" }}>NOT YET<br />EARNABLE</div>
                   : <div style={{ fontSize: 9, color: "#8892b0" }}>{pr.pct}%</div>}
               </div>
             );
           })}
-          <div style={{ fontSize: 9, color: "#8892b0", textAlign: "center", lineHeight: 1.5 }}>REAL quests read your faucet claims and YCURV balance (read-only). COMING LATER quests can't be earned yet. Quest rewards unlock on this device only for now and aren't saved.</div>
+          <div style={{ fontSize: 9, color: "#8892b0", textAlign: "center", lineHeight: 1.5 }}>VERIFIED quests are checked on our server from your real faucet claims and verified shop purchases, and unlocks are saved to your wallet on every device. COMING LATER quests can't be earned yet. Quest rewards are quest-only and can't be bought. Cosmetics are just for fun and have no promised value.</div>
         </div>
       )}
       {view === "shop" && <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 10 }}>

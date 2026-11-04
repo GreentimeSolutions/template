@@ -2,6 +2,8 @@
 import { createPublicClient, http, type Hex } from "viem";
 import { base } from "viem/chains";
 import type { Sql } from "../db";
+import { STORE_ITEMS } from "./cosmetics-store";
+import { DEFAULT_OWNED } from "./ghost-wardrobe";
 import { isAddr, isTxHash, verifyPurchase, type Receipt } from "./shop-verify-core";
 
 export type BuyOutcome =
@@ -15,6 +17,33 @@ export const baseReceipt: ReceiptFetcher = async (hash) => {
   try { return (await pub.getTransactionReceipt({ hash: hash as Hex })) as unknown as Receipt; }
   catch (e) { if (/could not be found|not found/i.test(String((e as Error)?.message))) return null; throw e; }
 };
+
+/** Purchases plus quest rewards the server can verify right now from faucet claims and verified purchases.
+ * Derived on every read (nothing the client says is trusted), so unlocks persist across reloads and devices. */
+export async function ownedWithQuests(sql: Sql, address: string): Promise<{ owned: string[]; purchased: string[]; questUnlocks: string[] }> {
+  const purchased = await ownedItems(sql, address);
+  const [{ claimDays }, { dayOffset, runEndingAt }, core, { getAddress }] = await Promise.all([
+    import("./faucet.server"), import("./streak-core"), import("./quests-core"), import("viem")]);
+  const days = await claimDays(sql, { address: getAddress(address) });
+  const questUnlocks = questUnlocksFrom(days, purchased, core, { dayOffset, runEndingAt });
+  return { owned: [...new Set([...purchased, ...questUnlocks])], purchased, questUnlocks };
+}
+export function questUnlocksFrom(days: Set<string>, purchased: string[], core: typeof import("./quests-core"),
+  sc: { dayOffset: (d: string, n: number) => string; runEndingAt: (s: Set<string>, d: string) => number }, today = new Date().toISOString().slice(0, 10)): string[] {
+  const streak = days.has(today) ? sc.runEndingAt(days, today) : sc.runEndingAt(days, sc.dayOffset(today, -1));
+  const sig = { streak, longestStreak: core.longestRun(days), totalClaims: days.size, ycurv: 0 };
+  return questUnlocksFor(sig, purchased, core);
+}
+export function questUnlocksFor(sig: import("./quests-core").Signals, purchased: string[], core: typeof import("./quests-core")): string[] {
+  // Two passes so "own one per category" can count items unlocked by other quests.
+  let unlocked: string[] = [];
+  for (let i = 0; i < 2; i++) {
+    const have = [...new Set([...DEFAULT_OWNED, ...purchased, ...unlocked])];
+    const cats = new Set(STORE_ITEMS.filter((it) => have.includes(it.id)).map((it) => it.cat)).size;
+    unlocked = core.earnedRewards(sig, { owned: have, bought: purchased.length, categoriesOwned: cats });
+  }
+  return unlocked;
+}
 
 export async function ownedItems(sql: Sql, address: string): Promise<string[]> {
   const rows = await sql<{ item_id: string }>`select distinct item_id from cosmetic_purchases where address = ${address.toLowerCase()}`;
