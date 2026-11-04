@@ -112,7 +112,8 @@ export function GhostLab() {
       <button data-testid="mint" onClick={doMint} disabled={!canMint} style={{ width: "100%", marginTop: 10, padding: 14, borderRadius: 12, border: 0, background: canMint ? "#0052ff" : "#2a3570", color: "#fff", fontWeight: 700, letterSpacing: ".15em" }}>
         MINT 1/1000{chain?.status === "open" ? ` · ${priceLabel}` : ""}
       </button>
-      {addr && !demo && !owner && <button data-testid="owner-check" onClick={() => connectedOwner(addr).then((o) => setOwner(o ?? "")).catch(() => {})} style={{ marginTop: 10, width: "100%", background: "none", border: 0, color: "#4a5590", fontSize: 10 }}>Owner tools</button>}
+      {addr && !demo && !owner && <button data-testid="owner-check" onClick={() => { setOwnerMsg("Checking wallet…"); connectedOwner(addr).then((o) => { setOwner(o ?? ""); setOwnerMsg(null); }).catch((e) => setOwnerMsg(friendlyError(e))); }} style={{ marginTop: 10, width: "100%", background: "none", border: 0, color: "#4a5590", fontSize: 10 }}>Owner tools</button>}
+      {!owner && ownerMsg && <div data-testid="owner-msg" style={{ marginTop: 6, fontSize: 11, color: "#c9a227", textAlign: "center" }}>{ownerMsg}</div>}
       {addr && owner && (
         <div data-testid="owner-panel" style={{ marginTop: 12, padding: 10, border: "1px dashed #f5b301", borderRadius: 10, fontSize: 11 }}>
           <div style={{ color: "#f5b301", marginBottom: 6 }}>OWNER PANEL</div>
