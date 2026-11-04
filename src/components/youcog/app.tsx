@@ -670,6 +670,9 @@ export function YoucogApp() {
           ) : null}
           <GameCard />
           <PlayCard />
+          {import.meta.env.VITE_GHOST_LAB === "1" ? (
+            <a data-testid="home-ghost-lab" href="/lab" className="block rounded-2xl border border-line p-4 text-center font-display text-ink">👻 Ghost Lab (preview)</a>
+          ) : null}
           <FeedbackCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />
