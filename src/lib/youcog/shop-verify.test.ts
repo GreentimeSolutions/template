@@ -1,14 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FAUCET_ADDRESS, TRANSFER_TOPIC, YOUCOG_TOKEN, priceWei, verifyPurchase, type Receipt } from "./shop-verify-core";
+import { ANDY_FEDORA_PURCHASE_BLOCK, FAUCET_ADDRESS, SHOP_LAUNCH_BLOCK, TRANSFER_TOPIC, YOUCOG_TOKEN, priceWei, verifyPurchase, type Receipt } from "./shop-verify-core";
 import { recordPurchase } from "./shop.server";
 
 const BUYER = "0x1111111111111111111111111111111111111111";
 const pad = (a: string) => `0x${"0".repeat(24)}${a.slice(2).toLowerCase()}`;
 const amt = (n: bigint) => `0x${n.toString(16).padStart(64, "0")}`;
 const W = 10n ** 18n;
-const rc = (o: { to?: string; from?: string; value?: bigint; status?: "success" | "reverted"; token?: string } = {}): Receipt => ({
-  status: o.status ?? "success", blockNumber: 1n,
+const rc = (o: { to?: string; from?: string; value?: bigint; status?: "success" | "reverted"; token?: string; blockNumber?: bigint } = {}): Receipt => ({
+  status: o.status ?? "success", blockNumber: o.blockNumber ?? SHOP_LAUNCH_BLOCK,
   logs: [{ address: o.token ?? YOUCOG_TOKEN, topics: [TRANSFER_TOPIC, pad(o.from ?? BUYER), pad(o.to ?? FAUCET_ADDRESS)], data: amt(o.value ?? 10000n * W) }],
 });
 
@@ -25,6 +25,25 @@ test("wrong token fails", () => assert.equal((verifyPurchase(rc({ token: "0x3333
 test("too little fails", () => assert.equal((verifyPurchase(rc({ value: 9999n * W }), BUYER, "crown") as { code: string }).code, "too-little"));
 test("failed tx fails", () => assert.equal((verifyPurchase(rc({ status: "reverted" }), BUYER, "crown") as { code: string }).code, "failed-tx"));
 test("quest-only item can't be bought even with payment", () => assert.equal((verifyPurchase(rc(), BUYER, "shades-red") as { code: string }).code, "not-for-sale"));
+test("transfer before shop launch is rejected", () => {
+  const v = verifyPurchase(rc({ blockNumber: SHOP_LAUNCH_BLOCK - 1n }), BUYER, "crown");
+  assert.equal(v.ok, false);
+  if (!v.ok) {
+    assert.equal(v.code, "too-old");
+    assert.match(v.error, /before the shop opened/i);
+  }
+});
+test("transfer at shop launch block is accepted", () =>
+  assert.deepEqual(verifyPurchase(rc({ blockNumber: SHOP_LAUNCH_BLOCK }), BUYER, "crown"), { ok: true, amount: 10000n * W }));
+test("transfer after shop launch is accepted", () =>
+  assert.deepEqual(verifyPurchase(rc({ blockNumber: SHOP_LAUNCH_BLOCK + 1n }), BUYER, "crown"), { ok: true, amount: 10000n * W }));
+test("Andy's fedora-red purchase block is at/after launch and would verify", () => {
+  assert.ok(ANDY_FEDORA_PURCHASE_BLOCK >= SHOP_LAUNCH_BLOCK);
+  assert.deepEqual(
+    verifyPurchase(rc({ blockNumber: ANDY_FEDORA_PURCHASE_BLOCK, value: 100n * W }), BUYER, "fedora-red"),
+    { ok: true, amount: 100n * W },
+  );
+});
 
 // Fake SQL: tx_hash-keyed store, enough for recordPurchase.
 function fakeSql() {

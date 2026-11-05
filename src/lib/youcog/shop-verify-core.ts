@@ -6,12 +6,16 @@ export const YOUCOG_TOKEN = "0x92bff5d88157114dfc4a0a00f3496aa7e2e7eba3";
 export const FAUCET_ADDRESS = "0x3067ab541253746ab353b842fdc0970ffbde13c7";
 export const YOUCOG_DECIMALS = 18n; // checked on-chain: decimals() = 18
 export const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+/** Base block at Ghost Shop launch (dpl_8DcZKB2Jb5x6k6QKXVyaWsjCWXvF created 2026-11-04 10:04:31 CT). */
+export const SHOP_LAUNCH_BLOCK = 53509462n;
+/** Andy's fedora-red purchase block — must stay >= SHOP_LAUNCH_BLOCK. */
+export const ANDY_FEDORA_PURCHASE_BLOCK = 53512895n;
 
 export type Log = { address: string; topics: readonly string[]; data: string };
 export type Receipt = { status: "success" | "reverted"; logs: readonly Log[]; blockNumber: bigint };
 export type Verdict =
   | { ok: true; amount: bigint }
-  | { ok: false; code: "bad-input" | "not-for-sale" | "failed-tx" | "no-transfer" | "too-little"; error: string };
+  | { ok: false; code: "bad-input" | "not-for-sale" | "failed-tx" | "no-transfer" | "too-little" | "too-old"; error: string };
 
 /** Price in wei for a buyable item, or null if it can't be bought (quest-only, starter, unknown). */
 export function priceWei(itemId: string): bigint | null {
@@ -28,6 +32,9 @@ export function verifyPurchase(receipt: Receipt, buyer: string, itemId: string):
   const price = priceWei(itemId);
   if (price === null) return { ok: false, code: "not-for-sale", error: "That item can't be bought." };
   if (receipt.status !== "success") return { ok: false, code: "failed-tx", error: "That transaction failed on-chain." };
+  if (receipt.blockNumber < SHOP_LAUNCH_BLOCK) {
+    return { ok: false, code: "too-old", error: "That transfer was made before the shop opened. Send a new purchase." };
+  }
   const from = buyer.toLowerCase();
   let paid = 0n;
   for (const l of receipt.logs) {
