@@ -6,7 +6,7 @@
 import { createPublicClient, decodeEventLog, encodeFunctionData, http, isAddress, parseAbi, type Address, type Hex } from "viem";
 import { base } from "viem/chains";
 import { withSuffix } from "./builder-code";
-import { decodeTokenUri, type LabChain } from "./ghost-lab-core";
+import { decodeTokenUri, freeLeft, type LabChain } from "./ghost-lab-core";
 
 export const ghostLabEnabled = () => import.meta.env.VITE_GHOST_LAB === "1";
 export const ghostsContract = (): Address | null => {
@@ -23,6 +23,7 @@ export const ghostsAbi = parseAbi([
   "function unpause()",
   "function paused() view returns (bool)",
   "function totalSupply() view returns (uint256)",
+  "function freeUntil() view returns (uint256)",
   "function reserveMinted() view returns (uint256)",
   "function currentPrice() view returns (uint256)",
   "function hasMinted(address) view returns (bool)",
@@ -74,6 +75,16 @@ export async function readLab(addr: Address, who?: Address): Promise<LabChain & 
   };
 }
 
+
+/** Live free-mint window for the home Bankr credit card. */
+export async function readFreeMint(addr: Address): Promise<{ freeUntil: number; totalSupply: number; freeLeft: number }> {
+  const [fu, ts] = await Promise.all([
+    client.readContract({ address: addr, abi: ghostsAbi, functionName: "freeUntil" }),
+    client.readContract({ address: addr, abi: ghostsAbi, functionName: "totalSupply" }),
+  ]);
+  const freeUntil = Number(fu), totalSupply = Number(ts);
+  return { freeUntil, totalSupply, freeLeft: freeLeft(freeUntil, totalSupply) };
+}
 export async function previewSvg(addr: Address, traits: number[]): Promise<string> {
   return client.readContract({ address: addr, abi: ghostsAbi, functionName: "previewSvg", args: [traits as unknown as readonly [number, number, number, number, number, number]] });
 }

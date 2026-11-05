@@ -45,6 +45,10 @@ export function labStatus(c: LabChain): LabStatus {
 export const publicLeft = (c: Pick<LabChain, "totalSupply" | "reserveMinted">) =>
   Math.max(0, MAX_SUPPLY - c.totalSupply - (OWNER_RESERVE - c.reserveMinted));
 
+/** Free mints still available: freeUntil - totalSupply (floored at 0). */
+export const freeLeft = (freeUntil: number, totalSupply: number) =>
+  Math.max(0, freeUntil - totalSupply);
+
 /** tokenURI is data:application/json;base64,... with an SVG data-URI image. */
 export function decodeTokenUri(uri: string): { name: string; image: string } {
   const p = "data:application/json;base64,";

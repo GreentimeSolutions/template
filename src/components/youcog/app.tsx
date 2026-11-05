@@ -25,6 +25,7 @@ import {
   JackOLantern,
   burnStatic,
 } from "@/components/youcog/halloween";
+import { ghostLabEnabled, ghostsContract, readFreeMint } from "@/lib/youcog/ghost-lab";
 
 const YOUCOG_BASESCAN = "https://basescan.org/token/0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 
@@ -94,6 +95,72 @@ const BANKR_URL =
   "https://bankr.bot/terminal/trade?out=0x92bff5d88157114dfc4a0a00f3496aa7e2e7eba3&chain=base";
 const BANKR_CA = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 
+
+const GHOSTS_BASESCAN = "https://basescan.org/address/0x298b03cbc7ad33c932afc7540b90506634c7bf1a#code";
+const BANKR_HOME = "https://bankr.bot";
+
+/** Bankr-styled credit card under Official on @bankr: mint CTA + live free mints left. Behind VITE_GHOST_LAB. */
+function BankrMintCard() {
+  const addr = ghostsContract();
+  const [free, setFree] = useState<null | { freeLeft: number; freeUntil: number }>(null);
+  useEffect(() => {
+    if (!addr) return;
+    let live = true;
+    readFreeMint(addr)
+      .then((r) => live && setFree({ freeLeft: r.freeLeft, freeUntil: r.freeUntil }))
+      .catch(() => live && setFree(null));
+    return () => { live = false; };
+  }, [addr]);
+  if (!ghostLabEnabled()) return null;
+  const leftLabel = free ? `${free.freeLeft}/${free.freeUntil}` : "…";
+  const isFree = !free || free.freeLeft > 0;
+  return (
+    <div
+      data-testid="bankr-mint-card"
+      className="mt-3 overflow-hidden rounded-2xl border border-[#8b5cf6]/60 bg-[#09090b] shadow-[0_0_24px_rgba(139,92,246,0.18)]"
+    >
+      <a href="/lab" className="block px-4 pb-3 pt-4 no-underline">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-display text-base font-semibold tracking-wide text-white">Mint a ghost</p>
+            <p className="mt-1 text-sm text-[#a1a1aa]">
+              {isFree ? (
+                <>
+                  <span className="font-medium text-[#9be963]">Free</span>
+                  <span className="text-[#71717a]"> · </span>
+                </>
+              ) : null}
+              mints left {leftLabel}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-[#FF5D38] px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+            Mint
+          </span>
+        </div>
+      </a>
+      <div className="border-t border-white/10 px-4 py-2.5 text-[11px] leading-relaxed text-[#a1a1aa]">
+        Contract deployed & verified by{" "}
+        <a
+          href="https://x.com/bankrbot"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-[#a78bfa] underline decoration-[#8b5cf6]/50 underline-offset-2"
+        >
+          @bankrbot
+        </a>{" "}
+        on Base ·{" "}
+        <a href={GHOSTS_BASESCAN} target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-2">
+          verified contract
+        </a>
+        {" · "}
+        <a href={BANKR_HOME} target="_blank" rel="noopener noreferrer" className="underline decoration-white/20 underline-offset-2">
+          bankr.bot
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function YoucogIntro({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex flex-col gap-4">
@@ -112,6 +179,7 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
         </a>
         <span className="mt-1 block break-all">CA: {BANKR_CA}</span>
       </p>
+      <BankrMintCard />
     </div>
   );
 }
@@ -670,9 +738,6 @@ export function YoucogApp() {
           ) : null}
           <GameCard />
           <PlayCard />
-          {import.meta.env.VITE_GHOST_LAB === "1" ? (
-            <a data-testid="home-ghost-lab" href="/lab" className="block rounded-2xl border border-line p-4 text-center font-display text-ink">👻 Ghost Lab: Mint a Ghost</a>
-          ) : null}
           <FeedbackCard />
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, decodeTokenUri } from "./ghost-lab-core";
+import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, freeLeft, decodeTokenUri } from "./ghost-lab-core";
 import { DEFAULT_OUTFIT, COSMETICS } from "./ghost-wardrobe";
 
 test("every wardrobe item maps to an on-chain trait (counts match contract)", () => {
@@ -25,6 +25,9 @@ test("status mirrors contract checks", () => {
   assert.equal(labStatus({ ...b, totalSupply: 991 }), "sold-out");
   assert.equal(labStatus({ ...b, totalSupply: 990 }), "open");
   assert.equal(publicLeft({ totalSupply: 1, reserveMinted: 1 }), 990);
+  assert.equal(freeLeft(100, 1), 99);
+  assert.equal(freeLeft(100, 100), 0);
+  assert.equal(freeLeft(100, 150), 0);
 });
 test("decodes tokenURI", () => {
   const j = JSON.stringify({ name: "Youcognito Ghost #2", image: "data:image/svg+xml;base64,AA==" });
