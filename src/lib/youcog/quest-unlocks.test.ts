@@ -33,7 +33,7 @@ test("streak and claim-count quests unlock from claim days", () => {
 test("buy1 needs a verified purchase; allcats counts quest unlocks too", () => {
   assert.deepEqual(questUnlocksFor(sig({ longestStreak: 2 }), ["fedora-red"], core), ["prop-briefcase"]);
   // hat/shades/skin from starters, prop from briefcase, aura + trail bought -> all 6 categories
-  const u = questUnlocksFor(sig({}), ["fedora-red", "aura-snow", "trail-rainbow"].filter((id) => STORE_ITEMS.some((i) => i.id === id)), core);
+  const u = questUnlocksFor(sig({}), ["fedora-red", "trail-rainbow"].filter((id) => STORE_ITEMS.some((i) => i.id === id)), core);
   assert.ok(u.includes("prop-briefcase"));
 });
 test("Andy's real numbers (best streak 2, 4 claim days, 1 purchase) unlock only the Briefcase", () => {

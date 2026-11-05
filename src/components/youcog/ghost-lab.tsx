@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { STORE_ITEMS } from "@/lib/youcog/cosmetics-store";
-import { CATEGORIES, COSMETICS, STORE_EXTRAS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
+import { CATEGORIES, COSMETICS, DEFAULT_OUTFIT, DEFAULT_OWNED, RARITY_PRICE, type Category, type Outfit } from "@/lib/youcog/ghost-wardrobe";
 import { labStatus, outfitToTraits, publicLeft, type LabStatus } from "@/lib/youcog/ghost-lab-core";
 import { ownedFromApi, peekWallet, connectedOwner, ownerMintTo, ownerUnpause, demoMode, friendlyError, ghostsContract, mintGhost, previewSvg, readLab, type MintStep } from "@/lib/youcog/ghost-lab";
 import { GhostCanvas } from "./ghost-wardrobe";
@@ -18,8 +18,7 @@ type Done = { id: number; hash: string; name: string; image: string };
 /** Ghost Lab: dress your ghost, then mint 1 of 1,000. */
 /** Quest-only labels (every quest reward is quest-only and never sold). */
 const MINTABLE = new Set(COSMETICS.map((c) => c.id));
-const LAB_ITEMS = [...COSMETICS, ...STORE_EXTRAS];
-const mintableOutfit = (o: Outfit): Outfit => Object.fromEntries(Object.entries(o).filter(([, v]) => v && MINTABLE.has(v))) as Outfit;
+const LAB_ITEMS = COSMETICS;
 const QO: Record<string, string> = Object.fromEntries(STORE_ITEMS.filter((i) => i.questOnly).map((i) => [i.id, i.questOnly!]));
 export function GhostLab() {
   const addr = ghostsContract();
@@ -44,8 +43,7 @@ export function GhostLab() {
     try { const h = await f(); setOwnerMsg(`${label} done: https://basescan.org/tx/${h}`); refresh(); }
     catch (e) { setOwnerMsg(friendlyError(e)); }
   };
-  const traits = useMemo(() => outfitToTraits(mintableOutfit(outfit)), [outfit]);
-  const extrasOn = Object.values(outfit).some((v) => v && !MINTABLE.has(v));
+  const traits = useMemo(() => outfitToTraits(outfit), [outfit]);
   const flash = (s: string) => { setToast(s); setTimeout(() => setToast(null), 1500); };
 
   useEffect(() => {
@@ -91,7 +89,7 @@ export function GhostLab() {
         {chain && <div style={{ fontSize: 11, color: "#9cc0ff" }}>{chain.left.toLocaleString()} left</div>}
       </div>
       <div style={{ display: "flex", justifyContent: "center", margin: "10px 0", background: "#111a44", border: "1px solid #2a3570", borderRadius: 14, minHeight: 256 }}>
-        {svg && !extrasOn ? <img alt="Your ghost, rendered by the contract" src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`} width={256} height={256} style={{ imageRendering: "pixelated" }} /> : <GhostCanvas outfit={outfit} px={8} />}
+        {svg ? <img alt="Your ghost, rendered by the contract" src={`data:image/svg+xml;utf8,${encodeURIComponent(svg)}`} width={256} height={256} style={{ imageRendering: "pixelated" }} /> : <GhostCanvas outfit={outfit} px={8} />}
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
         {CATEGORIES.map((k) => (
@@ -112,7 +110,6 @@ export function GhostLab() {
       </div>
       <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP</a>
       <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Tap an item you don't own to buy it in the shop. Any outfit you own can be minted.</div>
-      {extrasOn && <div data-testid="extras-note" style={{ fontSize: 10, color: "#f5b301", marginTop: 6, textAlign: "center" }}>Shop-only seasonal gear shows here but isn't a mintable trait yet; the mint uses the rest of your outfit.</div>}
       {!addr && !demo && <div style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>Minting opens soon.</div>}
       {chain && chain.minted !== undefined && <div data-testid="chain-state" style={{ marginTop: 10, textAlign: "center", fontSize: 10, color: "#8892b0" }}>ON-CHAIN: {chain.paused ? "PAUSED" : "LIVE"} · {chain.minted}/1000 MINTED</div>}
       {chain && chain.status !== "open" && <div data-testid="status" style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>{STATUS[chain.status]}</div>}

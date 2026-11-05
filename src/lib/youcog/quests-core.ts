@@ -22,14 +22,14 @@ export const QUESTS: Quest[] = [
   { id: "ycurvbuy", name: "First YCURV curve buy", reward: "trail-coins", rewardName: "Coin Trail", source: "real", goal: 1, note: "Not earnable yet: needs a verified buy check", value: (s) => (s.ycurv > 0 ? 1 : 0) },
   { id: "bridge", name: "Bridge YOUCOG once (future)", reward: "aura-base", rewardName: "Base Halo", source: "sim", goal: 1, value: () => 0 },
   { id: "medals5", name: "Collect 5 medals", reward: "trail-code", rewardName: "Code Trail", source: "sim", goal: 5, value: () => 0 },
-  { id: "medals15", name: "Collect 15 medals", reward: "prop-medal", rewardName: "Medal Necklace", source: "sim", goal: 15, value: () => 0 },
+  { id: "medals15", name: "Collect 15 medals", reward: "prop-wand", rewardName: "Magic Wand", source: "sim", goal: 15, value: () => 0 },
   { id: "glitch3", name: "Find 3 glitch ghosts", reward: "skin-glitch", rewardName: "Glitch Sheet", source: "sim", goal: 3, value: () => 0 },
   { id: "buy1", saves: true, name: "Buy first cosmetic", reward: "prop-briefcase", rewardName: "Briefcase", source: "local", goal: 1, note: "Counts verified Ghost Shop purchases", value: (_s, l) => l.bought },
   { id: "allcats", saves: true, name: "Own one item per category", reward: "aura-sparkle", rewardName: "Sparkles", source: "local", goal: 6, value: (_s, l) => l.categoriesOwned },
   { id: "rcst", name: "Recast claim (RCST)", reward: "prop-balloon", rewardName: "Balloon", source: "sim", goal: 1, value: () => 0 },
   { id: "listen5", name: "Listen boost 5 times", reward: "beanie", rewardName: "Beanie", source: "sim", goal: 5, value: () => 0 },
   { id: "play3", name: "Play 3 rounds on /play", reward: "propeller", rewardName: "Propeller Cap", source: "sim", goal: 3, value: () => 0 },
-  { id: "mint", name: "Mint your 1/1000 ghost", reward: "prop-badge", rewardName: "Minter Badge", source: "sim", goal: 1, value: () => 0 },
+  { id: "mint", name: "Mint your 1/1000 ghost", reward: "prop-laptop", rewardName: "Laptop", source: "sim", goal: 1, value: () => 0 },
   { id: "invite", name: "Invite a friend who claims", reward: "aura-none-blue", rewardName: "Blue Glow", source: "sim", goal: 1, value: () => 0 },
 ];
 

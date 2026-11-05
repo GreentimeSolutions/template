@@ -7,7 +7,7 @@ test("every item lands in exactly one tab", () => {
   assert.equal(n, STORE_ITEMS.length);
 });
 test("quest-only items cannot be bought", () => {
-  for (const id of ["shades-red", "aura-base", "trail-code", "skin-glitch", "prop-medal", "prop-badge"]) {
+  for (const id of ["shades-red", "aura-base", "trail-code", "skin-glitch", "prop-wand", "prop-laptop"]) {
     const it = STORE_ITEMS.find((i) => i.id === id)!;
     assert.ok(it.questOnly);
     assert.deepEqual(simulateBuy(it, 1e9, []), { ok: false, reason: "quest-only" });
@@ -26,7 +26,7 @@ test("simulated buy deducts price and blocks repeats / low balance", () => {
 import { QUESTS, QUEST_FOR_ITEM, longestRun, progress, EMPTY_SIGNALS } from "./quests-core";
 test("18 quests and every quest-only item has one", () => {
   assert.equal(QUESTS.length, 18);
-  for (const id of ["shades-red", "aura-base", "trail-code", "skin-glitch", "prop-medal", "prop-badge"]) assert.ok(QUEST_FOR_ITEM[id], id);
+  for (const id of ["shades-red", "aura-base", "trail-code", "skin-glitch", "prop-wand", "prop-laptop"]) assert.ok(QUEST_FOR_ITEM[id], id);
   for (const q of QUESTS) assert.ok(STORE_ITEMS.find((i) => i.id === q.reward), q.reward);
 });
 test("longestRun finds best streak across gaps", () => {
@@ -45,10 +45,29 @@ test("progress uses real signals, local inventory and simulated toggles", () => 
 });
 
 import { priceWei } from "./shop-verify-core";
-test("removed sports/seasonal gear is gone from catalog and server price table", () => {
+test("removed shop-only gear is gone from catalog and server price table", () => {
   for (const id of ["hat-helmet-navy-orange", "hat-ballcap", "skin-jersey", "prop-soccer-scarf", "shades-hockey", "prop-football", "hat-leaf-crown", "hat-winter-beanie", "prop-winter-scarf", "hat-flower-crown", "hat-sun-hat", "shades-summer"]) {
     assert.ok(!STORE_ITEMS.find((i) => i.id === id), id);
     assert.equal(priceWei(id), null);
   }
   assert.ok(!STORE_TABS.some((t) => (t.id as string) === "sports"));
+});
+
+test("every catalog item is a mintable contract trait; quest rewards are quest-only", async () => {
+  const { COSMETICS } = await import("./ghost-wardrobe");
+  const { outfitToTraits } = await import("./ghost-lab-core");
+  const { QUESTS } = await import("./quests-core");
+  for (const it of STORE_ITEMS) {
+    const idx = COSMETICS.findIndex((c) => c.id === it.id);
+    assert.ok(idx >= 0, `${it.id} has a contract trait index`);
+    assert.notDeepEqual(outfitToTraits({ [it.cat]: it.id }), outfitToTraits({}), `${it.id} changes mint traits`);
+  }
+  for (const id of ["prop-medal", "prop-badge", "hat-pumpkin", "hat-witch", "hat-santa", "aura-snow", "prop-candy", "aura-hearts"]) {
+    assert.equal(STORE_ITEMS.find((i) => i.id === id), undefined, id); assert.equal(priceWei(id), null, id);
+  }
+  const rewards = QUESTS.map((q) => q.reward);
+  assert.equal(new Set(rewards).size, rewards.length, "no item is the reward of two quests");
+  for (const r of rewards) { const it = STORE_ITEMS.find((i) => i.id === r); assert.ok(it?.questOnly, `${r} quest-only`); }
+  assert.equal(QUESTS.find((q) => q.id === "medals15")?.reward, "prop-wand");
+  assert.equal(QUESTS.find((q) => q.id === "mint")?.reward, "prop-laptop");
 });

@@ -140,7 +140,7 @@ export function CosmeticsStore() {
         })}
       </div>}
       <div style={{ fontSize: 9, color: "#8892b0", marginTop: 10, textAlign: "center", lineHeight: 1.5 }}>
-        {DISCLAIMER} Purchases are saved to your wallet address. Shop-only seasonal items aren't mintable traits yet.
+        {DISCLAIMER} Purchases are saved to your wallet address.
       </div>
       {sheet && (
         <div onClick={() => !step && setSheet(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", alignItems: "flex-end" }}>
