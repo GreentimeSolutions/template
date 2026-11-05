@@ -41,7 +41,7 @@ function MapPage() {
           nodes={nodes} edges={edges} nodeTypes={nodeTypes} colorMode="dark" fitView minZoom={0.1} maxZoom={2}
           nodesDraggable={false} nodesConnectable={false} elementsSelectable={false} edgesFocusable={false} nodesFocusable={false}
           onNodeClick={(_, n) => { const h = (n.data as { n: MapNode }).n.href; if (!h) return; if (h.startsWith("http")) window.open(h, "_blank", "noopener"); else location.href = h; }}
-          style={{ background: "transparent" }}
+          style={{ background: "#14081f", ["--xy-background-color" as string]: "#14081f" }}
         >
           <Background color="#4c1d95" gap={28} />
           <MiniMap pannable zoomable nodeColor="#7c3aed" maskColor="rgba(20,8,31,0.7)" className="!hidden sm:!block" />

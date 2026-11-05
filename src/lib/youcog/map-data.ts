@@ -18,9 +18,9 @@ export const MAP_TREE: MapNode = {
       { id: "forge", title: "Forge quests", text: "Claim streaks and purchases unlock quest-only cosmetics." },
     ] },
     { id: "lab", title: "Ghost Lab", text: "Dress your ghost and mint 1 of 1,000.", href: "/lab", children: [
-      { id: "ghosts", title: "YoucogGhosts", text: "ERC-721 · 0x298b03cbc7ad33c932afc7540b90506634c7bf1a · first 100 free · deployed & verified by @bankrbot" },
+      { id: "ghosts", title: "YoucogGhosts", text: "1,000 ERC-721 · first 100 free · deployed & verified by @bankrbot · 0x298b…7bf1a" },
       { id: "shop", title: "Ghost Shop", text: "Cosmetics bought with YOUCOG, which goes back to the faucet. Quest rewards are quest-only.", href: "/lab/shop" },
-      { id: "medal", title: "Founder's Medal", text: "1/1 ERC-721 (YCFOUNDER) · 0xb4c4f2aa8843e4fa362c12793701b51245d58d5d" },
+      { id: "medal", title: "Founder's Medal", text: "1/1 ERC-721 (YCFOUNDER) · 0xb4c4…8d5d" },
     ] },
     { id: "ycurv", title: "YCURV", text: "Youcog Curve · Mint Club bonding curve, paid in YOUCOG · 0xB62C395519f0D51A637a5cc73C1819b71BfB6984", href: "/curve", children: [
       { id: "mintclub", title: "Mint Club page", href: "https://mint.club/token/base/YCURV" },
@@ -45,7 +45,7 @@ export const MAP_TREE: MapNode = {
 
 export type Placed = { id: string; node: MapNode; x: number; y: number; parent?: string };
 /** Left-to-right tree: depth -> x, leaves stacked -> y. */
-export function layoutTree(root: MapNode, colW = 300, rowH = 110): Placed[] {
+export function layoutTree(root: MapNode, colW = 300, rowH = 135): Placed[] {
   const out: Placed[] = [];
   let row = 0;
   const walk = (n: MapNode, depth: number, parent?: string): number => {
