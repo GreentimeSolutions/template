@@ -43,3 +43,17 @@ test("progress uses real signals, local inventory and simulated toggles", () => 
   assert.equal(progress(mint, EMPTY_SIGNALS, l, ["mint"]).done, true);
   assert.equal(progress(QUESTS.find((q) => q.id === "allcats")!, EMPTY_SIGNALS, l).have, 3);
 });
+
+import { priceWei } from "./shop-verify-core";
+test("new sports & seasonal gear: buyable at tier prices, server price table knows them", () => {
+  const ids = ["hat-helmet-navy-orange", "hat-helmet-black-silver", "hat-ballcap", "skin-jersey", "prop-soccer-scarf", "shades-hockey", "prop-football",
+    "hat-leaf-crown", "hat-winter-beanie", "prop-winter-scarf", "hat-flower-crown", "hat-sun-hat", "shades-summer"];
+  for (const id of ids) {
+    const it = STORE_ITEMS.find((i) => i.id === id)!;
+    assert.ok(it && !it.questOnly && it.buyOnly, id);
+    assert.ok([100, 500, 2000, 10000].includes(it.price), id);
+    assert.equal(priceWei(id), BigInt(it.price) * 10n ** 18n);
+  }
+  assert.equal(itemsForTab("sports").length, 10);
+  assert.equal(STORE_ITEMS.find((i) => i.id === "fedora-red")!.price, 100);
+});

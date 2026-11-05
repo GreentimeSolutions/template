@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { HELMET_COMBOS, useTheme, type ThemeId } from "@/lib/youcog/themes";
 
 /**
  * Halloween cosmetics. Purely visual: nothing here touches faucet, wallet,
@@ -56,6 +57,19 @@ function Bat({ className }: { className?: string }) {
   );
 }
 
+
+/** Seasonal / sports gear drawn over a background ghost (viewBox 0 0 32 32). */
+function Gear({ theme, i }: { theme: ThemeId; i: number }) {
+  switch (theme) {
+    case "autumn": return <g><path d="M9 5c3-3 6-1 7 1 1-2 4-4 7-1-2 1-3 3-7 3S11 6 9 5z" fill="#e8742a" /><path d="M16 6v3" stroke="#7a3b0c" strokeWidth="1" />{i % 2 ? <circle cx="26" cy="26" r="3" fill="#ff7a00" /> : null}</g>;
+    case "winter": return <g><rect x="7" y="19" width="18" height="3" rx="1.5" fill={i % 2 ? "#d7263d" : "#3a86ff"} /><rect x="19" y="21" width="3" height="6" fill={i % 2 ? "#d7263d" : "#3a86ff"} /><path d="M10 6h12l-2-4h-8z" fill="#ffffff" /><circle cx="16" cy="2" r="1.6" fill="#ffffff" /></g>;
+    case "spring": return <g>{[9, 13, 16, 19, 23].map((x, k) => <circle key={x} cx={x} cy={k % 2 ? 4 : 5} r="1.8" fill={["#ff8fc7", "#ffe066", "#b18cff", "#ff8fc7", "#8fe3b0"][k]} />)}</g>;
+    case "summer": return <g><rect x="9" y="11.5" width="6" height="4" rx="1.5" fill="#111" /><rect x="17" y="11.5" width="6" height="4" rx="1.5" fill="#111" /><rect x="14" y="12.5" width="4" height="1" fill="#111" /><ellipse cx="16" cy="6" rx="12" ry="2" fill="#f5d48a" /><path d="M10 6c0-4 12-4 12 0z" fill="#f5d48a" /></g>;
+    case "football": { const [a, b] = HELMET_COMBOS[i % HELMET_COMBOS.length]; return <g shapeRendering="crispEdges"><rect x="7" y="3" width="18" height="2" fill={a} /><rect x="5" y="5" width="22" height="10" fill={a} /><rect x="9" y="4" width="4" height="1" fill="#ffffff" opacity="0.5" /><rect x="20" y="15" width="8" height="1" fill={b} /><rect x="20" y="18" width="8" height="1" fill={b} /><rect x="24" y="14" width="1" height="6" fill={b} /></g>; }
+    default: return null;
+  }
+}
+
 const DRIFTERS = [
   { left: "6%", top: "14%", size: 46, dur: 26, delay: -3, op: 0.1 },
   { left: "72%", top: "9%", size: 34, dur: 31, delay: -12, op: 0.08 },
@@ -69,8 +83,10 @@ const DRIFTERS = [
 
 /** Fixed layer behind all content: drifting ghosts, a zoomer and bottom fog. */
 export function HauntedBackdrop() {
+  const theme = useTheme();
+  const geared = theme !== "ghost";
   return (
-    <div className="haunt-backdrop" aria-hidden="true">
+    <div className={`haunt-backdrop theme-${theme}`} aria-hidden="true">
       {DRIFTERS.map((g, i) => (
         <span
           key={i}
@@ -80,12 +96,13 @@ export function HauntedBackdrop() {
             top: g.top,
             width: g.size,
             height: g.size,
-            opacity: g.op,
+            opacity: geared ? g.op * 2.6 : g.op,
             animationDuration: `${g.dur}s`,
             animationDelay: `${g.delay}s`,
           }}
         >
           <GhostOutline className="size-full text-violet-100" />
+          {geared ? <svg viewBox="0 0 32 32" className="absolute inset-0 size-full"><Gear theme={theme} i={i} /></svg> : null}
         </span>
       ))}
       <span className="haunt-zoom">

@@ -26,6 +26,8 @@ import {
   burnStatic,
 } from "@/components/youcog/halloween";
 import { ghostLabEnabled, ghostsContract, readFreeMint } from "@/lib/youcog/ghost-lab";
+import { TapEggs } from "@/components/youcog/tap-eggs";
+import { THEMES, setTheme, useTheme, type ThemeId } from "@/lib/youcog/themes";
 
 const YOUCOG_BASESCAN = "https://basescan.org/token/0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 
@@ -161,6 +163,25 @@ function BankrMintCard() {
   );
 }
 
+
+function ThemePicker() {
+  const theme = useTheme();
+  return (
+    <div className="flex flex-col gap-1.5" data-testid="theme-picker">
+      <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Look">
+        {THEMES.map((t) => (
+          <button key={t.id} type="button" role="radio" aria-checked={theme === t.id} data-theme={t.id}
+            onClick={() => setTheme(t.id as ThemeId)}
+            className={`press rounded-full border px-2.5 py-1 text-xs ${theme === t.id ? "border-violet-300 bg-violet-500/40 text-white" : "border-line text-mist"}`}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-faint" data-testid="egg-hint">Tap anywhere: easter eggs and new features show up year round 👻</p>
+    </div>
+  );
+}
+
 function YoucogIntro({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex flex-col gap-4">
@@ -190,6 +211,7 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
         <a data-testid="home-map-link" href="/map" className="ml-3 mt-1 inline-block text-xs text-violet-200 underline underline-offset-4">Map</a>
       </p>
       <BankrMintCard />
+      <ThemePicker />
     </div>
   );
 }
@@ -540,6 +562,7 @@ export function YoucogApp() {
   return (
     <div className="haunt-shell flex h-dvh flex-col overflow-hidden text-ink">
       <HauntedBackdrop />
+      <TapEggs />
       <ClaimCelebration />
       <BurnStatic />
       <TopBanner />

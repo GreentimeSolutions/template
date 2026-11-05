@@ -20,6 +20,7 @@ export const MAP_TREE: MapNode = {
     { id: "lab", title: "Ghost Lab", text: "Dress your ghost and mint 1 of 1,000.", href: "/lab", children: [
       { id: "ghosts", title: "YoucogGhosts", text: "1,000 ERC-721 · first 100 free · deployed & verified by @bankrbot · 0x298b…7bf1a" },
       { id: "shop", title: "Ghost Shop", text: "Cosmetics bought with YOUCOG, which goes back to the faucet. Quest rewards are quest-only.", href: "/lab/shop" },
+      { id: "gear", title: "Sports & seasonal gear", text: "Shop-only helmets (generic colors), jersey, scarves, caps, hockey mask, crowns and sun hat.", href: "/lab/shop" },
       { id: "medal", title: "Founder's Medal", text: "1/1 ERC-721 (YCFOUNDER) · 0xb4c4…8d5d" },
     ] },
     { id: "ycurv", title: "YCURV", text: "Youcog Curve · Mint Club bonding curve, paid in YOUCOG · 0xB62C395519f0D51A637a5cc73C1819b71BfB6984", href: "/curve", children: [
@@ -31,6 +32,10 @@ export const MAP_TREE: MapNode = {
       { id: "music", title: "Music", text: "Youcognito theme soundtrack" },
       { id: "short", title: "Short", text: "Youcognito Short video" },
       { id: "play", title: "Play", href: "/play" },
+    ] },
+    { id: "looks", title: "Looks & easter eggs", children: [
+      { id: "themes", title: "Seasonal modes", text: "Ghost (default), Autumn, Winter, Spring, Summer, Football. Saved on your device." },
+      { id: "eggs", title: "Tap anywhere", text: "Easter eggs and new features show up year round." },
     ] },
     { id: "dao", title: "nito DAO", text: "Governance; details after review." },
     { id: "community", title: "Community", children: [
