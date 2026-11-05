@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, ty
 import { Pause, Pencil, Play } from "lucide-react";
 import {
   DEEP_MISSION_THUMB,
-  FAUCET_THUMB,
+  FAUCET_THUMB, YCURV_THUMB,
   GAME_THUMB,
   GAME_URL,
   SOUNDTRACK_THUMB,
@@ -19,7 +19,7 @@ import { useMiniApp } from "@/lib/youcog/use-miniapp";
 
 export const OPEN_FAUCET_EVENT = "youcog:open-faucet";
 
-type TipTarget = "deep" | "faucet" | "game" | "music" | "burn" | "rcst" | "short";
+type TipTarget = "deep" | "faucet" | "game" | "music" | "burn" | "rcst" | "short" | "ycurv";
 type Slide = { kind: "tip"; text: string; target: TipTarget } | { kind: "buy"; text: string };
 type Buy = { tokens: number; usd: number; from: string; at: string };
 
@@ -368,7 +368,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           </button>
           {menuOpen ? <ChangeGhostMenu onClose={() => setMenuOpen(false)} /> : null}
         </div>
-        <div className={`home-grid ${small ? "h-36" : "h-52"}`}>
+        <div className={`home-grid ${small ? "h-52" : "h-72"}`}>
           <GridTile
             target="game"
             thumb={GAME_THUMB}
@@ -403,6 +403,13 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             label="Faucet"
             ariaLabel="Open the daily YOUCOG faucet"
             onClick={() => goTo("faucet", miniApp.inMiniApp)}
+          />
+          <GridTile
+            target="ycurv"
+            thumb={YCURV_THUMB}
+            label="YCURV"
+            ariaLabel="YCURV bonding curve on Mint Club"
+            onClick={() => { location.href = "/curve"; }}
           />
           {YOUTUBE_SHORT.url ? (
             <GridTile

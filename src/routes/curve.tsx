@@ -171,6 +171,16 @@ function CurvePage() {
           mint.club
         </a>
       </p>
+      <a
+        data-testid="mintclub-link"
+        href="https://mint.club/token/base/YCURV"
+        target="_blank"
+        rel="noreferrer"
+        className="press block rounded-seal border border-violet-400/60 bg-violet-500/20 px-3 py-2.5 text-center text-sm font-medium text-ink"
+      >
+        Trade YCURV on Mint Club ↗
+      </a>
+      <p className="-mt-2 text-center text-[11px] text-faint">Prices move with the curve. Not investment advice.</p>
 
       {readErr ? <p className="text-sm text-danger">Couldn't read the curve from Base right now.</p> : null}
       {!bond ? (

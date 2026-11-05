@@ -178,6 +178,15 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
           Official on @bankr
         </a>
         <span className="mt-1 block break-all">CA: {BANKR_CA}</span>
+        <a
+          data-testid="home-mintclub-link"
+          href="https://mint.club/token/base/YCURV"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 inline-block text-xs text-violet-200 underline underline-offset-4"
+        >
+          YCURV on Mint Club
+        </a>
       </p>
       <BankrMintCard />
     </div>

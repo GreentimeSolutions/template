@@ -39,3 +39,4 @@ export const PROJECT_WALLETS = [
   "0x3067ab541253746ab353b842fdc0970ffbde13c7", // Youcog agent + faucet wallet
   "0xa959d8eeded6fb440ca584d1e87e581168bbf628", // donations
 ];
+export const YCURV_THUMB = "/ycurv-thumb.webp";
