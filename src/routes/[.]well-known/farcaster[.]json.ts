@@ -1,11 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { APP_DOMAIN, domainFromRequest } from "@/lib/youcog/miniapp";
+import { APP_DOMAIN, LEGACY_DOMAIN, YOUCOGNITO_VERCEL_DOMAIN, domainFromRequest } from "@/lib/youcog/miniapp";
 
-/** accountAssociation is signed by the owner's Farcaster account; values come from env so they drop in without code changes. */
-/** youcognito.vercel.app uses FARCASTER_ASSOC_*_YOUCOGNITO (falling back to the original set); other hosts use the original set. */
+/** Signed accountAssociation for youcognito.com (fid 209707 custody). Baked in so preview/prod don't need new project env. */
+const YOUCOGNITO_COM_ASSOC = {
+  header: "eyJmaWQiOjIwOTcwNywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDljQjVkYjIzRTY2NDk5YjM0ZDVlMjhERmUyMDU4M0ZlYTkwMTU4NzQifQ",
+  payload: "eyJkb21haW4iOiJ5b3Vjb2duaXRvLmNvbSJ9",
+  signature: "wKVN5vpYhEaVwzs46OdKroLPBZtksPrIHHsrUnM+pkMIAiHS5qxXgPTKfTK8ZJqxF8wLOO+RUM1/yvAtkaoZYBw=",
+};
+
+/** youcognito.vercel.app uses FARCASTER_ASSOC_*_YOUCOGNITO (falling back to the original set); other legacy hosts use the original set. */
 function accountAssociation(domain: string) {
+  if (domain === APP_DOMAIN) return YOUCOGNITO_COM_ASSOC;
   const pick = (k: string) =>
-    (domain === APP_DOMAIN ? process.env[`FARCASTER_ASSOC_${k}_YOUCOGNITO`]?.trim() : undefined) ||
+    (domain === YOUCOGNITO_VERCEL_DOMAIN ? process.env[`FARCASTER_ASSOC_${k}_YOUCOGNITO`]?.trim() : undefined) ||
     process.env[`FARCASTER_ASSOC_${k}`]?.trim();
   const header = pick("HEADER");
   const payload = pick("PAYLOAD");
@@ -19,7 +26,10 @@ export const Route = createFileRoute("/.well-known/farcaster.json")({
     handlers: {
       GET: ({ request }) => {
         const domain = domainFromRequest(request);
-        const APP_URL = `https://${domain}`;
+        // Legacy vercel.app hosts keep their own host in URLs; everything else uses the apex.
+        const publicDomain =
+          domain === YOUCOGNITO_VERCEL_DOMAIN || domain === LEGACY_DOMAIN ? domain : APP_DOMAIN;
+        const APP_URL = `https://${publicDomain}`;
         return Response.json(
           {
             accountAssociation: accountAssociation(domain),
@@ -43,7 +53,7 @@ export const Route = createFileRoute("/.well-known/farcaster.json")({
               ogDescription: "Private AI research on Base with sealed tabs, burnable sessions, and a daily YOUCOG faucet.",
               ogImageUrl: `${APP_URL}/og.jpg?v=gift`,
               requiredChains: ["eip155:8453"],
-              canonicalDomain: domain,
+              canonicalDomain: publicDomain,
             },
           },
           { headers: { "cache-control": "public, max-age=300", "access-control-allow-origin": "*", vary: "host" } },
