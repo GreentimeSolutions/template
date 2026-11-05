@@ -45,15 +45,10 @@ test("progress uses real signals, local inventory and simulated toggles", () => 
 });
 
 import { priceWei } from "./shop-verify-core";
-test("new sports & seasonal gear: buyable at tier prices, server price table knows them", () => {
-  const ids = ["hat-helmet-navy-orange", "hat-helmet-black-silver", "hat-ballcap", "skin-jersey", "prop-soccer-scarf", "shades-hockey", "prop-football",
-    "hat-leaf-crown", "hat-winter-beanie", "prop-winter-scarf", "hat-flower-crown", "hat-sun-hat", "shades-summer"];
-  for (const id of ids) {
-    const it = STORE_ITEMS.find((i) => i.id === id)!;
-    assert.ok(it && !it.questOnly && it.buyOnly, id);
-    assert.ok([100, 500, 2000, 10000].includes(it.price), id);
-    assert.equal(priceWei(id), BigInt(it.price) * 10n ** 18n);
+test("removed sports/seasonal gear is gone from catalog and server price table", () => {
+  for (const id of ["hat-helmet-navy-orange", "hat-ballcap", "skin-jersey", "prop-soccer-scarf", "shades-hockey", "prop-football", "hat-leaf-crown", "hat-winter-beanie", "prop-winter-scarf", "hat-flower-crown", "hat-sun-hat", "shades-summer"]) {
+    assert.ok(!STORE_ITEMS.find((i) => i.id === id), id);
+    assert.equal(priceWei(id), null);
   }
-  assert.equal(itemsForTab("sports").length, 10);
-  assert.equal(STORE_ITEMS.find((i) => i.id === "fedora-red")!.price, 100);
+  assert.ok(!STORE_TABS.some((t) => (t.id as string) === "sports"));
 });

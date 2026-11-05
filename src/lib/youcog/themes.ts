@@ -1,10 +1,10 @@
 /** Home look modes. Purely visual; saved in localStorage. Default "ghost" = original look. */
 import { useEffect, useState } from "react";
-export type ThemeId = "ghost" | "autumn" | "winter" | "spring" | "summer" | "football";
+export type ThemeId = "ghost" | "autumn" | "winter" | "spring" | "summer";
 export const THEMES: { id: ThemeId; label: string; icon: string }[] = [
   { id: "ghost", label: "Ghost", icon: "👻" }, { id: "autumn", label: "Autumn", icon: "🍂" },
   { id: "winter", label: "Winter", icon: "❄️" }, { id: "spring", label: "Spring", icon: "🌸" },
-  { id: "summer", label: "Summer", icon: "☀️" }, { id: "football", label: "Football", icon: "🏈" },
+  { id: "summer", label: "Summer", icon: "☀️" },
 ];
 export const THEME_KEY = "youcog:theme";
 const EVT = "youcog:theme";
@@ -21,8 +21,3 @@ export function useTheme(): ThemeId {
   useEffect(() => { const f = () => set(readTheme()); f(); window.addEventListener(EVT, f); window.addEventListener("storage", f); return () => { window.removeEventListener(EVT, f); window.removeEventListener("storage", f); }; }, []);
   return t;
 }
-/** Generic two-color helmet combos (no team names, logos or marks). */
-export const HELMET_COMBOS: [string, string][] = [
-  ["#0b2265", "#ff6a13"], ["#203731", "#ffb612"], ["#c8102e", "#ffffff"], ["#111111", "#a5acaf"],
-  ["#4f2683", "#ffc62f"], ["#00338d", "#c60c30"], ["#008e97", "#fc4c02"], ["#002244", "#69be28"],
-];

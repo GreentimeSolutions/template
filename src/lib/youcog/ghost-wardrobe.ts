@@ -66,7 +66,7 @@ export const COSMETICS: Cosmetic[] = [
  * Store-only extras (PREVIEW). Kept OUT of COSMETICS on purpose: COSMETICS order maps to the
  * on-chain trait indices of the ghosts contract, so these are not mintable traits yet.
  */
-export const STORE_EXTRAS: (Cosmetic & { seasonal?: boolean; sports?: boolean })[] = [
+export const STORE_EXTRAS: (Cosmetic & { seasonal?: boolean })[] = [
   { ...C("prop-medal", "Medal Necklace", "prop", "epic", "medal", "#f5b301", "#d7263d"), via: "quest" },
   { ...C("prop-badge", "Minter Badge", "prop", "rare", "badge", "#0052ff", "#ffffff"), via: "quest" },
   { ...C("hat-pumpkin", "Pumpkin Head", "hat", "rare", "pumpkin", "#ff7a00", "#2e7d32"), via: "buy", seasonal: true },
@@ -75,24 +75,6 @@ export const STORE_EXTRAS: (Cosmetic & { seasonal?: boolean; sports?: boolean })
   { ...C("aura-snow", "Snowfall", "aura", "common", "snow", "#ffffff", "#bde0ff"), via: "buy", seasonal: true },
   { ...C("prop-candy", "Candy Bucket", "prop", "common", "candy", "#ff7a00", "#1b1b2f"), via: "buy", seasonal: true },
   { ...C("aura-hearts", "Heart Aura", "aura", "legendary", "hearts", "#ff3d7f", "#ffd1e0"), via: "buy", seasonal: true },
-  // Sports gear: plain retro helmets in team-style color pairs (no names, logos or decals)
-  { ...C("hat-helmet-navy-orange", "Navy & Orange Helmet", "hat", "rare", "helmet", "#0b2265", "#ff6a13"), via: "buy", sports: true },
-  { ...C("hat-helmet-green-gold", "Green & Gold Helmet", "hat", "rare", "helmet", "#203731", "#ffb612"), via: "buy", sports: true },
-  { ...C("hat-helmet-red-white", "Red & White Helmet", "hat", "rare", "helmet", "#c8102e", "#ffffff"), via: "buy", sports: true },
-  { ...C("hat-helmet-black-silver", "Black & Silver Helmet", "hat", "epic", "helmet", "#111111", "#a5acaf"), via: "buy", sports: true },
-  { ...C("hat-helmet-purple-gold", "Purple & Gold Helmet", "hat", "epic", "helmet", "#4f2683", "#ffc62f"), via: "buy", sports: true },
-  { ...C("hat-ballcap", "Baseball Cap", "hat", "common", "ballcap", "#1d3f8f", "#ffffff"), via: "buy", sports: true },
-  { ...C("skin-jersey", "Basketball Jersey", "skin", "rare", "jersey", "#ff7a00", "#1b1b2f"), via: "buy", sports: true },
-  { ...C("prop-soccer-scarf", "Soccer Scarf", "prop", "common", "scarf", "#2ec4b6", "#ffffff"), via: "buy", sports: true },
-  { ...C("shades-hockey", "Hockey Mask", "shades", "epic", "hockey", "#f4f4f4", "#d7263d"), via: "buy", sports: true },
-  { ...C("prop-football", "Football", "prop", "common", "football", "#8b4513", "#ffffff"), via: "buy", sports: true },
-  // Year-round seasonal gear
-  { ...C("hat-leaf-crown", "Autumn Leaf Crown", "hat", "rare", "leafcrown", "#e8742a", "#c8102e"), via: "buy", seasonal: true },
-  { ...C("hat-winter-beanie", "Winter Pom Beanie", "hat", "common", "pombeanie", "#3a86ff", "#ffffff"), via: "buy", seasonal: true },
-  { ...C("prop-winter-scarf", "Winter Scarf", "prop", "common", "scarf", "#d7263d", "#ffffff"), via: "buy", seasonal: true },
-  { ...C("hat-flower-crown", "Spring Flower Crown", "hat", "rare", "flowercrown", "#ff8fc7", "#ffe066"), via: "buy", seasonal: true },
-  { ...C("hat-sun-hat", "Summer Sun Hat", "hat", "common", "sunhat", "#f5d48a", "#ff5a1f"), via: "buy", seasonal: true },
-  { ...C("shades-summer", "Summer Shades", "shades", "common", "shades", "#ff5ac8", "#ffd1e0"), via: "buy", seasonal: true },
 ];
 export const byId = (id?: string | null) => COSMETICS.find((x) => x.id === id) ?? STORE_EXTRAS.find((x) => x.id === id);
 export type Outfit = Partial<Record<Category, string>>;
@@ -117,7 +99,6 @@ function body(p: P, ck: Cosmetic | undefined, t: number) {
   p(8, 9 + 18, 1, 1, o); p(23, 27, 1, 1, o);
   if (ck?.kind === "trench") { p(9, 19, 14, 8, f); p(15, 19, 2, 8, s); p(9, 21, 14, 1, s); p(12, 23, 1, 1, o); p(19, 23, 1, 1, o); }
   if (ck?.kind === "tux") { p(9, 18, 14, 9, f); p(14, 18, 4, 9, s); p(15, 18, 2, 1, "#d7263d"); p(15, 20, 2, 1, o); p(15, 22, 2, 1, o); }
-  if (ck?.kind === "jersey") { p(9, 17, 14, 10, f); p(9, 17, 2, 3, "#ffffff"); p(21, 17, 2, 3, "#ffffff"); p(13, 17, 6, 1, s); p(14, 20, 1, 4, s); p(15, 20, 2, 1, s); p(16, 21, 1, 1, s); p(15, 22, 2, 1, s); p(17, 23, 1, 1, s); }
   if (ck?.kind === "glitch" && g) { const k = Math.floor(t / 120) % 4; p(9 + k, 16 + k * 2, 6, 1, s); p(14 - k, 22 - k, 7, 1, g); }
 }
 
@@ -134,12 +115,6 @@ function hat(p: P, ck?: Cosmetic) {
     case "pumpkin": p(9, 5, 14, 6, a); p(15, 3, 2, 2, b); p(12, 6, 1, 4, "#c25e00"); p(19, 6, 1, 4, "#c25e00"); break;
     case "witch": p(7, 10, 18, 1, a); p(11, 7, 10, 3, a); p(13, 4, 6, 3, a); p(15, 1, 3, 3, a); p(11, 9, 10, 1, b); break;
     case "santa": p(10, 7, 12, 3, a); p(13, 4, 7, 3, a); p(19, 3, 3, 2, a); p(22, 3, 2, 2, b); p(9, 10, 14, 1, b); break;
-    case "helmet": p(8, 5, 16, 9, o); p(9, 5, 14, 8, a); p(10, 6, 3, 1, "#ffffff55"); p(20, 13, 6, 1, b); p(20, 15, 6, 1, b); p(23, 12, 1, 5, b); p(9, 12, 3, 1, b); break;
-    case "ballcap": p(10, 6, 12, 5, a); p(9, 10, 16, 1, b); p(4, 10, 7, 2, a); p(15, 5, 2, 1, b); break;
-    case "leafcrown": [9, 12, 15, 18, 21].forEach((x, i) => { p(x, 8, 3, 2, i % 2 ? b : a); p(x + 1, 7, 1, 1, i % 2 ? b : a); }); p(9, 10, 14, 1, "#7a3b0c"); break;
-    case "pombeanie": p(10, 6, 12, 5, a); p(10, 9, 12, 2, b); p(14, 3, 4, 3, b); p(12, 7, 1, 2, b); p(19, 7, 1, 2, b); break;
-    case "flowercrown": p(9, 9, 14, 1, "#2e7d32"); [9, 13, 17, 21].forEach((x, i) => { p(x, 7, 2, 2, i % 2 ? b : a); p(x + 0, 8, 1, 1, "#ffffff"); }); break;
-    case "sunhat": p(5, 9, 22, 2, a); p(10, 5, 12, 4, a); p(10, 8, 12, 1, b); break;
     case "party": p(14, 3, 4, 2, a); p(13, 5, 6, 2, b); p(12, 7, 8, 3, a); p(15, 1, 2, 2, b); break;
   }
 }
@@ -152,7 +127,6 @@ function shades(p: P, ck: Cosmetic | undefined, t: number) {
     case "heart": [11, 18].forEach((x) => { p(x, 13, 1, 1, a); p(x + 2, 13, 1, 1, a); p(x - 1, 14, 5, 2, a); p(x, 16, 3, 1, a); p(x + 1, 17, 1, 1, a); p(x, 14, 1, 1, b); }); break;
     case "3d": p(10, 13, 12, 1, "#ffffff"); p(10, 14, 5, 3, a); p(17, 14, 5, 3, b); break;
     case "monocle": p(17, 13, 5, 5, a); p(18, 14, 3, 3, b); p(21, 18, 1, 6, a); p(12, 15, 3, 1, "#1b1b2f"); break;
-    case "hockey": p(9, 10, 14, 14, a); [11, 14, 17, 20].forEach((x) => { p(x, 13, 2, 1, "#1b1b2f"); p(x, 19, 1, 2, "#1b1b2f"); }); p(11, 14, 3, 2, "#1b1b2f"); p(18, 14, 3, 2, "#1b1b2f"); p(15, 10, 2, 3, b); p(12, 22, 8, 1, b); break;
     case "pixel": p(9, 13, 14, 1, a); for (let i = 0; i < 2; i++) { p(10 + i * 7, 14, 5, 2, a); p(10 + i * 7, 14, 1, 1, b); p(12 + i * 7, 15, 1, 1, b); } break;
   }
 }
@@ -191,8 +165,6 @@ function prop(p: P, ck?: Cosmetic) {
     case "medal": p(12, 17, 1, 3, b); p(19, 17, 1, 3, b); p(13, 20, 6, 1, b); p(14, 21, 4, 4, a); p(15, 22, 2, 2, "#fff3b0"); break;
     case "badge": p(18, 18, 5, 5, a); p(19, 19, 3, 1, b); p(20, 20, 1, 2, b); break;
     case "candy": p(23, 21, 7, 6, a); p(23, 20, 7, 1, b); p(25, 23, 1, 1, b); p(27, 23, 1, 1, b); p(25, 25, 3, 1, b); p(22, 18, 1, 3, b); p(30, 18, 1, 3, b); break;
-    case "scarf": for (let x = 9; x < 23; x++) p(x, 17, 1, 2, (x >> 1) % 2 ? a : b); p(19, 19, 3, 6, a); p(19, 21, 3, 1, b); p(19, 23, 3, 1, b); break;
-    case "football": p(24, 21, 6, 4, a); p(23, 22, 1, 2, a); p(30, 22, 1, 2, a); p(25, 22, 4, 1, b); p(26, 21, 1, 3, b); p(27, 21, 1, 3, b); break;
     case "duck": p(24, 22, 6, 4, a); p(27, 19, 3, 3, a); p(30, 20, 1, 1, b); p(28, 20, 1, 1, o); break;
   }
 }

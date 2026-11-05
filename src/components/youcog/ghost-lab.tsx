@@ -112,7 +112,7 @@ export function GhostLab() {
       </div>
       <a data-testid="open-shop" href="/lab/shop" style={{ display: "block", marginTop: 10, padding: 10, borderRadius: 12, border: "1px solid #3a86ff", color: "#9cc0ff", fontSize: 11, textAlign: "center", textDecoration: "none" }}>OPEN GHOST SHOP</a>
       <div style={{ fontSize: 10, color: "#8892b0", marginTop: 8, textAlign: "center" }}>Tap an item you don't own to buy it in the shop. Any outfit you own can be minted.</div>
-      {extrasOn && <div data-testid="extras-note" style={{ fontSize: 10, color: "#f5b301", marginTop: 6, textAlign: "center" }}>Shop-only sports/seasonal gear shows here but isn't a mintable trait yet; the mint uses the rest of your outfit.</div>}
+      {extrasOn && <div data-testid="extras-note" style={{ fontSize: 10, color: "#f5b301", marginTop: 6, textAlign: "center" }}>Shop-only seasonal gear shows here but isn't a mintable trait yet; the mint uses the rest of your outfit.</div>}
       {!addr && !demo && <div style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>Minting opens soon.</div>}
       {chain && chain.minted !== undefined && <div data-testid="chain-state" style={{ marginTop: 10, textAlign: "center", fontSize: 10, color: "#8892b0" }}>ON-CHAIN: {chain.paused ? "PAUSED" : "LIVE"} · {chain.minted}/1000 MINTED</div>}
       {chain && chain.status !== "open" && <div data-testid="status" style={{ marginTop: 10, textAlign: "center", fontSize: 12 }}>{STATUS[chain.status]}</div>}
