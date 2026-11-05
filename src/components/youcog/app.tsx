@@ -187,6 +187,7 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
         >
           YCURV on Mint Club
         </a>
+        <a data-testid="home-map-link" href="/map" className="ml-3 mt-1 inline-block text-xs text-violet-200 underline underline-offset-4">Map</a>
       </p>
       <BankrMintCard />
     </div>

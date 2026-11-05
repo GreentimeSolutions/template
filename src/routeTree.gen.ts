@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CurveRouteImport } from './routes/curve'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as LabRouteImport } from './routes/lab'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as StakeRouteImport } from './routes/stake'
@@ -60,6 +61,11 @@ const FeedbackRoute = FeedbackRouteImport.update({
 const LabRoute = LabRouteImport.update({
   id: '/lab',
   path: '/lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayRoute = PlayRouteImport.update({
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/lab': typeof LabRoute
+  '/map': typeof MapRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/lab': typeof LabRoute
+  '/map': typeof MapRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/curve': typeof CurveRoute
   '/feedback': typeof FeedbackRoute
   '/lab': typeof LabRoute
+  '/map': typeof MapRoute
   '/play': typeof PlayRoute
   '/privacy': typeof PrivacyRoute
   '/stake': typeof StakeRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/curve'
     | '/feedback'
     | '/lab'
+    | '/map'
     | '/play'
     | '/privacy'
     | '/stake'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/curve'
     | '/feedback'
     | '/lab'
+    | '/map'
     | '/play'
     | '/privacy'
     | '/stake'
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | '/curve'
     | '/feedback'
     | '/lab'
+    | '/map'
     | '/play'
     | '/privacy'
     | '/stake'
@@ -417,6 +429,7 @@ export interface RootRouteChildren {
   CurveRoute: typeof CurveRoute
   FeedbackRoute: typeof FeedbackRoute
   LabRoute: typeof LabRoute
+  MapRoute: typeof MapRoute
   PlayRoute: typeof PlayRoute
   PrivacyRoute: typeof PrivacyRoute
   StakeRoute: typeof StakeRoute
@@ -475,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/lab'
       fullPath: '/lab'
       preLoaderRoute: typeof LabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play': {
@@ -681,6 +701,7 @@ const rootRouteChildren: RootRouteChildren = {
   CurveRoute: CurveRoute,
   FeedbackRoute: FeedbackRoute,
   LabRoute: LabRoute,
+  MapRoute: MapRoute,
   PlayRoute: PlayRoute,
   PrivacyRoute: PrivacyRoute,
   StakeRoute: StakeRoute,
