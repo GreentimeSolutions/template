@@ -217,6 +217,8 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
 }
 
 function Welcome() {
+  const isLg = useIsLg();
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 sm:py-12 lg:px-8">
       <YoucogIntro />
@@ -245,9 +247,11 @@ function Welcome() {
         </li>
       </ul>
       <div className="hidden flex-col gap-4 lg:flex">
+        {isLg ? (
         <div data-tip-target="faucet">
           <Faucet />
         </div>
+        ) : null}
         {RCST_PROMO_ENABLED ? (
           <div data-tip-target="rcst">
             <RcstClaim />
@@ -260,6 +264,20 @@ function Welcome() {
       </div>
     </div>
   );
+}
+
+
+/** Tailwind `lg` (1024px). Used so the desktop Faucet is not mounted on phones. */
+function useIsLg() {
+  const [ok, setOk] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setOk(m.matches);
+    sync();
+    m.addEventListener("change", sync);
+    return () => m.removeEventListener("change", sync);
+  }, []);
+  return ok;
 }
 
 function TabStrip({

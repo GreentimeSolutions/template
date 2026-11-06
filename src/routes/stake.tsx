@@ -102,7 +102,7 @@ function StakePage() {
     try {
       const { sdk } = await import("@farcaster/miniapp-sdk");
       const p = await sdk.wallet.getEthereumProvider();
-      const me = (await connectedBaseAddress()) as Address | null;
+      const me = (await connectedBaseAddress({ request: true })) as Address | null;
       if (!p || !me) throw new Error("No wallet");
       const wei = BigInt(Math.round(amt * 1e6)) * 10n ** BigInt(pool.stakeDecimals - 6);
       const hash = kind === "stake" ? await stakeInPool(p, me, pool, wei) : kind === "unstake" ? await unstakeFromPool(p, me, pool, wei) : await claimFromPool(p, me, pool);

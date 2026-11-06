@@ -127,7 +127,7 @@ function CurvePage() {
     try {
       const { sdk } = await import("@farcaster/miniapp-sdk");
       const p = await sdk.wallet.getEthereumProvider();
-      const me = (await connectedBaseAddress()) as Address | null;
+      const me = (await connectedBaseAddress({ request: true })) as Address | null;
       if (!p || !me) throw new Error("No wallet");
       const hash = side === "buy" ? await buyOnCurve(p, me, tokenAddr, bond.reserveToken, amt) : await sellOnCurve(p, me, tokenAddr, amt);
       setMsg(`Done. https://basescan.org/tx/${hash}`);

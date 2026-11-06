@@ -31,6 +31,8 @@ export function Faucet() {
   const [walletAddr, setWalletAddr] = useState<string | null>(null);
   const [useOther, setUseOther] = useState(false);
 
+  // Silent read only — never auto-prompt eth_requestAccounts on mount (hidden
+  // desktop copies used to stack a wallet sheet with SIWF and eject Warpcast).
   useEffect(() => {
     if (!fc) return;
     connectedBaseAddress()
@@ -38,17 +40,42 @@ export function Faucet() {
       .catch(() => setWalletAddr(null));
   }, [fc]);
 
+  async function connectWallet() {
+    try {
+      const a = await connectedBaseAddress({ request: true });
+      setWalletAddr(a);
+      return a;
+    } catch {
+      setWalletAddr(null);
+      return null;
+    }
+  }
+
   const recipient = fc && walletAddr && !useOther ? walletAddr : address.trim();
 
   // Tell the listen-boost flow who is claiming (same identity the faucet keys on).
   const listen = useListen();
   const sectionRef = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
   const validRecipient = /^0x[0-9a-fA-F]{40}$/.test(recipient);
   useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const sync = () => setVisible(el.getClientRects().length > 0);
+    sync();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(sync) : null;
+    ro?.observe(el);
+    window.addEventListener("resize", sync);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", sync);
+    };
+  }, []);
+  useEffect(() => {
     // The app renders a desktop and a mobile copy of this card; only the visible one speaks.
-    if (!sectionRef.current?.getClientRects().length) return;
+    if (!visible) return;
     setListenIdentity(fc ? { fc: true } : validRecipient ? { fc: false, address: recipient } : null);
-  }, [fc, recipient, validRecipient]);
+  }, [fc, recipient, validRecipient, visible]);
   const boosted = listen.phase === "unlocked";
 
   // Cosmetic only: ghost overlay plus ghosts and bats after a real successful claim.
@@ -77,10 +104,12 @@ export function Faucet() {
       setStreak(null);
     }
   }
+  // Only the visible Faucet instance may quickAuth for streak (same gate as listen identity).
   useEffect(() => {
+    if (!visible) return;
     void loadStreak();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fc, recipient]);
+  }, [fc, recipient, visible]);
 
 
   async function onClaim(event: FormEvent) {
@@ -89,10 +118,21 @@ export function Faucet() {
     setBusy(true);
     setMsg(null);
     const forge = forgeClaimEnabled();
-    const flameKey = fc ? "fc" : recipient;
-    const prevStreak = Math.max(streak?.streak ?? 0, streakFlamesEnabled() ? lastKnownStreak(flameKey) : 0);
-    if (forge) forgeClaimStart({ address: recipient, amount, streakDay: streak && !streak.claimedToday ? streak.nextStreak : undefined });
     try {
+      // User gesture: connect wallet if Mini App has no address yet and user did not paste one.
+      let claimAddress = recipient;
+      if (fc && !useOther && !walletAddr) {
+        const a = await connectWallet();
+        if (a) claimAddress = a;
+      }
+      if (!claimAddress) {
+        setMsg({ kind: "err", text: "Connect your Farcaster wallet or paste a Base address." });
+        setBusy(false);
+        return;
+      }
+      const flameKey = fc ? "fc" : claimAddress;
+      const prevStreak = Math.max(streak?.streak ?? 0, streakFlamesEnabled() ? lastKnownStreak(flameKey) : 0);
+      if (forge) forgeClaimStart({ address: claimAddress, amount, streakDay: streak && !streak.claimedToday ? streak.nextStreak : undefined });
       let res:
         | { ok: true; amount: number; url: string; streak?: number; multiplier?: number; baseAmount?: number; listenBonus?: boolean; streakBonus?: boolean; ycurvBonus?: number }
         | { ok: false; reason: string };
@@ -103,13 +143,13 @@ export function Faucet() {
           {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ address: recipient, amount }),
+            body: JSON.stringify({ address: claimAddress, amount }),
           },
         );
         res = await r.json();
       } else {
         res = await claimFaucet({
-          data: { address: recipient, amount, website },
+          data: { address: claimAddress, amount, website },
         });
       }
       if (forge) forgeClaimResolve(res.ok ? { ok: true, amount: res.amount, streak: res.streak } : { ok: false, reason: res.reason });
@@ -176,7 +216,7 @@ export function Faucet() {
         </p>
       ) : null}
       {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} flameKey={fc ? "fc" : recipient} /> : null}
-      <SaveBonus fc={fc} address={recipient} refreshKey={claims} />
+      {visible ? <SaveBonus fc={fc} address={recipient} refreshKey={claims} /> : null}
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
           <div className="flex flex-col gap-1 text-sm text-mist">
@@ -200,6 +240,15 @@ export function Faucet() {
                 : "Paste a different address"}
             </button>
           </div>
+        ) : null}
+        {fc && !walletAddr ? (
+          <button
+            type="button"
+            onClick={() => void connectWallet()}
+            className="press inline-flex h-11 items-center justify-center rounded-seal border border-line px-4 text-sm font-medium text-ink"
+          >
+            Connect wallet
+          </button>
         ) : null}
         {!fc || !walletAddr || useOther ? (
           <>
@@ -255,7 +304,7 @@ export function Faucet() {
         <HauntedButtonFrame>
         <button
           type="submit"
-          disabled={busy || !recipient}
+          disabled={busy || (fc ? (useOther ? !address.trim() : false) : !recipient)}
           className="press inline-flex h-11 items-center justify-center rounded-seal bg-accent px-4 text-sm font-medium text-accent-fg disabled:opacity-50"
         >
           {busy
