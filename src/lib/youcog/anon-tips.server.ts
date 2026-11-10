@@ -4,9 +4,11 @@ import {
   checkTipGate,
   baseScanTxUrl,
   composeCastEmbeds,
+  CAST_SITE_DOMAIN,
   composeCastText,
   giftPointsFor,
   mentionCount,
+  urlsInCastText,
   normalizeUsername,
   parseTipAmount,
   redeemGiftPointsStub,
@@ -127,6 +129,15 @@ async function earnedFor(sql: AnonTipsSql, fid: number, addresses: string[]): Pr
       from faucet_claims
       where status = 'sent' and fid is null and lower(address) = any(${extras})`;
     earned += Number(byAddr?.earned ?? 0);
+  }
+  try {
+    const [adj] = await sql<{ earned: string }>`
+      select coalesce(sum(amount), 0)::text as earned
+      from tip_balance_adjustments
+      where fid = ${fid}`;
+    earned += Number(adj?.earned ?? 0);
+  } catch (err) {
+    if (!missingTables(err)) throw err;
   }
   return Number.isFinite(earned) ? earned : 0;
 }
@@ -326,7 +337,8 @@ export async function sendAnonTip(
 
   const points = giftPointsFor(amount, deps.config.pointsPerHundred);
   const castText = composeCastText(amount, user.username);
-  if (mentionCount(castText) !== 1) {
+  const urls = urlsInCastText(castText);
+  if (mentionCount(castText) !== 1 || urls.length !== 1 || urls[0] !== CAST_SITE_DOMAIN) {
     return { ok: false, reason: "Couldn't compose a valid tip post." };
   }
 

@@ -100,10 +100,30 @@ export function formatTipNumber(n: number): string {
   return Number(n).toLocaleString("en-US");
 }
 
+export const CAST_SITE_DOMAIN = "youcognito.com";
+
 export function composeCastText(amount: number, username: string): string {
   const u = normalizeUsername(username);
   if (!u) throw new Error("Invalid username for cast text.");
-  return `${formatTipNumber(amount)}👻 @${u} — anonymous tip via Youcognito`;
+  return `${formatTipNumber(amount)}👻 @${u} — anonymous tip via ${CAST_SITE_DOMAIN}`;
+}
+
+/** http(s) URLs and bare domains in cast text. Used to keep youcognito.com as the only URL. */
+export function urlsInCastText(text: string): string[] {
+  const http = text.match(/https?:\/\/[^\s]+/gi) ?? [];
+  const httpHosts = new Set(
+    http.map((u) => {
+      try {
+        return new URL(u).hostname.toLowerCase();
+      } catch {
+        return "";
+      }
+    }),
+  );
+  const bare = (text.match(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi) ?? [])
+    .map((s) => s.toLowerCase())
+    .filter((d) => !httpHosts.has(d));
+  return [...http, ...bare];
 }
 
 export function baseScanTxUrl(txHash: string): string {

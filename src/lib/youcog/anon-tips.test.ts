@@ -8,8 +8,10 @@ import {
   checkTipGate,
   baseScanTxUrl,
   composeCastEmbeds,
+  CAST_SITE_DOMAIN,
   composeCastText,
   formatTipNumber,
+  urlsInCastText,
   envFlag,
   giftPointsFor,
   mentionCount,
@@ -85,8 +87,9 @@ test("available balance is earned claims minus tips already sent", () => {
 
 test("cast text has exactly one @mention and never names the sender", () => {
   const text = composeCastText(100, "@Nick");
-  assert.equal(text, "100👻 @nick — anonymous tip via Youcognito");
+  assert.equal(text, "100👻 @nick — anonymous tip via youcognito.com");
   assert.equal(mentionCount(text), 1);
+  assert.deepEqual(urlsInCastText(text), [CAST_SITE_DOMAIN]);
   assert.equal(text.includes("greentime"), false);
   assert.equal(text.toLowerCase().includes("sender"), false);
 });
@@ -97,18 +100,22 @@ test("cast text and gift points use en-US thousands separators", () => {
   assert.equal(formatTipNumber(100), "100");
   assert.equal(
     composeCastText(215_225, "mxjxn"),
-    "215,225👻 @mxjxn — anonymous tip via Youcognito",
+    "215,225👻 @mxjxn — anonymous tip via youcognito.com",
   );
-  assert.equal(composeCastText(1_000, "nick"), "1,000👻 @nick — anonymous tip via Youcognito");
+  assert.equal(composeCastText(1_000, "nick"), "1,000👻 @nick — anonymous tip via youcognito.com");
 });
 
 test("live casts keep the text and attach a BaseScan embed", () => {
   const hash = "0x26c40ef8aad5709d79ff33c83e47915b27865d445e6c9ecbb5acd5faa12c0ef2";
   const text = composeCastText(215_225, "pichi");
-  assert.equal(text, "215,225👻 @pichi — anonymous tip via Youcognito");
+  assert.equal(text, "215,225👻 @pichi — anonymous tip via youcognito.com");
   assert.equal(mentionCount(text), 1);
+  assert.deepEqual(urlsInCastText(text), [CAST_SITE_DOMAIN]);
+  assert.equal(/https?:\/\//i.test(text), false);
   assert.deepEqual(composeCastEmbeds(hash), [{ url: `https://basescan.org/tx/${hash}` }]);
   assert.equal(baseScanTxUrl(hash), `https://basescan.org/tx/${hash}`);
+  assert.equal(urlsInCastText(`${text} ${baseScanTxUrl(hash)}`).includes(CAST_SITE_DOMAIN), true);
+  assert.equal(urlsInCastText(`${text} ${baseScanTxUrl(hash)}`).length, 2);
 });
 
 test("env flags are off unless explicitly enabled", () => {
@@ -224,6 +231,22 @@ test("web-only claims on a verified address count toward that FID's balance", as
   assert.equal(st.available, 13938);
 });
 
+test("admin tip-balance adjustments increase available allowance without a faucet claim", async () => {
+  const sql = await db();
+  await addClaim(sql, { fid: 7, address: A, amount: 100 });
+  const { d } = deps(sql);
+  const before = await anonTipsStatus(d, 7);
+  assert.equal(before.earned, 100);
+  assert.equal(before.available, 100);
+  await sql`
+    insert into tip_balance_adjustments (fid, amount, note)
+    values (7, 220000, ${"admin test credit 2026-11-10, approved by Andy"})`;
+  const after = await anonTipsStatus(d, 7);
+  assert.equal(after.earned, 220100);
+  assert.equal(after.available, 220100);
+  assert.equal(after.tipped, 0);
+});
+
 test("opt-out blocks receiving but the sender can still tip others", async () => {
   const sql = await db();
   await addClaim(sql, { fid: 7, address: A, amount: 5000 });
@@ -250,7 +273,7 @@ test("dry-run logs the transfer and cast text and never sends or posts", async (
   assert.equal(r.amount, 100);
   assert.equal(r.giftPoints, 1);
   assert.equal(r.recipientAddress, B);
-  assert.equal(r.castText, "100👻 @nick — anonymous tip via Youcognito");
+  assert.equal(r.castText, "100👻 @nick — anonymous tip via youcognito.com");
   assert.equal(r.txHash, null);
   assert.deepEqual(sends, []);
   assert.deepEqual(casts, []);
@@ -315,10 +338,10 @@ test("live path calls send and cast once and records gift points", async () => {
   const expectedHash = `0x${"1".padStart(64, "0")}`;
   assert.equal(r.txHash, expectedHash);
   assert.equal(r.url, `https://basescan.org/tx/${expectedHash}`);
-  assert.equal(r.castText, "1,000👻 @nick — anonymous tip via Youcognito");
+  assert.equal(r.castText, "1,000👻 @nick — anonymous tip via youcognito.com");
   assert.deepEqual(casts, [
     {
-      text: "1,000👻 @nick — anonymous tip via Youcognito",
+      text: "1,000👻 @nick — anonymous tip via youcognito.com",
       embeds: [{ url: `https://basescan.org/tx/${expectedHash}` }],
     },
   ]);
