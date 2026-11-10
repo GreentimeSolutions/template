@@ -106,6 +106,15 @@ export function composeCastText(amount: number, username: string): string {
   return `${formatTipNumber(amount)}👻 @${u} — anonymous tip via Youcognito`;
 }
 
+export function baseScanTxUrl(txHash: string): string {
+  return `https://basescan.org/tx/${txHash.trim()}`;
+}
+
+/** What a tip post includes: unchanged text plus an optional BaseScan embed after transfer. */
+export function composeCastEmbeds(txHash: string): { url: string }[] {
+  return [{ url: baseScanTxUrl(txHash) }];
+}
+
 /** Exactly one @mention, and never the sender's name. */
 export function mentionCount(text: string): number {
   return (text.match(/@[a-z0-9][a-z0-9-]{0,15}\b/gi) ?? []).length;

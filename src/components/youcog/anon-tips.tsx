@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { TIP_SUGGESTED } from "@/constants/anon-tips";
-import { formatTipNumber } from "@/lib/youcog/anon-tips-core";
+import { baseScanTxUrl, formatTipNumber } from "@/lib/youcog/anon-tips-core";
 
 type Status = {
   ok: true;
@@ -27,6 +27,7 @@ type Status = {
     giftPoints: number;
     createdAt: string;
     dryRun: boolean;
+    txHash: string | null;
   }[];
 };
 
@@ -58,7 +59,7 @@ export function AnonTips() {
   const [custom, setCustom] = useState("");
   const [usingCustom, setUsingCustom] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string; url?: string | null } | null>(null);
 
   const chosen = usingCustom ? Number(custom) : amount;
 
@@ -93,9 +94,13 @@ export function AnonTips() {
       })) as SendResult;
       if (r.ok) {
         const preview = r.dryRun ? " Preview only — nothing was sent or posted." : "";
+        const embedNote = r.dryRun
+          ? " A BaseScan transaction link would be attached."
+          : "";
         setMsg({
           ok: true,
-          text: `Ready: ${formatTipNumber(r.amount)} YOUCOG to @${r.recipientUsername} (${formatTipNumber(r.giftPoints)} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}`,
+          text: `Ready: ${formatTipNumber(r.amount)} YOUCOG to @${r.recipientUsername} (${formatTipNumber(r.giftPoints)} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}${embedNote}`,
+          url: r.dryRun ? null : r.url,
         });
         const s = (await call("/api/anon-tips")) as Status;
         if (s && "available" in s) setStatus(s);
@@ -237,6 +242,19 @@ export function AnonTips() {
                   <li key={`${t.createdAt}-${i}`}>
                     {formatTipNumber(t.amount)} to @{t.recipientUsername} · {formatTipNumber(t.giftPoints)} pt
                     {t.dryRun ? " · preview" : ""}
+                    {t.txHash ? (
+                      <>
+                        {" · "}
+                        <a
+                          href={baseScanTxUrl(t.txHash)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline decoration-line-strong underline-offset-4"
+                        >
+                          BaseScan
+                        </a>
+                      </>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -252,6 +270,19 @@ export function AnonTips() {
       {msg ? (
         <p role="status" className={`mt-3 text-sm leading-relaxed ${msg.ok ? "text-ink" : "text-danger"}`}>
           {msg.text}
+          {msg.url ? (
+            <>
+              {" "}
+              <a
+                href={msg.url}
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-line-strong underline-offset-4"
+              >
+                View on Basescan
+              </a>
+            </>
+          ) : null}
         </p>
       ) : null}
     </section>

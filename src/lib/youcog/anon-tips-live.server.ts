@@ -25,7 +25,7 @@ export async function lookupUserByUsername(username: string): Promise<FcUser | n
   }
 }
 
-export async function postRecastCast(text: string): Promise<string | null> {
+export async function postRecastCast(text: string, embeds?: { url: string }[]): Promise<string | null> {
   const apiKey = process.env.NEYNAR_API_KEY?.trim();
   const signerUuid = process.env.NEYNAR_SIGNER_UUID?.trim();
   if (!apiKey || !signerUuid) {
@@ -36,10 +36,12 @@ export async function postRecastCast(text: string): Promise<string | null> {
     console.warn("[anon-tips] refusing to post a cast that does not have exactly one mention.");
     return null;
   }
+  const body: Record<string, unknown> = { signer_uuid: signerUuid, text, channel_id: "recast" };
+  if (embeds?.length) body.embeds = embeds;
   const r = await fetch("https://api.neynar.com/v2/farcaster/cast/", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": apiKey },
-    body: JSON.stringify({ signer_uuid: signerUuid, text, channel_id: "recast" }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(10_000),
   });
   if (!r.ok) {

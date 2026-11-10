@@ -6,6 +6,8 @@ import { PGlite } from "@electric-sql/pglite";
 import {
   availableBalance,
   checkTipGate,
+  baseScanTxUrl,
+  composeCastEmbeds,
   composeCastText,
   formatTipNumber,
   envFlag,
@@ -100,6 +102,15 @@ test("cast text and gift points use en-US thousands separators", () => {
   assert.equal(composeCastText(1_000, "nick"), "1,000👻 @nick — anonymous tip via Youcognito");
 });
 
+test("live casts keep the text and attach a BaseScan embed", () => {
+  const hash = "0x26c40ef8aad5709d79ff33c83e47915b27865d445e6c9ecbb5acd5faa12c0ef2";
+  const text = composeCastText(215_225, "pichi");
+  assert.equal(text, "215,225👻 @pichi — anonymous tip via Youcognito");
+  assert.equal(mentionCount(text), 1);
+  assert.deepEqual(composeCastEmbeds(hash), [{ url: `https://basescan.org/tx/${hash}` }]);
+  assert.equal(baseScanTxUrl(hash), `https://basescan.org/tx/${hash}`);
+});
+
 test("env flags are off unless explicitly enabled", () => {
   assert.equal(envFlag(undefined), false);
   assert.equal(envFlag(""), false);
@@ -149,7 +160,7 @@ async function addClaim(sql: AnonTipsSql, o: { fid: number | null; address: stri
 
 function deps(sql: AnonTipsSql, over: Partial<AnonTipsDeps> = {}) {
   const sends: { to: string; wei: bigint }[] = [];
-  const casts: string[] = [];
+  const casts: { text: string; embeds?: { url: string }[] }[] = [];
   const logs: Record<string, unknown>[] = [];
   const users = new Map<string, { fid: number; username: string }>([
     ["nick", { fid: 99, username: "nick" }],
@@ -172,8 +183,8 @@ function deps(sql: AnonTipsSql, over: Partial<AnonTipsDeps> = {}) {
       sends.push({ to, wei });
       return `0x${String(sends.length).padStart(64, "0")}`;
     },
-    postCast: async (text) => {
-      casts.push(text);
+    postCast: async (text, embeds) => {
+      casts.push({ text, embeds });
       return `0xcast${casts.length}`;
     },
     log: (_m, extra) => {
@@ -244,6 +255,7 @@ test("dry-run logs the transfer and cast text and never sends or posts", async (
   assert.deepEqual(sends, []);
   assert.deepEqual(casts, []);
   assert.equal(logs[0]?.castText, r.castText);
+  assert.equal(logs[0]?.castEmbeds, "https://basescan.org/tx/<hash> after transfer");
   assert.equal(logs[0]?.to, B);
   assert.equal(logs[0]?.amount, 100);
   const [row] = await sql<{ status: string; tx_hash: string | null }>`select status, tx_hash from anon_tips`;
@@ -300,7 +312,18 @@ test("live path calls send and cast once and records gift points", async () => {
   assert.equal(sends.length, 1);
   assert.equal(sends[0].to, B);
   assert.equal(sends[0].wei, 1000n * 10n ** 18n);
-  assert.deepEqual(casts, ["1,000👻 @nick — anonymous tip via Youcognito"]);
+  const expectedHash = `0x${"1".padStart(64, "0")}`;
+  assert.equal(r.txHash, expectedHash);
+  assert.equal(r.url, `https://basescan.org/tx/${expectedHash}`);
+  assert.equal(r.castText, "1,000👻 @nick — anonymous tip via Youcognito");
+  assert.deepEqual(casts, [
+    {
+      text: "1,000👻 @nick — anonymous tip via Youcognito",
+      embeds: [{ url: `https://basescan.org/tx/${expectedHash}` }],
+    },
+  ]);
+  const after = await anonTipsStatus(d, 7);
+  assert.equal(after.recentTips[0]?.txHash, expectedHash);
   const [gp] = await sql<{ points: number; tipped_amount: number; tip_count: number }>`select points, tipped_amount, tip_count from gift_points where fid = 7`;
   assert.equal(Number(gp.points), 10);
   assert.equal(Number(gp.tipped_amount), 1000);

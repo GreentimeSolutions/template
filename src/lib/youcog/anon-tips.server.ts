@@ -2,6 +2,8 @@ import { getAddress, isAddress } from "viem";
 import {
   availableBalance,
   checkTipGate,
+  baseScanTxUrl,
+  composeCastEmbeds,
   composeCastText,
   giftPointsFor,
   mentionCount,
@@ -31,7 +33,7 @@ export type AnonTipsDeps = {
   lookupUser: (username: string) => Promise<FcUser | null>;
   addressesFor: (fid: number) => Promise<string[]>;
   sendYoucog: (to: `0x${string}`, amountWei: bigint) => Promise<`0x${string}`>;
-  postCast: (text: string) => Promise<string | null>;
+  postCast: (text: string, embeds?: { url: string }[]) => Promise<string | null>;
   log?: (message: string, extra?: Record<string, unknown>) => void;
 };
 
@@ -336,6 +338,7 @@ export async function sendAnonTip(
       to: recipientAddress,
       amount,
       castText,
+      castEmbeds: "https://basescan.org/tx/<hash> after transfer",
       senderFid: input.senderFid,
       recipientFid: user.fid,
       recipientUsername: user.username,
@@ -379,9 +382,10 @@ export async function sendAnonTip(
     return { ok: false, reason: "The transfer didn't go through. Nothing was used up, so you can try again." };
   }
 
+  const url = baseScanTxUrl(txHash);
   let castHash: string | null = null;
   try {
-    castHash = await deps.postCast(castText);
+    castHash = await deps.postCast(castText, composeCastEmbeds(txHash));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "cast failed";
     console.error("[anon-tips] cast failed after payout:", msg.slice(0, 300));
@@ -416,7 +420,7 @@ export async function sendAnonTip(
     castText,
     dryRun: false,
     txHash,
-    url: `https://basescan.org/tx/${txHash}`,
+    url,
     castHash,
   };
 }
