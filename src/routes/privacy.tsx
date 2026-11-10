@@ -25,7 +25,7 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   return (
-    <LegalPage title="Privacy" updated="October 19, 2026">
+    <LegalPage title="Privacy" updated="November 9, 2026">
       <p className="text-ink">
         Short version: we keep the little we need to run the faucet fairly, we never sell it, and your research sessions
         are yours to burn.
@@ -40,6 +40,7 @@ function PrivacyPage() {
           <li><span className="text-ink">Feedback survey answers</span> if you fill it out, linked to your fid or address so the YOUCOG thank-you gift is sent only once per person. We read them to improve the app.</li>
           <li><span className="text-ink">IP address,</span> stored only as a salted hash, used for rate limits and one-claim-per-day checks.</li>
           <li><span className="text-ink">Tips and holder checks:</span> the on-chain transaction or signed message that proves them.</li>
+          <li><span className="text-ink">Anonymous tips:</span> the sender's fid, the recipient's username, fid and verified address, the amount, gift points earned, and (when a tip is actually sent) the Base transaction hash. The public /recast post does not name the sender. Tips are paid from the app wallet, so the sender isn't shown on the transfer, but timing can still be correlated.</li>
         </ul>
       </LegalSection>
       <LegalSection title="What we don't do">

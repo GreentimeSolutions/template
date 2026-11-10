@@ -25,10 +25,15 @@ export const Route = createFileRoute("/api/streak")({
         const fid = await fidFromRequest(request);
         const address = new URL(request.url).searchParams.get("address")?.trim() || undefined;
         const { streakInfo } = await import("@/lib/youcog/faucet.server");
+        const { quoteFaucetClaim } = await import("@/lib/youcog/youcog-price.server");
+        const { FAUCET_CLAIM_FALLBACK_YOUCOG } = await import("@/constants/faucet");
+        const claimAmount = await quoteFaucetClaim()
+          .then((q) => q.amount)
+          .catch(() => FAUCET_CLAIM_FALLBACK_YOUCOG);
         try {
-          return json(200, { fid: fid ?? null, ...(await streakInfo(fid ? { fid } : { address })) });
+          return json(200, { fid: fid ?? null, claimAmount, ...(await streakInfo(fid ? { fid } : { address })) });
         } catch {
-          return json(200, { fid: fid ?? null, streak: 0, claimedToday: false, nextStreak: 1, nextMultiplier: 1 });
+          return json(200, { fid: fid ?? null, claimAmount, streak: 0, claimedToday: false, nextStreak: 1, nextMultiplier: 1 });
         }
       },
     },

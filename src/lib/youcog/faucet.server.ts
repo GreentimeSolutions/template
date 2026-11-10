@@ -17,7 +17,8 @@ import { base } from "viem/chains";
 import { dbSource, getSql } from "@/lib/db";
 import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE } from "@/constants/listen";
 import { listenIdentity, pickClaimAmount } from "@/lib/youcog/listen-core";
-import { FAUCET_AMOUNTS, FAUCET_DAILY_TOKEN_BUDGET_DEFAULT, FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
+import { FAUCET_AMOUNTS, FAUCET_DAILY_CAP_DEFAULT, FAUCET_PICK_MESSAGE, normalizeClaimAmount } from "@/constants/faucet";
+import { dailyBudgetYoucogFromPrice, lastCachedPrice, quoteFaucetClaim } from "@/lib/youcog/youcog-price.server";
 import { findBonusListen, releaseBonusListen, claimBonusListen } from "@/lib/youcog/listen.server";
 import { claimStreak, dayOffset, isStreakBonusDay, regularMultiplier, runEndingAt, streakMultiplier } from "@/lib/youcog/streak-core";
 import { ycurvBonusExtra } from "@/lib/youcog/ycurv-bonus-core";
@@ -55,13 +56,12 @@ const refuse = (reason: string): ClaimResult => ({ ok: false, reason });
 
 function dailyCap(): number {
   const n = Number(process.env.FAUCET_DAILY_CAP);
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 100;
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : FAUCET_DAILY_CAP_DEFAULT;
 }
 
 export function dailyTokenBudget(): number {
-  const n = Number(process.env.FAUCET_DAILY_TOKEN_BUDGET);
-  // Doubled on 2026-10-19 with the claim tiers (was 250,000).
-  return Number.isFinite(n) && n > 0 ? Math.floor(n) : FAUCET_DAILY_TOKEN_BUDGET_DEFAULT;
+  // Prefer a USD budget converted at the last cached YOUCOG price; otherwise the 10x YOUCOG fallback.
+  return dailyBudgetYoucogFromPrice(lastCachedPrice());
 }
 
 type Sql = Awaited<ReturnType<typeof getSql>>;
@@ -146,9 +146,23 @@ export async function claimFromFaucet(input: {
   /** Verified Farcaster FID (Quick Auth). When set, the per-FID limit replaces the per-IP limit. */
   fid?: number;
 }): Promise<ClaimResult> {
-  const tier = normalizeClaimAmount(input.amount);
-  if (tier == null) return refuse(`${FAUCET_PICK_MESSAGE}.`);
-  input = { ...input, amount: tier };
+  const requested = normalizeClaimAmount(input.amount);
+  if (requested == null) return refuse(`${FAUCET_PICK_MESSAGE}.`);
+  // Payout is computed server-side from the USD target and current price. Client amount is not trusted.
+  const quote = await quoteFaucetClaim();
+  console.info("[faucet] claim quote", {
+    amount: quote.amount,
+    priceUsd: quote.priceUsd,
+    feed: quote.feed,
+    targetUsd: quote.targetUsd,
+    clamped: quote.clamped,
+    usedFallback: quote.usedFallback,
+    cacheAgeMs: quote.cacheAgeMs,
+    rawAmount: quote.rawAmount,
+    requested,
+    fid: input.fid ?? null,
+  });
+  input = { ...input, amount: quote.amount };
   if (!isAddress(input.address.trim(), { strict: false })) {
     return refuse("That isn't a valid Base address. It should start with 0x and be 42 characters.");
   }
@@ -216,7 +230,7 @@ export async function claimFromFaucet(input: {
       sendAmount = normalAmount;
       amountWei = parseUnits(String(sendAmount), 18);
     }
-    if (tokens < amountWei) return refuse("The faucet is out of YOUCOG for that amount. Try a smaller amount.");
+    if (tokens < amountWei) return refuse("The faucet is out of YOUCOG right now. Try again after it's topped up.");
   } catch {
     return refuse("Couldn't reach the Base network. Try again in a minute.");
   }

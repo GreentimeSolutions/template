@@ -1,13 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { holdsYcurv, ycurvBonusExtra } from "./ycurv-bonus-core";
-import { FAUCET_AMOUNTS } from "../../constants/faucet";
+import { FAUCET_CLAIM_FALLBACK_YOUCOG } from "../../constants/faucet";
 import { streakMultiplier } from "./streak-core";
 
 const E = 10n ** 18n;
 
 test("extra is 25% of the tier, capped at 2,500", () => {
-  assert.deepEqual(FAUCET_AMOUNTS.map((t) => ycurvBonusExtra(t)), [210, 555, 2500]);
+  assert.deepEqual([840, 2222, 13938].map((t) => ycurvBonusExtra(t)), [210, 555, 2500]);
+  assert.equal(ycurvBonusExtra(FAUCET_CLAIM_FALLBACK_YOUCOG), 2500);
 });
 
 test("extra adds on top of the streak amount, never multiplied by it", () => {

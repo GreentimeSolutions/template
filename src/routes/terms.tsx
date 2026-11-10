@@ -25,7 +25,7 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   return (
-    <LegalPage title="Terms" updated="October 18, 2026">
+    <LegalPage title="Terms" updated="November 9, 2026">
       <p className="text-ink">By using Youcognito you agree to these terms. They're short on purpose.</p>
       <LegalSection title="An experiment">
         <p>
@@ -43,6 +43,13 @@ function TermsPage() {
         <p>
           The daily faucet is a community giveaway while supplies last. Amounts, streak bonuses, the listen boost, the save bonus, and
           limits can change or stop at any time. One claim per person per day.
+        </p>
+      </LegalSection>
+      <LegalSection title="Anonymous tips">
+        <p>
+          Anonymous tips are paid from your earned faucet claims through the app wallet. The public post in /recast does not name
+          the sender, but timing can still be correlated. Tips earn gift points. Rewards, if any, are announced separately. Nobody
+          promises that tips, points, or YOUCOG will be worth anything later. You can opt out of receiving tips in the app.
         </p>
       </LegalSection>
       <LegalSection title="Play fair">

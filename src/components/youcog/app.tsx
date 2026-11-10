@@ -5,6 +5,7 @@ import { Brief } from "@/components/youcog/brief";
 import { Faucet } from "@/components/youcog/faucet";
 import { SiteFooter } from "@/components/youcog/site-footer";
 import { Donate } from "@/components/youcog/donate";
+import { AnonTips } from "@/components/youcog/anon-tips";
 import { Leaderboard } from "@/components/youcog/leaderboard";
 import { DeepMission } from "@/components/youcog/deep-mission";
 import { ImageMaker } from "@/components/youcog/image-maker";
@@ -17,7 +18,6 @@ import { TopBanner } from "@/components/youcog/top-banner";
 import { GhostStage, OPEN_FAUCET_EVENT, findTarget } from "@/components/youcog/ghost-stage";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { useSession, type SealTab } from "@/components/youcog/session";
-import { FAUCET_AMOUNTS_LABEL } from "@/constants/faucet";
 import {
   BurnStatic,
   ClaimCelebration,
@@ -260,6 +260,7 @@ function Welcome() {
         <GameCard />
         <FeedbackCard />
         <Leaderboard />
+        <AnonTips />
         <Donate />
       </div>
     </div>
@@ -753,8 +754,8 @@ export function YoucogApp() {
               >
                 <span>
                   {miniApp.inMiniApp && miniApp.user
-                    ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`} (${FAUCET_AMOUNTS_LABEL} daily)`
-                    : `Daily YOUCOG faucet (${FAUCET_AMOUNTS_LABEL})`}
+                    ? `Claim as @${miniApp.user.username ?? `fid ${miniApp.user.fid}`}`
+                    : `Daily YOUCOG faucet`}
                 </span>
                 <span aria-hidden className="text-accent">{faucetOpen ? "−" : "+"}</span>
               </button>
@@ -793,6 +794,7 @@ export function YoucogApp() {
           <DeepMission onOpenUrl={openUrl} />
           <ImageMaker />
           <Leaderboard />
+          <AnonTips />
           <Donate />
 
           <form

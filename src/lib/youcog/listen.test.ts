@@ -6,7 +6,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { checkFinish, listenIdentity, pickClaimAmount } from "./listen-core";
 import { findBonusListen, finishListen, listenStatus, startListen, claimBonusListen, type ListenSql } from "./listen.server";
 import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE, LISTEN_SONG_SECONDS, LISTEN_TOLERANCE_SECONDS } from "../../constants/listen";
-import { FAUCET_AMOUNTS, normalizeClaimAmount } from "../../constants/faucet";
+import { normalizeClaimAmount } from "../../constants/faucet";
 
 const SONG = LISTEN_SONG_SECONDS;
 const TOL = LISTEN_TOLERANCE_SECONDS;
@@ -103,12 +103,11 @@ test("one listen session at a time per identity", async () => {
   assert.equal(Number(active[0].n), 1);
 });
 
-test("faucet tiers are doubled and legacy tiers map to the doubled amount", () => {
-  assert.deepEqual([...FAUCET_AMOUNTS], [840, 2222, 13938]);
+test("legacy faucet tiers are still accepted so old clients can claim", () => {
   assert.equal(normalizeClaimAmount(840), 840);
-  assert.equal(normalizeClaimAmount(420), 840);
-  assert.equal(normalizeClaimAmount(1111), 2222);
-  assert.equal(normalizeClaimAmount(6969), 13938);
-  assert.equal(normalizeClaimAmount(100_000), null);
+  assert.equal(normalizeClaimAmount(420), 420);
+  assert.equal(normalizeClaimAmount(1111), 1111);
+  assert.equal(normalizeClaimAmount(6969), 6969);
+  assert.equal(normalizeClaimAmount(220_000), 220_000);
   assert.equal(normalizeClaimAmount(5), null);
 });

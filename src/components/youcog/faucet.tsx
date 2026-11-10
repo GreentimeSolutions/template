@@ -8,7 +8,7 @@ import { HauntedButtonFrame, celebrate } from "@/components/youcog/halloween";
 import { ListenBoost } from "@/components/youcog/listen-boost";
 import { markListenUsed, setListenIdentity, useListen } from "@/lib/youcog/listen-client";
 import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
-import { FAUCET_AMOUNTS } from "@/constants/faucet";
+import { FAUCET_CLAIM_FALLBACK_YOUCOG } from "@/constants/faucet";
 import { forgeClaimEnabled, forgeClaimResolve, forgeClaimStart } from "@/lib/youcog/forge-claim";
 import { SaveBonus } from "@/components/youcog/save-bonus";
 import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
@@ -16,13 +16,12 @@ import { flameTier, lastKnownStreak, rememberStreak, streakFlamesEnabled, streak
 import { StreakFlame } from "@/components/youcog/streak-flames";
 import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_RATE_LABEL } from "@/constants/ycurv-bonus";
 
-const AMOUNTS = FAUCET_AMOUNTS;
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number; streakBonus?: boolean };
-type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number; nextIsBonusDay?: boolean };
+type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number; nextIsBonusDay?: boolean; claimAmount?: number };
 
 export function Faucet() {
   const [address, setAddress] = useState("");
-  const [amount, setAmount] = useState<(typeof AMOUNTS)[number]>(AMOUNTS[0]);
+  const [amount, setAmount] = useState(FAUCET_CLAIM_FALLBACK_YOUCOG);
   const [website, setWebsite] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -92,14 +91,23 @@ export function Faucet() {
 
   async function loadStreak() {
     try {
+      const apply = (s: Streak) => {
+        setStreak(s);
+        if (typeof s.claimAmount === "number" && s.claimAmount > 0) setAmount(s.claimAmount);
+      };
       if (fc) {
         const { sdk } = await import("@farcaster/miniapp-sdk");
         const r = await sdk.quickAuth.fetch(`${window.location.origin}/api/streak`);
-        setStreak(await r.json());
+        apply(await r.json());
       } else if (/^0x[0-9a-fA-F]{40}$/.test(recipient)) {
         const r = await fetch(`/api/streak?address=${recipient}`);
-        setStreak(await r.json());
-      } else setStreak(null);
+        apply(await r.json());
+      } else {
+        setStreak(null);
+        const r = await fetch("/api/streak");
+        const s = await r.json();
+        if (typeof s.claimAmount === "number" && s.claimAmount > 0) setAmount(s.claimAmount);
+      }
     } catch {
       setStreak(null);
     }
@@ -279,28 +287,7 @@ export function Faucet() {
           className="absolute -left-[9999px] h-0 w-0 opacity-0"
         />
         <ListenBoost ready={fc || validRecipient} />
-        <div
-          className="grid grid-cols-3 gap-2"
-          role="radiogroup"
-          aria-label="Amount"
-        >
-          {AMOUNTS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={amount === value}
-              onClick={() => setAmount(value)}
-              className={`press h-11 rounded-seal border text-sm font-medium ${
-                amount === value
-                  ? "border-accent bg-accent text-accent-fg"
-                  : "border-line text-ink"
-              }`}
-            >
-              {value.toLocaleString()}
-            </button>
-          ))}
-        </div>
+        <p className="text-sm text-ink">Today&apos;s gift: {amount.toLocaleString()} YOUCOG</p>
         <HauntedButtonFrame>
         <button
           type="submit"

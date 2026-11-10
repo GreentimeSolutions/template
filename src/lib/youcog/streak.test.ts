@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { claimStreak, cycleDay, dayOffset, isStreakBonusDay, regularMultiplier, streakBadge, streakMultiplier } from "./streak-core";
 import { pickClaimAmount } from "./listen-core";
 import { LISTEN_BONUS_AMOUNT, LISTEN_MIN_FAUCET_BALANCE } from "../../constants/listen";
-import { FAUCET_AMOUNTS } from "../../constants/faucet";
 
 const START = "2026-11-01";
 /** Prior claim days: `n` consecutive days ending yesterday relative to `today`. */
@@ -19,7 +18,7 @@ test("streak 6 -> 7 pays 3x the tier", () => {
   const streak = claimStreak(run(today, 6), today);
   assert.equal(streak, 7);
   assert.equal(streakMultiplier(streak), 3);
-  assert.deepEqual(FAUCET_AMOUNTS.map((t) => amountFor(t, streak)), [2520, 6666, 41814]);
+  assert.deepEqual([840, 2222, 13938].map((t) => amountFor(t, streak)), [2520, 6666, 41814]);
 });
 
 test("day 6 is 1.25x, day 8 is back to the regular 1.5x", () => {
