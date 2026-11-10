@@ -21,6 +21,9 @@ import { Route as StatsRouteImport } from './routes/stats'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WardrobeRouteImport } from './routes/wardrobe'
 import { Route as DotwellKnownFarcasterDotjsonRouteImport } from './routes/[.]well-known/farcaster[.]json'
+import { Route as ApiAnonTipsRouteImport } from './routes/api/anon-tips'
+import { Route as ApiAnonTipsOptOutRouteImport } from './routes/api/anon-tips-opt-out'
+import { Route as ApiAnonTipsRedeemRouteImport } from './routes/api/anon-tips-redeem'
 import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
@@ -104,6 +107,21 @@ const DotwellKnownFarcasterDotjsonRoute =
     path: '/.well-known/farcaster.json',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAnonTipsRoute = ApiAnonTipsRouteImport.update({
+  id: '/api/anon-tips',
+  path: '/api/anon-tips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnonTipsOptOutRoute = ApiAnonTipsOptOutRouteImport.update({
+  id: '/api/anon-tips-opt-out',
+  path: '/api/anon-tips-opt-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnonTipsRedeemRoute = ApiAnonTipsRedeemRouteImport.update({
+  id: '/api/anon-tips-redeem',
+  path: '/api/anon-tips-redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBuysRoute = ApiBuysRouteImport.update({
   id: '/api/buys',
   path: '/api/buys',
@@ -223,6 +241,9 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/anon-tips': typeof ApiAnonTipsRoute
+  '/api/anon-tips-opt-out': typeof ApiAnonTipsOptOutRoute
+  '/api/anon-tips-redeem': typeof ApiAnonTipsRedeemRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -258,6 +279,9 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/anon-tips': typeof ApiAnonTipsRoute
+  '/api/anon-tips-opt-out': typeof ApiAnonTipsOptOutRoute
+  '/api/anon-tips-redeem': typeof ApiAnonTipsRedeemRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -294,6 +318,9 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/wardrobe': typeof WardrobeRoute
   '/.well-known/farcaster.json': typeof DotwellKnownFarcasterDotjsonRoute
+  '/api/anon-tips': typeof ApiAnonTipsRoute
+  '/api/anon-tips-opt-out': typeof ApiAnonTipsOptOutRoute
+  '/api/anon-tips-redeem': typeof ApiAnonTipsRedeemRoute
   '/api/buys': typeof ApiBuysRoute
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
@@ -331,6 +358,9 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wardrobe'
     | '/.well-known/farcaster.json'
+    | '/api/anon-tips'
+    | '/api/anon-tips-opt-out'
+    | '/api/anon-tips-redeem'
     | '/api/buys'
     | '/api/deep-mission'
     | '/api/feedback'
@@ -366,6 +396,9 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wardrobe'
     | '/.well-known/farcaster.json'
+    | '/api/anon-tips'
+    | '/api/anon-tips-opt-out'
+    | '/api/anon-tips-redeem'
     | '/api/buys'
     | '/api/deep-mission'
     | '/api/feedback'
@@ -401,6 +434,9 @@ export interface FileRouteTypes {
     | '/terms'
     | '/wardrobe'
     | '/.well-known/farcaster.json'
+    | '/api/anon-tips'
+    | '/api/anon-tips-opt-out'
+    | '/api/anon-tips-redeem'
     | '/api/buys'
     | '/api/deep-mission'
     | '/api/feedback'
@@ -437,6 +473,9 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WardrobeRoute: typeof WardrobeRoute
   DotwellKnownFarcasterDotjsonRoute: typeof DotwellKnownFarcasterDotjsonRoute
+  ApiAnonTipsRoute: typeof ApiAnonTipsRoute
+  ApiAnonTipsOptOutRoute: typeof ApiAnonTipsOptOutRoute
+  ApiAnonTipsRedeemRoute: typeof ApiAnonTipsRedeemRoute
   ApiBuysRoute: typeof ApiBuysRoute
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
@@ -544,6 +583,27 @@ declare module '@tanstack/react-router' {
       path: '/.well-known/farcaster.json'
       fullPath: '/.well-known/farcaster.json'
       preLoaderRoute: typeof DotwellKnownFarcasterDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/anon-tips': {
+      id: '/api/anon-tips'
+      path: '/api/anon-tips'
+      fullPath: '/api/anon-tips'
+      preLoaderRoute: typeof ApiAnonTipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/anon-tips-opt-out': {
+      id: '/api/anon-tips-opt-out'
+      path: '/api/anon-tips-opt-out'
+      fullPath: '/api/anon-tips-opt-out'
+      preLoaderRoute: typeof ApiAnonTipsOptOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/anon-tips-redeem': {
+      id: '/api/anon-tips-redeem'
+      path: '/api/anon-tips-redeem'
+      fullPath: '/api/anon-tips-redeem'
+      preLoaderRoute: typeof ApiAnonTipsRedeemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/buys': {
@@ -709,6 +769,9 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WardrobeRoute: WardrobeRoute,
   DotwellKnownFarcasterDotjsonRoute: DotwellKnownFarcasterDotjsonRoute,
+  ApiAnonTipsRoute: ApiAnonTipsRoute,
+  ApiAnonTipsOptOutRoute: ApiAnonTipsOptOutRoute,
+  ApiAnonTipsRedeemRoute: ApiAnonTipsRedeemRoute,
   ApiBuysRoute: ApiBuysRoute,
   ApiDeepMissionRoute: ApiDeepMissionRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
