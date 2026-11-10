@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TIP_SUGGESTED } from "@/constants/anon-tips";
+import { formatTipNumber } from "@/lib/youcog/anon-tips-core";
 
 type Status = {
   ok: true;
@@ -94,7 +95,7 @@ export function AnonTips() {
         const preview = r.dryRun ? " Preview only — nothing was sent or posted." : "";
         setMsg({
           ok: true,
-          text: `Ready: ${r.amount.toLocaleString()} YOUCOG to @${r.recipientUsername} (${r.giftPoints} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}`,
+          text: `Ready: ${formatTipNumber(r.amount)} YOUCOG to @${r.recipientUsername} (${formatTipNumber(r.giftPoints)} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}`,
         });
         const s = (await call("/api/anon-tips")) as Status;
         if (s && "available" in s) setStatus(s);
@@ -234,7 +235,7 @@ export function AnonTips() {
               <ul className="mt-2 space-y-1 text-xs text-mist">
                 {status.recentTips.map((t, i) => (
                   <li key={`${t.createdAt}-${i}`}>
-                    {t.amount.toLocaleString()} to @{t.recipientUsername} · {t.giftPoints} pt
+                    {formatTipNumber(t.amount)} to @{t.recipientUsername} · {formatTipNumber(t.giftPoints)} pt
                     {t.dryRun ? " · preview" : ""}
                   </li>
                 ))}

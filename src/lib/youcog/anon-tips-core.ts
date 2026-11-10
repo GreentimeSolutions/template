@@ -95,10 +95,15 @@ export function availableBalance(earned: number, tipped: number): number {
   return Math.max(0, e - t);
 }
 
+/** Whole tip amounts and gift points, always with en-US thousands separators. */
+export function formatTipNumber(n: number): string {
+  return Number(n).toLocaleString("en-US");
+}
+
 export function composeCastText(amount: number, username: string): string {
   const u = normalizeUsername(username);
   if (!u) throw new Error("Invalid username for cast text.");
-  return `${amount}👻 @${u} — anonymous tip via Youcognito`;
+  return `${formatTipNumber(amount)}👻 @${u} — anonymous tip via Youcognito`;
 }
 
 /** Exactly one @mention, and never the sender's name. */

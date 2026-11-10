@@ -7,6 +7,7 @@ import {
   availableBalance,
   checkTipGate,
   composeCastText,
+  formatTipNumber,
   envFlag,
   giftPointsFor,
   mentionCount,
@@ -86,6 +87,17 @@ test("cast text has exactly one @mention and never names the sender", () => {
   assert.equal(mentionCount(text), 1);
   assert.equal(text.includes("greentime"), false);
   assert.equal(text.toLowerCase().includes("sender"), false);
+});
+
+test("cast text and gift points use en-US thousands separators", () => {
+  assert.equal(formatTipNumber(2152), "2,152");
+  assert.equal(formatTipNumber(215_225), "215,225");
+  assert.equal(formatTipNumber(100), "100");
+  assert.equal(
+    composeCastText(215_225, "mxjxn"),
+    "215,225👻 @mxjxn — anonymous tip via Youcognito",
+  );
+  assert.equal(composeCastText(1_000, "nick"), "1,000👻 @nick — anonymous tip via Youcognito");
 });
 
 test("env flags are off unless explicitly enabled", () => {
@@ -288,7 +300,7 @@ test("live path calls send and cast once and records gift points", async () => {
   assert.equal(sends.length, 1);
   assert.equal(sends[0].to, B);
   assert.equal(sends[0].wei, 1000n * 10n ** 18n);
-  assert.deepEqual(casts, ["1000👻 @nick — anonymous tip via Youcognito"]);
+  assert.deepEqual(casts, ["1,000👻 @nick — anonymous tip via Youcognito"]);
   const [gp] = await sql<{ points: number; tipped_amount: number; tip_count: number }>`select points, tipped_amount, tip_count from gift_points where fid = 7`;
   assert.equal(Number(gp.points), 10);
   assert.equal(Number(gp.tipped_amount), 1000);
