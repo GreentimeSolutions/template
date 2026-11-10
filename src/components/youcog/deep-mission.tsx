@@ -38,8 +38,13 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
       setStatus({ holder: false });
     }
   }
+  // In the Mini App, skip Quick Auth on mount: this card lives in the always-rendered
+  // sidebar and a mount-time sdk.quickAuth.fetch can minimize the frame. Holders tap
+  // "Check holder status" (or Run Deep Mission after checking). On the regular web
+  // there is no Quick Auth prompt, so we still load any existing holder session.
   useEffect(() => {
-    if (miniApp.checked) void refresh();
+    if (!miniApp.checked || fc) return;
+    void refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [miniApp.checked, fc]);
 
@@ -134,7 +139,7 @@ export function DeepMission({ onOpenUrl }: { onOpenUrl: (url: string) => void })
             <BuyYoucogButton className="inline-flex min-h-11 items-center justify-center rounded-seal bg-accent px-3 py-1.5 text-center text-sm leading-tight text-balance font-medium text-accent-fg" />
             {fc ? (
               <button type="button" onClick={() => void refresh()} className="press h-11 rounded-seal border border-line text-sm text-ink">
-                Re-check
+                {status ? "Re-check" : "Check holder status"}
               </button>
             ) : (
               <button type="button" disabled={busy} onClick={() => void verifyWallet()} className="press h-11 rounded-seal border border-line text-sm text-ink disabled:opacity-50">

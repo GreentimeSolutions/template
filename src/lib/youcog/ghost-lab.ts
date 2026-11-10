@@ -58,7 +58,6 @@ export async function connect(): Promise<{ p: Eip1193; from: Address }> {
   if (!p) throw new Error("No wallet found. Open Youcognito inside Farcaster or a wallet browser.");
   const accounts = (await p.request({ method: "eth_requestAccounts" })) as string[];
   if (!accounts?.[0]) throw new Error("No account connected.");
-  await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_HEX }] }).catch(() => {});
   return { p, from: accounts[0] as Address };
 }
 
@@ -90,7 +89,7 @@ export async function previewSvg(addr: Address, traits: number[]): Promise<strin
 }
 
 async function send(p: Eip1193, from: Address, to: Address, data: Hex): Promise<Hex> {
-  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data: withSuffix(data), value: "0x0" }] })) as Hex;
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to, data: withSuffix(data), value: "0x0", chainId: BASE_HEX }] })) as Hex;
   const rc = await client.waitForTransactionReceipt({ hash });
   if (rc.status !== "success") throw new Error("Transaction failed on-chain.");
   return hash;
@@ -125,7 +124,7 @@ export async function mintGhost(addr: Address, traits: number[], onStep: (s: Min
     abi: ghostsAbi, functionName: "mint",
     args: [traits as unknown as readonly [number, number, number, number, number, number], maxPrice, 0n, 0n, "0x"],
   });
-  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to: addr, data: withSuffix(data), value: "0x0" }] })) as Hex;
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to: addr, data: withSuffix(data), value: "0x0", chainId: BASE_HEX }] })) as Hex;
   onStep("confirm");
   const rc = await client.waitForTransactionReceipt({ hash });
   if (rc.status !== "success") throw new Error("Mint failed on-chain. No ghost was created.");
@@ -210,7 +209,7 @@ export async function buyCosmetic(itemId: string, price: number, onStep: (s: Buy
   if (eth < 2_000_000_000_000n) throw new Error("Not enough ETH on Base for gas. Add a little ETH on Base and try again.");
   onStep("send");
   const data = encodeFunctionData({ abi: transferAbi, functionName: "transfer", args: [SHOP_FAUCET, amount] });
-  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to: YOUCOG, data: withSuffix(data), value: "0x0" }] })) as Hex;
+  const hash = (await p.request({ method: "eth_sendTransaction", params: [{ from, to: YOUCOG, data: withSuffix(data), value: "0x0", chainId: BASE_HEX }] })) as Hex;
   onHash?.(hash, from);
   onStep("confirm");
   const rc = await client.waitForTransactionReceipt({ hash });

@@ -31,25 +31,6 @@ async function getProvider(): Promise<Eip1193 | null> {
   return w ?? null;
 }
 
-async function ensureBase(p: Eip1193) {
-  try {
-    await p.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_HEX }] });
-  } catch (e) {
-    if ((e as { code?: number })?.code === 4902) {
-      await p.request({
-        method: "wallet_addEthereumChain",
-        params: [{
-          chainId: BASE_HEX,
-          chainName: "Base",
-          nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-          rpcUrls: ["https://mainnet.base.org"],
-          blockExplorerUrls: ["https://basescan.org"],
-        }],
-      });
-    }
-  }
-}
-
 function transferData(to: string, amount: bigint) {
   return "0xa9059cbb" + to.slice(2).toLowerCase().padStart(64, "0") + amount.toString(16).padStart(64, "0");
 }
@@ -85,12 +66,11 @@ export function Donate() {
       const accounts = (await p.request({ method: "eth_requestAccounts" })) as string[];
       const from = accounts?.[0];
       if (!from) throw new Error("No account connected.");
-      await ensureBase(p);
       const opt = OPTIONS[choice];
       const tx =
         opt.token === "ETH"
-          ? { from, to: DONATE_ADDRESS, value: "0x" + opt.value.toString(16), data: withSuffix() }
-          : { from, to: USDC, data: withSuffix(transferData(DONATE_ADDRESS, opt.value)), value: "0x0" };
+          ? { from, to: DONATE_ADDRESS, value: "0x" + opt.value.toString(16), data: withSuffix(), chainId: BASE_HEX }
+          : { from, to: USDC, data: withSuffix(transferData(DONATE_ADDRESS, opt.value)), value: "0x0", chainId: BASE_HEX };
       const hash = (await p.request({ method: "eth_sendTransaction", params: [tx] })) as string;
       setMsg({ ok: true, text: `Thank you! ${opt.label} sent.`, url: `https://basescan.org/tx/${hash}` });
       void recordTip(hash);
