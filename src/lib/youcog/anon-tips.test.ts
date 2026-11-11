@@ -10,6 +10,10 @@ import {
   composeCastEmbeds,
   CAST_SITE_DOMAIN,
   composeCastText,
+  composeLiveCastText,
+  tipEmbedUrl,
+  tipPreviewImageUrl,
+  tipPreviewIndex,
   formatTipNumber,
   urlsInCastText,
   envFlag,
@@ -105,17 +109,41 @@ test("cast text and gift points use en-US thousands separators", () => {
   assert.equal(composeCastText(1_000, "nick"), "1,000👻 @nick — anonymous tip via youcognito.com");
 });
 
-test("live casts keep the text and attach a BaseScan embed", () => {
+test("live casts add a Verified here BaseScan line and a youcognito.com Mini App embed", () => {
   const hash = "0x26c40ef8aad5709d79ff33c83e47915b27865d445e6c9ecbb5acd5faa12c0ef2";
   const text = composeCastText(215_225, "pichi");
   assert.equal(text, "215,225👻 @pichi — anonymous tip via youcognito.com");
   assert.equal(mentionCount(text), 1);
   assert.deepEqual(urlsInCastText(text), [CAST_SITE_DOMAIN]);
   assert.equal(/https?:\/\//i.test(text), false);
-  assert.deepEqual(composeCastEmbeds(hash), [{ url: `https://basescan.org/tx/${hash}` }]);
+  assert.deepEqual(composeCastEmbeds(hash), [{ url: `https://youcognito.com/tip/${hash}` }]);
+  assert.equal(tipEmbedUrl(hash), `https://youcognito.com/tip/${hash}`);
   assert.equal(baseScanTxUrl(hash), `https://basescan.org/tx/${hash}`);
+  const live = composeLiveCastText(215_225, "pichi", hash);
+  assert.equal(live, `215,225👻 @pichi — anonymous tip via youcognito.com\nVerified here: https://basescan.org/tx/${hash}`);
+  assert.equal(mentionCount(live), 1);
+  assert.deepEqual(urlsInCastText(live), [`https://basescan.org/tx/${hash}`, CAST_SITE_DOMAIN]);
   assert.equal(urlsInCastText(`${text} ${baseScanTxUrl(hash)}`).includes(CAST_SITE_DOMAIN), true);
   assert.equal(urlsInCastText(`${text} ${baseScanTxUrl(hash)}`).length, 2);
+});
+
+test("tip preview image is deterministic and always one of 5", () => {
+  const hash = "0x26c40ef8aad5709d79ff33c83e47915b27865d445e6c9ecbb5acd5faa12c0ef2";
+  assert.equal(tipPreviewIndex(hash), tipPreviewIndex(hash));
+  assert.equal(tipPreviewIndex(hash), (parseInt("a12c0ef2", 16) % 5) + 1);
+  for (const n of [1, 2, 3, 4, 5]) assert.equal(tipPreviewIndex(String(n)), n);
+  const seen = new Set<number>();
+  for (let i = 0; i < 200; i++) {
+    const v = tipPreviewIndex(`0x${i.toString(16).padStart(64, "0")}`);
+    assert.ok(v >= 1 && v <= 5);
+    seen.add(v);
+  }
+  assert.equal(seen.size, 5);
+  for (const junk of ["", "abc", "../x", "0xzz"]) {
+    const v = tipPreviewIndex(junk);
+    assert.ok(v >= 1 && v <= 5);
+  }
+  assert.equal(tipPreviewImageUrl("3"), "https://youcognito.com/tip-preview-3.jpg");
 });
 
 test("env flags are off unless explicitly enabled", () => {
@@ -278,7 +306,7 @@ test("dry-run logs the transfer and cast text and never sends or posts", async (
   assert.deepEqual(sends, []);
   assert.deepEqual(casts, []);
   assert.equal(logs[0]?.castText, r.castText);
-  assert.equal(logs[0]?.castEmbeds, "https://basescan.org/tx/<hash> after transfer");
+  assert.equal(logs[0]?.castEmbeds, "https://youcognito.com/tip/<hash> after transfer (text adds Verified here: BaseScan link)");
   assert.equal(logs[0]?.to, B);
   assert.equal(logs[0]?.amount, 100);
   const [row] = await sql<{ status: string; tx_hash: string | null }>`select status, tx_hash from anon_tips`;
@@ -341,8 +369,8 @@ test("live path calls send and cast once and records gift points", async () => {
   assert.equal(r.castText, "1,000👻 @nick — anonymous tip via youcognito.com");
   assert.deepEqual(casts, [
     {
-      text: "1,000👻 @nick — anonymous tip via youcognito.com",
-      embeds: [{ url: `https://basescan.org/tx/${expectedHash}` }],
+      text: `1,000👻 @nick — anonymous tip via youcognito.com\nVerified here: https://basescan.org/tx/${expectedHash}`,
+      embeds: [{ url: `https://youcognito.com/tip/${expectedHash}` }],
     },
   ]);
   const after = await anonTipsStatus(d, 7);

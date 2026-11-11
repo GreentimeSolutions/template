@@ -130,9 +130,38 @@ export function baseScanTxUrl(txHash: string): string {
   return `https://basescan.org/tx/${txHash.trim()}`;
 }
 
-/** What a tip post includes: unchanged text plus an optional BaseScan embed after transfer. */
+export const TIP_PREVIEW_COUNT = 5;
+
+/** Deterministic 1..5 preview image for a tip (same tx hash always gets the same image). */
+export function tipPreviewIndex(id: string): number {
+  const v = String(id ?? "").trim().toLowerCase();
+  if (/^[1-5]$/.test(v)) return Number(v);
+  const hex = v.startsWith("0x") ? v.slice(2) : v;
+  if (/^[0-9a-f]{8,}$/.test(hex)) {
+    return (parseInt(hex.slice(-8), 16) % TIP_PREVIEW_COUNT) + 1;
+  }
+  let h = 0;
+  for (const ch of v) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return (h % TIP_PREVIEW_COUNT) + 1;
+}
+
+export function tipPreviewImageUrl(id: string): string {
+  return `https://${CAST_SITE_DOMAIN}/tip-preview-${tipPreviewIndex(id)}.jpg`;
+}
+
+/** Mini App embed page for a tip: opens youcognito.com when tapped in Farcaster. */
+export function tipEmbedUrl(txHash: string): string {
+  return `https://${CAST_SITE_DOMAIN}/tip/${txHash.trim()}`;
+}
+
+/** Live cast text after the transfer: base text plus a BaseScan proof line. */
+export function composeLiveCastText(amount: number, username: string, txHash: string): string {
+  return `${composeCastText(amount, username)}\nVerified here: ${baseScanTxUrl(txHash)}`;
+}
+
+/** What a live tip post embeds: the youcognito.com Mini App card for this tip. */
 export function composeCastEmbeds(txHash: string): { url: string }[] {
-  return [{ url: baseScanTxUrl(txHash) }];
+  return [{ url: tipEmbedUrl(txHash) }];
 }
 
 /** Exactly one @mention, and never the sender's name. */

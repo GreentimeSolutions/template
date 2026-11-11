@@ -6,6 +6,7 @@ import {
   composeCastEmbeds,
   CAST_SITE_DOMAIN,
   composeCastText,
+  composeLiveCastText,
   giftPointsFor,
   mentionCount,
   urlsInCastText,
@@ -350,7 +351,7 @@ export async function sendAnonTip(
       to: recipientAddress,
       amount,
       castText,
-      castEmbeds: "https://basescan.org/tx/<hash> after transfer",
+      castEmbeds: "https://youcognito.com/tip/<hash> after transfer (text adds Verified here: BaseScan link)",
       senderFid: input.senderFid,
       recipientFid: user.fid,
       recipientUsername: user.username,
@@ -397,7 +398,7 @@ export async function sendAnonTip(
   const url = baseScanTxUrl(txHash);
   let castHash: string | null = null;
   try {
-    castHash = await deps.postCast(castText, composeCastEmbeds(txHash));
+    castHash = await deps.postCast(composeLiveCastText(amount, user.username, txHash), composeCastEmbeds(txHash));
   } catch (err) {
     const msg = err instanceof Error ? err.message : "cast failed";
     console.error("[anon-tips] cast failed after payout:", msg.slice(0, 300));

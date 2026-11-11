@@ -42,6 +42,7 @@ import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as LabShopRouteImport } from './routes/lab_.shop'
+import { Route as TipIdRouteImport } from './routes/tip.$id'
 import { Route as ApiListenFinishRouteImport } from './routes/api/listen/finish'
 import { Route as ApiListenStartRouteImport } from './routes/api/listen/start'
 import { Route as ApiListenStatusRouteImport } from './routes/api/listen/status'
@@ -212,6 +213,11 @@ const LabShopRoute = LabShopRouteImport.update({
   path: '/lab/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TipIdRoute = TipIdRouteImport.update({
+  id: '/tip/$id',
+  path: '/tip/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiListenFinishRoute = ApiListenFinishRouteImport.update({
   id: '/api/listen/finish',
   path: '/api/listen/finish',
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
+  '/tip/$id': typeof TipIdRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
+  '/tip/$id': typeof TipIdRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab_/shop': typeof LabShopRoute
+  '/tip/$id': typeof TipIdRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/api/tip'
     | '/api/tts'
     | '/lab/shop'
+    | '/tip/$id'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/api/tip'
     | '/api/tts'
     | '/lab/shop'
+    | '/tip/$id'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/api/tip'
     | '/api/tts'
     | '/lab_/shop'
+    | '/tip/$id'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -494,6 +506,7 @@ export interface RootRouteChildren {
   ApiTipRoute: typeof ApiTipRoute
   ApiTtsRoute: typeof ApiTtsRoute
   LabShopRoute: typeof LabShopRoute
+  TipIdRoute: typeof TipIdRoute
   ApiListenFinishRoute: typeof ApiListenFinishRoute
   ApiListenStartRoute: typeof ApiListenStartRoute
   ApiListenStatusRoute: typeof ApiListenStatusRoute
@@ -732,6 +745,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LabShopRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tip/$id': {
+      id: '/tip/$id'
+      path: '/tip/$id'
+      fullPath: '/tip/$id'
+      preLoaderRoute: typeof TipIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/listen/finish': {
       id: '/api/listen/finish'
       path: '/api/listen/finish'
@@ -790,6 +810,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTipRoute: ApiTipRoute,
   ApiTtsRoute: ApiTtsRoute,
   LabShopRoute: LabShopRoute,
+  TipIdRoute: TipIdRoute,
   ApiListenFinishRoute: ApiListenFinishRoute,
   ApiListenStartRoute: ApiListenStartRoute,
   ApiListenStatusRoute: ApiListenStatusRoute,
