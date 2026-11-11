@@ -52,6 +52,22 @@ async function main() {
       (r) => r.name,
     );
 
+    // Preview safety: preview builds must never migrate the production database.
+    // Production is the Neon "neondb" database; previews use a separate one.
+    const dbName = (await client.query("SELECT current_database() AS db")).rows[0]?.db;
+    console.log(`[migrate] target database: ${dbName} (VERCEL_ENV=${process.env.VERCEL_ENV ?? "unset"})`);
+    const pendingNames = pendingMigrations(entries, applied).map((m) => m.name);
+    if (
+      process.env.VERCEL_ENV === "preview" &&
+      dbName === (process.env.PROD_DB_NAME || "neondb") &&
+      process.env.ALLOW_PREVIEW_PROD_MIGRATE !== "1" &&
+      (pendingNames.length || process.env.LEDGER_ON)
+    ) {
+      throw new Error(
+        `refusing to change the production database from a preview build (pending: ${pendingNames.join(", ") || "none"}; LEDGER_ON=${process.env.LEDGER_ON ?? "unset"})`,
+      );
+    }
+
     let count = 0;
     for (const { name } of pendingMigrations(entries, applied)) {
       const text = await readFile(join(migrationsDir, name), "utf8");
@@ -74,6 +90,20 @@ async function main() {
       count += 1;
     }
     console.log(count ? `[migrate] done — ${count} migration(s) applied.` : "[migrate] up to date.");
+
+    // Ledger flag (Feature B): LEDGER_ON=1 backfills existing rows and turns the
+    // hash chain on; LEDGER_ON=0 turns it off; unset leaves the database as is.
+    const ledgerFlag = String(process.env.LEDGER_ON ?? "").trim();
+    const hasLedger = (await client.query("SELECT to_regproc('ledger_enable') IS NOT NULL AS ok")).rows[0]?.ok;
+    if (hasLedger && ledgerFlag === "1") {
+      await client.query("BEGIN");
+      const head = (await client.query("SELECT ledger_enable() AS head")).rows[0]?.head;
+      await client.query("COMMIT");
+      console.log(`[migrate] ledger on — head seq ${head}`);
+    } else if (hasLedger && ledgerFlag === "0") {
+      await client.query("SELECT ledger_disable()");
+      console.log("[migrate] ledger off");
+    }
   } finally {
     client.release();
     await pool.end();

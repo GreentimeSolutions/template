@@ -16,6 +16,8 @@ import {
   redemptionOpen,
   type AnonTipsConfig,
 } from "./anon-tips-core.ts";
+import { HELD_MESSAGE, POINTS_PENDING_MESSAGE, type TipRiskConfig, type TipRiskResult } from "./tip-risk-core.ts";
+import { assessTipRisk, type NeynarFetch } from "./tip-risk.server.ts";
 
 /** Same address as holder.server FAUCET_WALLET; inlined so tests don't load chain code. */
 const FAUCET_WALLET = "0x3067ab541253746AB353b842Fdc0970ffBDe13c7";
@@ -38,7 +40,12 @@ export type AnonTipsDeps = {
   sendYoucog: (to: `0x${string}`, amountWei: bigint) => Promise<`0x${string}`>;
   postCast: (text: string, embeds?: { url: string }[]) => Promise<string | null>;
   log?: (message: string, extra?: Record<string, unknown>) => void;
+  /** Spam/sybil checks. Absent or mode "off" = today's behaviour (no Neynar calls). */
+  risk?: { config: TipRiskConfig; fetchProfiles: NeynarFetch };
 };
+
+/** Tip statuses that use up the sender's balance (held/approving reserve it). */
+export const BALANCE_STATUSES = ["sent", "dry_run", "held", "approving"] as const;
 
 export type TipHistoryItem = {
   amount: number;
@@ -47,6 +54,10 @@ export type TipHistoryItem = {
   createdAt: string;
   dryRun: boolean;
   txHash: string | null;
+  /** Waiting for review: nothing sent yet, amount set aside. */
+  held: boolean;
+  /** Gift points from this tip are pending review. */
+  pointsPending: boolean;
 };
 
 export type AnonTipsStatus = {
@@ -69,6 +80,9 @@ export type AnonTipsStatus = {
   optedOut: boolean;
   tablesReady: boolean;
   recentTips: TipHistoryItem[];
+  heldCount: number;
+  heldAmount: number;
+  pendingPoints: number;
 };
 
 export type SendTipResult =
@@ -83,6 +97,11 @@ export type SendTipResult =
       txHash: string | null;
       url: string | null;
       castHash: string | null;
+      /** Whole tip waiting for admin review (nothing sent or posted). */
+      held?: boolean;
+      /** Tip sent, gift points pending review. */
+      pointsPending?: boolean;
+      message?: string;
     }
   | { ok: false; reason: string };
 
@@ -145,22 +164,39 @@ async function earnedFor(sql: AnonTipsSql, fid: number, addresses: string[]): Pr
 
 async function tipTotals(sql: AnonTipsSql, fid: number, ready: boolean, nowMs: number) {
   if (!ready) {
-    return { tipped: 0, giftPoints: 0, tipCount: 0, todayCount: 0, todayAmount: 0, recentTips: [] as TipHistoryItem[] };
+    return {
+      tipped: 0,
+      giftPoints: 0,
+      tipCount: 0,
+      todayCount: 0,
+      todayAmount: 0,
+      recentTips: [] as TipHistoryItem[],
+      heldCount: 0,
+      heldAmount: 0,
+      pendingPoints: 0,
+    };
   }
+  const statuses = [...BALANCE_STATUSES];
   const [all] = await sql<{ tipped: string; points: string; n: string }>`
     select coalesce(sum(amount), 0)::text as tipped,
       coalesce(sum(gift_points), 0)::text as points,
       count(*)::text as n
     from anon_tips
-    where sender_fid = ${fid} and status in ('sent', 'dry_run')`;
+    where sender_fid = ${fid} and status = any(${statuses})`;
   const { start, end } = dayBounds(nowMs);
   const [today] = await sql<{ tipped: string; n: string }>`
     select coalesce(sum(amount), 0)::text as tipped, count(*)::text as n
     from anon_tips
-    where sender_fid = ${fid} and status in ('sent', 'dry_run')
+    where sender_fid = ${fid} and status = any(${statuses})
       and created_at >= ${start}::timestamptz and created_at < ${end}::timestamptz`;
+  const [held] = await sql<{ tipped: string; n: string }>`
+    select coalesce(sum(amount), 0)::text as tipped, count(*)::text as n
+    from anon_tips where sender_fid = ${fid} and status in ('held', 'approving')`;
   const [gp] = await sql<{ points: string }>`
     select points::text as points from gift_points where fid = ${fid}`.catch(() => [{ points: all?.points ?? "0" }]);
+  const [pending] = await sql<{ points: string }>`
+    select coalesce(sum(points), 0)::text as points from gift_points_ledger
+    where fid = ${fid} and state = 'pending'`.catch(() => [{ points: "0" }]);
   const recent = await sql<{
     amount: number;
     recipient_username: string;
@@ -168,18 +204,23 @@ async function tipTotals(sql: AnonTipsSql, fid: number, ready: boolean, nowMs: n
     created_at: string;
     status: string;
     tx_hash: string | null;
+    points_pending: boolean | null;
   }>`
-    select amount, recipient_username, gift_points, created_at::text as created_at, status, tx_hash
-    from anon_tips
-    where sender_fid = ${fid} and status in ('sent', 'dry_run')
-    order by created_at desc
+    select t.amount, t.recipient_username, t.gift_points, t.created_at::text as created_at, t.status, t.tx_hash,
+      exists (select 1 from gift_points_ledger l where l.tip_id = t.id and l.state = 'pending') as points_pending
+    from anon_tips t
+    where t.sender_fid = ${fid} and t.status = any(${statuses})
+    order by t.created_at desc
     limit 20`;
   return {
     tipped: Number(all?.tipped ?? 0),
-    giftPoints: Number(gp?.points ?? all?.points ?? 0),
+    giftPoints: Number(gp?.points ?? 0),
     tipCount: Number(all?.n ?? 0),
     todayCount: Number(today?.n ?? 0),
     todayAmount: Number(today?.tipped ?? 0),
+    heldCount: Number(held?.n ?? 0),
+    heldAmount: Number(held?.tipped ?? 0),
+    pendingPoints: Number(pending?.points ?? 0),
     recentTips: recent.map((r) => ({
       amount: Number(r.amount),
       recipientUsername: String(r.recipient_username),
@@ -187,6 +228,8 @@ async function tipTotals(sql: AnonTipsSql, fid: number, ready: boolean, nowMs: n
       createdAt: String(r.created_at),
       dryRun: r.status === "dry_run",
       txHash: r.tx_hash,
+      held: r.status === "held" || r.status === "approving",
+      pointsPending: Boolean(r.points_pending),
     })),
   };
 }
@@ -227,6 +270,9 @@ export async function anonTipsStatus(deps: AnonTipsDeps, fid: number): Promise<A
     optedOut,
     tablesReady: ready,
     recentTips: totals.recentTips,
+    heldCount: totals.heldCount,
+    heldAmount: totals.heldAmount,
+    pendingPoints: totals.pendingPoints,
   };
 }
 
@@ -241,41 +287,68 @@ export async function setTipOptOut(deps: AnonTipsDeps, fid: number, optOut: bool
   return { ok: true, optedOut: optOut };
 }
 
-async function persistTip(
-  sql: AnonTipsSql,
-  row: {
-    senderFid: number;
-    recipientFid: number;
-    recipientUsername: string;
-    recipientAddress: string;
-    amount: number;
-    giftPoints: number;
-    status: "sent" | "dry_run";
-    txHash: string | null;
-    castHash: string | null;
-    createdAt: string;
-  },
-) {
+export type PersistTipRow = {
+  senderFid: number;
+  recipientFid: number;
+  recipientUsername: string;
+  recipientAddress: string;
+  amount: number;
+  giftPoints: number;
+  status: "sent" | "dry_run" | "held";
+  txHash: string | null;
+  castHash: string | null;
+  createdAt: string;
+  reviewState?: "none" | "held";
+  riskFlags?: string[];
+  /** credited (default) | pending (points-only hold or held tip). */
+  pointsState?: "credited" | "pending";
+  pointsReleaseAt?: string | null;
+  /** Decision trail row (shadow | hold | points_hold), written in the same statement. */
+  decision?: string | null;
+};
+
+/**
+ * One statement = one transaction: the tip, its gift-points ledger row, the running
+ * totals and the optional decision row all commit together (or not at all), so the
+ * hash-chained ledger never records half a tip.
+ */
+export async function persistTip(sql: AnonTipsSql, row: PersistTipRow): Promise<number> {
+  const counts = row.status === "sent" || row.status === "dry_run";
+  const pointsState = row.pointsState ?? "credited";
+  const credited = counts && pointsState === "credited";
   const inserted = await sql<{ id: number }>`
-    insert into anon_tips (
-      sender_fid, recipient_fid, recipient_username, recipient_address,
-      amount, gift_points, status, tx_hash, cast_hash, created_at
-    ) values (
-      ${row.senderFid}, ${row.recipientFid}, ${row.recipientUsername}, ${row.recipientAddress},
-      ${row.amount}, ${row.giftPoints}, ${row.status}, ${row.txHash}, ${row.castHash}, ${row.createdAt}::timestamptz
-    ) returning id`;
-  const tipId = Number(inserted[0]?.id);
-  await sql`
-    insert into gift_points_ledger (fid, tip_id, points, amount, note)
-    values (${row.senderFid}, ${tipId}, ${row.giftPoints}, ${row.amount}, ${row.status})`;
-  await sql`
-    insert into gift_points (fid, points, tipped_amount, tip_count, updated_at)
-    values (${row.senderFid}, ${row.giftPoints}, ${row.amount}, 1, ${row.createdAt}::timestamptz)
-    on conflict (fid) do update set
-      points = gift_points.points + excluded.points,
-      tipped_amount = gift_points.tipped_amount + excluded.tipped_amount,
-      tip_count = gift_points.tip_count + 1,
-      updated_at = excluded.updated_at`;
+    with t as (
+      insert into anon_tips (
+        sender_fid, recipient_fid, recipient_username, recipient_address,
+        amount, gift_points, status, tx_hash, cast_hash, created_at, review_state, risk_flags
+      ) values (
+        ${row.senderFid}, ${row.recipientFid}, ${row.recipientUsername}, ${row.recipientAddress},
+        ${row.amount}, ${row.giftPoints}, ${row.status}, ${row.txHash}, ${row.castHash}, ${row.createdAt}::timestamptz,
+        ${row.reviewState ?? "none"}, ${row.riskFlags ?? []}::text[]
+      ) returning id, sender_fid
+    ), l as (
+      insert into gift_points_ledger (fid, tip_id, points, amount, note, state, release_at, created_at)
+      select t.sender_fid, t.id, ${row.giftPoints}, ${row.amount}, ${row.status}, ${pointsState},
+        ${row.pointsReleaseAt ?? null}::timestamptz, ${row.createdAt}::timestamptz
+      from t returning id
+    ), g as (
+      insert into gift_points (fid, points, tipped_amount, tip_count, updated_at)
+      select t.sender_fid, ${credited ? row.giftPoints : 0}, ${counts ? row.amount : 0}, ${counts ? 1 : 0}, ${row.createdAt}::timestamptz
+      from t where ${counts}::boolean
+      on conflict (fid) do update set
+        points = gift_points.points + excluded.points,
+        tipped_amount = gift_points.tipped_amount + excluded.tipped_amount,
+        tip_count = gift_points.tip_count + excluded.tip_count,
+        updated_at = excluded.updated_at
+      returning fid
+    ), v as (
+      insert into tip_risk_reviews (tip_id, decision, flags, actor, created_at)
+      select t.id, ${row.decision ?? null}::text, ${row.riskFlags ?? []}::text[], 'system', ${row.createdAt}::timestamptz
+      from t where ${row.decision ?? null}::text is not null
+      returning id
+    )
+    select t.id from t`;
+  return Number(inserted[0]?.id);
 }
 
 export async function sendAnonTip(
@@ -346,6 +419,82 @@ export async function sendAnonTip(
   const createdAt = new Date(nowMs).toISOString();
   const dry = !deps.live;
 
+  // ---- Spam / sybil checks (TIPS_RISK_MODE: off | log | enforce)
+  const mode = deps.risk?.config.mode ?? "off";
+  let risk: TipRiskResult | null = null;
+  if (deps.risk && mode !== "off" && ready) {
+    try {
+      risk = await assessTipRisk(deps.sql, deps.risk.fetchProfiles, {
+        nowMs,
+        amount,
+        claimAmount: deps.config.min,
+        senderFid: input.senderFid,
+        recipientFid: user.fid,
+        recipientPayout: recipientAddress,
+        senderAddresses,
+        recipientAddresses,
+        config: deps.risk.config,
+      });
+    } catch (err) {
+      // A broken check fails safe: hold in enforce mode, just log in log mode.
+      risk = { outcome: "hold", flags: ["H0_check_failed"], reason: HELD_MESSAGE };
+      console.error("[tip-risk] check failed:", (err instanceof Error ? err.message : String(err)).slice(0, 200));
+    }
+    deps.log?.("[tip-risk]", { mode, outcome: risk.outcome, flags: risk.flags, recipientFid: user.fid, amount });
+  }
+  const enforce = mode === "enforce" && risk != null;
+  const flags = risk?.flags ?? [];
+  const shadowDecision = mode === "log" && risk && risk.outcome !== "allow" ? "shadow" : null;
+
+  if (enforce && risk!.outcome === "deny") {
+    return { ok: false, reason: risk!.reason ?? "This tip can't be sent." };
+  }
+
+  if (enforce && risk!.outcome === "hold") {
+    // Nothing sent or cast. Amount is reserved (status held counts against the balance).
+    // Preview dry-runs without TIPS_RECORD_DRY_RUN write nothing, same as other dry-runs.
+    if (!dry || deps.persistDryRun) await persistTip(deps.sql, {
+      senderFid: input.senderFid,
+      recipientFid: user.fid,
+      recipientUsername: user.username,
+      recipientAddress,
+      amount,
+      giftPoints: points,
+      status: "held",
+      txHash: null,
+      castHash: null,
+      createdAt,
+      reviewState: "held",
+      riskFlags: flags,
+      pointsState: "pending",
+      decision: "hold",
+    });
+    return {
+      ok: true,
+      amount,
+      giftPoints: points,
+      recipientUsername: user.username,
+      recipientAddress,
+      castText,
+      dryRun: dry,
+      txHash: null,
+      url: null,
+      castHash: null,
+      held: true,
+      pointsPending: true,
+      message: HELD_MESSAGE,
+    };
+  }
+
+  const pointsHold = enforce && risk!.outcome === "points_hold";
+  const holdDays = deps.risk?.config.pointsHoldDays ?? 7;
+  const riskRowFields = {
+    riskFlags: flags,
+    pointsState: pointsHold ? ("pending" as const) : ("credited" as const),
+    pointsReleaseAt: pointsHold ? new Date(nowMs + holdDays * 86_400_000).toISOString() : null,
+    decision: pointsHold ? "points_hold" : shadowDecision,
+  };
+
   if (dry) {
     deps.log?.("[anon-tips] dry-run", {
       to: recipientAddress,
@@ -369,6 +518,7 @@ export async function sendAnonTip(
         txHash: null,
         castHash: null,
         createdAt,
+        ...riskRowFields,
       });
     }
     return {
@@ -382,6 +532,7 @@ export async function sendAnonTip(
       txHash: null,
       url: null,
       castHash: null,
+      ...(pointsHold ? { pointsPending: true, message: POINTS_PENDING_MESSAGE } : {}),
     };
   }
 
@@ -417,6 +568,7 @@ export async function sendAnonTip(
         txHash,
         castHash,
         createdAt,
+        ...riskRowFields,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "persist failed";
@@ -435,6 +587,7 @@ export async function sendAnonTip(
     txHash,
     url,
     castHash,
+    ...(pointsHold ? { pointsPending: true, message: POINTS_PENDING_MESSAGE } : {}),
   };
 }
 

@@ -27,7 +27,10 @@
     "test:ycurv-bonus": "node --import jiti/register --test src/lib/youcog/ycurv-bonus.test.ts",
     "test:youcog-price": "node --experimental-strip-types --test src/lib/youcog/youcog-price.test.ts",
     "test:anon-tips": "node --experimental-strip-types --test src/lib/youcog/anon-tips.test.ts",
-    "test:shop": "node --import jiti/register --test src/lib/youcog/shop-verify.test.ts src/lib/youcog/quest-unlocks.test.ts"
+    "test:shop": "node --import jiti/register --test src/lib/youcog/shop-verify.test.ts src/lib/youcog/quest-unlocks.test.ts",
+    "test:tip-risk": "node --experimental-strip-types --test src/lib/youcog/tip-risk.test.ts",
+    "test:ledger": "node --experimental-strip-types --test src/lib/youcog/ledger.test.ts",
+    "ledger:verify": "node scripts/ledger-verify.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

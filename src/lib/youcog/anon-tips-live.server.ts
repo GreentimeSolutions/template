@@ -6,6 +6,8 @@ import { mentionCount, normalizeUsername, readAnonTipsConfig, recordDryRun, tips
 import { quoteFaucetClaim } from "./youcog-price.server";
 import { FAUCET_CLAIM_FALLBACK_YOUCOG } from "../../constants/faucet";
 import type { AnonTipsDeps, FcUser } from "./anon-tips.server";
+import { readTipRiskConfig } from "./tip-risk-core";
+import { neynarBulkFetcher } from "./tip-risk.server";
 
 export async function lookupUserByUsername(username: string): Promise<FcUser | null> {
   const u = normalizeUsername(username);
@@ -72,5 +74,9 @@ export async function liveAnonTipsDeps(): Promise<AnonTipsDeps> {
     },
     postCast: postRecastCast,
     log: (message, extra) => console.info(message, extra ?? ""),
+    risk: {
+      config: readTipRiskConfig(process.env),
+      fetchProfiles: neynarBulkFetcher(process.env.NEYNAR_API_KEY?.trim()),
+    },
   };
 }

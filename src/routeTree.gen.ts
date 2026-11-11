@@ -43,6 +43,11 @@ import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as LabShopRouteImport } from './routes/lab_.shop'
 import { Route as TipIdRouteImport } from './routes/tip.$id'
+import { Route as ApiAdminTipReviewsRouteImport } from './routes/api/admin/tip-reviews'
+import { Route as ApiCronLedgerAnchorRouteImport } from './routes/api/cron/ledger-anchor'
+import { Route as ApiCronTipRiskSweepRouteImport } from './routes/api/cron/tip-risk-sweep'
+import { Route as ApiLedgerExportRouteImport } from './routes/api/ledger/export'
+import { Route as ApiLedgerHeadRouteImport } from './routes/api/ledger/head'
 import { Route as ApiListenFinishRouteImport } from './routes/api/listen/finish'
 import { Route as ApiListenStartRouteImport } from './routes/api/listen/start'
 import { Route as ApiListenStatusRouteImport } from './routes/api/listen/status'
@@ -218,6 +223,31 @@ const TipIdRoute = TipIdRouteImport.update({
   path: '/tip/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTipReviewsRoute = ApiAdminTipReviewsRouteImport.update({
+  id: '/api/admin/tip-reviews',
+  path: '/api/admin/tip-reviews',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronLedgerAnchorRoute = ApiCronLedgerAnchorRouteImport.update({
+  id: '/api/cron/ledger-anchor',
+  path: '/api/cron/ledger-anchor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCronTipRiskSweepRoute = ApiCronTipRiskSweepRouteImport.update({
+  id: '/api/cron/tip-risk-sweep',
+  path: '/api/cron/tip-risk-sweep',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLedgerExportRoute = ApiLedgerExportRouteImport.update({
+  id: '/api/ledger/export',
+  path: '/api/ledger/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiLedgerHeadRoute = ApiLedgerHeadRouteImport.update({
+  id: '/api/ledger/head',
+  path: '/api/ledger/head',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiListenFinishRoute = ApiListenFinishRouteImport.update({
   id: '/api/listen/finish',
   path: '/api/listen/finish',
@@ -269,6 +299,11 @@ export interface FileRoutesByFullPath {
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
+  '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
+  '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
+  '/api/ledger/export': typeof ApiLedgerExportRoute
+  '/api/ledger/head': typeof ApiLedgerHeadRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -308,6 +343,11 @@ export interface FileRoutesByTo {
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
+  '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
+  '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
+  '/api/ledger/export': typeof ApiLedgerExportRoute
+  '/api/ledger/head': typeof ApiLedgerHeadRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -348,6 +388,11 @@ export interface FileRoutesById {
   '/api/tts': typeof ApiTtsRoute
   '/lab_/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
+  '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
+  '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
+  '/api/ledger/export': typeof ApiLedgerExportRoute
+  '/api/ledger/head': typeof ApiLedgerHeadRoute
   '/api/listen/finish': typeof ApiListenFinishRoute
   '/api/listen/start': typeof ApiListenStartRoute
   '/api/listen/status': typeof ApiListenStatusRoute
@@ -389,6 +434,11 @@ export interface FileRouteTypes {
     | '/api/tts'
     | '/lab/shop'
     | '/tip/$id'
+    | '/api/admin/tip-reviews'
+    | '/api/cron/ledger-anchor'
+    | '/api/cron/tip-risk-sweep'
+    | '/api/ledger/export'
+    | '/api/ledger/head'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -428,6 +478,11 @@ export interface FileRouteTypes {
     | '/api/tts'
     | '/lab/shop'
     | '/tip/$id'
+    | '/api/admin/tip-reviews'
+    | '/api/cron/ledger-anchor'
+    | '/api/cron/tip-risk-sweep'
+    | '/api/ledger/export'
+    | '/api/ledger/head'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -467,6 +522,11 @@ export interface FileRouteTypes {
     | '/api/tts'
     | '/lab_/shop'
     | '/tip/$id'
+    | '/api/admin/tip-reviews'
+    | '/api/cron/ledger-anchor'
+    | '/api/cron/tip-risk-sweep'
+    | '/api/ledger/export'
+    | '/api/ledger/head'
     | '/api/listen/finish'
     | '/api/listen/start'
     | '/api/listen/status'
@@ -507,6 +567,11 @@ export interface RootRouteChildren {
   ApiTtsRoute: typeof ApiTtsRoute
   LabShopRoute: typeof LabShopRoute
   TipIdRoute: typeof TipIdRoute
+  ApiAdminTipReviewsRoute: typeof ApiAdminTipReviewsRoute
+  ApiCronLedgerAnchorRoute: typeof ApiCronLedgerAnchorRoute
+  ApiCronTipRiskSweepRoute: typeof ApiCronTipRiskSweepRoute
+  ApiLedgerExportRoute: typeof ApiLedgerExportRoute
+  ApiLedgerHeadRoute: typeof ApiLedgerHeadRoute
   ApiListenFinishRoute: typeof ApiListenFinishRoute
   ApiListenStartRoute: typeof ApiListenStartRoute
   ApiListenStatusRoute: typeof ApiListenStatusRoute
@@ -752,6 +817,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TipIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/tip-reviews': {
+      id: '/api/admin/tip-reviews'
+      path: '/api/admin/tip-reviews'
+      fullPath: '/api/admin/tip-reviews'
+      preLoaderRoute: typeof ApiAdminTipReviewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/ledger-anchor': {
+      id: '/api/cron/ledger-anchor'
+      path: '/api/cron/ledger-anchor'
+      fullPath: '/api/cron/ledger-anchor'
+      preLoaderRoute: typeof ApiCronLedgerAnchorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cron/tip-risk-sweep': {
+      id: '/api/cron/tip-risk-sweep'
+      path: '/api/cron/tip-risk-sweep'
+      fullPath: '/api/cron/tip-risk-sweep'
+      preLoaderRoute: typeof ApiCronTipRiskSweepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ledger/export': {
+      id: '/api/ledger/export'
+      path: '/api/ledger/export'
+      fullPath: '/api/ledger/export'
+      preLoaderRoute: typeof ApiLedgerExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ledger/head': {
+      id: '/api/ledger/head'
+      path: '/api/ledger/head'
+      fullPath: '/api/ledger/head'
+      preLoaderRoute: typeof ApiLedgerHeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/listen/finish': {
       id: '/api/listen/finish'
       path: '/api/listen/finish'
@@ -811,6 +911,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTtsRoute: ApiTtsRoute,
   LabShopRoute: LabShopRoute,
   TipIdRoute: TipIdRoute,
+  ApiAdminTipReviewsRoute: ApiAdminTipReviewsRoute,
+  ApiCronLedgerAnchorRoute: ApiCronLedgerAnchorRoute,
+  ApiCronTipRiskSweepRoute: ApiCronTipRiskSweepRoute,
+  ApiLedgerExportRoute: ApiLedgerExportRoute,
+  ApiLedgerHeadRoute: ApiLedgerHeadRoute,
   ApiListenFinishRoute: ApiListenFinishRoute,
   ApiListenStartRoute: ApiListenStartRoute,
   ApiListenStatusRoute: ApiListenStatusRoute,

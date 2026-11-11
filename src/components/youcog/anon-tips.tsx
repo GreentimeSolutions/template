@@ -28,7 +28,12 @@ type Status = {
     createdAt: string;
     dryRun: boolean;
     txHash: string | null;
+    held?: boolean;
+    pointsPending?: boolean;
   }[];
+  heldCount?: number;
+  heldAmount?: number;
+  pendingPoints?: number;
 };
 
 type SendResult =
@@ -40,6 +45,9 @@ type SendResult =
       castText: string;
       dryRun: boolean;
       url: string | null;
+      held?: boolean;
+      pointsPending?: boolean;
+      message?: string;
     }
   | { ok: false; reason: string };
 
@@ -92,14 +100,18 @@ export function AnonTips() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ username, amount: chosen }),
       })) as SendResult;
-      if (r.ok) {
+      if (r.ok && r.held) {
+        setMsg({ ok: true, text: r.message ?? "This tip is waiting for a quick review. Nothing has been sent yet." });
+        const s = (await call("/api/anon-tips")) as Status;
+        if (s && "available" in s) setStatus(s);
+      } else if (r.ok) {
         const preview = r.dryRun ? " Preview only — nothing was sent or posted." : "";
         const embedNote = r.dryRun
           ? " A BaseScan transaction link would be attached."
           : "";
         setMsg({
           ok: true,
-          text: `Ready: ${formatTipNumber(r.amount)} YOUCOG to @${r.recipientUsername} (${formatTipNumber(r.giftPoints)} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}${embedNote}`,
+          text: `Ready: ${formatTipNumber(r.amount)} YOUCOG to @${r.recipientUsername} (${formatTipNumber(r.giftPoints)} gift point${r.giftPoints === 1 ? "" : "s"}).${preview} Post would read: ${r.castText}${embedNote}${r.pointsPending ? ` ${r.message ?? "Gift points from this tip are pending review."}` : ""}`,
           url: r.dryRun ? null : r.url,
         });
         const s = (await call("/api/anon-tips")) as Status;
@@ -233,6 +245,17 @@ export function AnonTips() {
               {status.tipCount.toLocaleString()} tip{status.tipCount === 1 ? "" : "s"} ({status.pointsPerHundred} per 100
               YOUCOG).
             </p>
+            {status.pendingPoints ? (
+              <p className="mt-1 text-xs text-mist">
+                {status.pendingPoints.toLocaleString()} gift point{status.pendingPoints === 1 ? "" : "s"} pending review.
+              </p>
+            ) : null}
+            {status.heldCount ? (
+              <p className="mt-1 text-xs text-mist">
+                {status.heldCount} tip{status.heldCount === 1 ? "" : "s"} ({(status.heldAmount ?? 0).toLocaleString()} YOUCOG) waiting for
+                review. Nothing has been sent yet, and the amount is set aside from your balance.
+              </p>
+            ) : null}
             {!status.redemptionOpen ? (
               <p className="mt-1 text-xs text-mist">Rewards, if any, are announced separately.</p>
             ) : null}
@@ -242,6 +265,7 @@ export function AnonTips() {
                   <li key={`${t.createdAt}-${i}`}>
                     {formatTipNumber(t.amount)} to @{t.recipientUsername} · {formatTipNumber(t.giftPoints)} pt
                     {t.dryRun ? " · preview" : ""}
+                    {t.held ? " · waiting for review" : t.pointsPending ? " · points pending" : ""}
                     {t.txHash ? (
                       <>
                         {" · "}
