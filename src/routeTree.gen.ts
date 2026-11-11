@@ -44,6 +44,7 @@ import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as LabShopRouteImport } from './routes/lab_.shop'
 import { Route as TipIdRouteImport } from './routes/tip.$id'
 import { Route as ApiAdminTipReviewsRouteImport } from './routes/api/admin/tip-reviews'
+import { Route as ApiAdminTipRiskReplayRouteImport } from './routes/api/admin/tip-risk-replay'
 import { Route as ApiCronLedgerAnchorRouteImport } from './routes/api/cron/ledger-anchor'
 import { Route as ApiCronTipRiskSweepRouteImport } from './routes/api/cron/tip-risk-sweep'
 import { Route as ApiLedgerExportRouteImport } from './routes/api/ledger/export'
@@ -228,6 +229,11 @@ const ApiAdminTipReviewsRoute = ApiAdminTipReviewsRouteImport.update({
   path: '/api/admin/tip-reviews',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminTipRiskReplayRoute = ApiAdminTipRiskReplayRouteImport.update({
+  id: '/api/admin/tip-risk-replay',
+  path: '/api/admin/tip-risk-replay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCronLedgerAnchorRoute = ApiCronLedgerAnchorRouteImport.update({
   id: '/api/cron/ledger-anchor',
   path: '/api/cron/ledger-anchor',
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/admin/tip-risk-replay': typeof ApiAdminTipRiskReplayRoute
   '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
   '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
   '/api/ledger/export': typeof ApiLedgerExportRoute
@@ -344,6 +351,7 @@ export interface FileRoutesByTo {
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/admin/tip-risk-replay': typeof ApiAdminTipRiskReplayRoute
   '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
   '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
   '/api/ledger/export': typeof ApiLedgerExportRoute
@@ -389,6 +397,7 @@ export interface FileRoutesById {
   '/lab_/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
+  '/api/admin/tip-risk-replay': typeof ApiAdminTipRiskReplayRoute
   '/api/cron/ledger-anchor': typeof ApiCronLedgerAnchorRoute
   '/api/cron/tip-risk-sweep': typeof ApiCronTipRiskSweepRoute
   '/api/ledger/export': typeof ApiLedgerExportRoute
@@ -435,6 +444,7 @@ export interface FileRouteTypes {
     | '/lab/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
+    | '/api/admin/tip-risk-replay'
     | '/api/cron/ledger-anchor'
     | '/api/cron/tip-risk-sweep'
     | '/api/ledger/export'
@@ -479,6 +489,7 @@ export interface FileRouteTypes {
     | '/lab/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
+    | '/api/admin/tip-risk-replay'
     | '/api/cron/ledger-anchor'
     | '/api/cron/tip-risk-sweep'
     | '/api/ledger/export'
@@ -523,6 +534,7 @@ export interface FileRouteTypes {
     | '/lab_/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
+    | '/api/admin/tip-risk-replay'
     | '/api/cron/ledger-anchor'
     | '/api/cron/tip-risk-sweep'
     | '/api/ledger/export'
@@ -568,6 +580,7 @@ export interface RootRouteChildren {
   LabShopRoute: typeof LabShopRoute
   TipIdRoute: typeof TipIdRoute
   ApiAdminTipReviewsRoute: typeof ApiAdminTipReviewsRoute
+  ApiAdminTipRiskReplayRoute: typeof ApiAdminTipRiskReplayRoute
   ApiCronLedgerAnchorRoute: typeof ApiCronLedgerAnchorRoute
   ApiCronTipRiskSweepRoute: typeof ApiCronTipRiskSweepRoute
   ApiLedgerExportRoute: typeof ApiLedgerExportRoute
@@ -824,6 +837,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminTipReviewsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/tip-risk-replay': {
+      id: '/api/admin/tip-risk-replay'
+      path: '/api/admin/tip-risk-replay'
+      fullPath: '/api/admin/tip-risk-replay'
+      preLoaderRoute: typeof ApiAdminTipRiskReplayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cron/ledger-anchor': {
       id: '/api/cron/ledger-anchor'
       path: '/api/cron/ledger-anchor'
@@ -912,6 +932,7 @@ const rootRouteChildren: RootRouteChildren = {
   LabShopRoute: LabShopRoute,
   TipIdRoute: TipIdRoute,
   ApiAdminTipReviewsRoute: ApiAdminTipReviewsRoute,
+  ApiAdminTipRiskReplayRoute: ApiAdminTipRiskReplayRoute,
   ApiCronLedgerAnchorRoute: ApiCronLedgerAnchorRoute,
   ApiCronTipRiskSweepRoute: ApiCronTipRiskSweepRoute,
   ApiLedgerExportRoute: ApiLedgerExportRoute,

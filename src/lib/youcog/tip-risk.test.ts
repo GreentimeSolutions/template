@@ -175,8 +175,8 @@ test("points-only hold: low followers, follow ratio, burst", () => {
 // Integration with PGlite
 
 async function addClaim(sql: AnonTipsSql, o: { fid: number | null; address: string; amount: number; ip?: string; day?: string }) {
-  await sql`insert into faucet_claims (day, address, ip_hash, amount, fid, status)
-    values (${o.day ?? "2026-11-08"}, ${o.address}, ${o.ip ?? `test:${Math.random()}`}, ${o.amount}, ${o.fid}, 'sent')`;
+  await sql`insert into faucet_claims (day, address, ip_hash, amount, fid, status, created_at)
+    values (${o.day ?? "2026-11-08"}, ${o.address}, ${o.ip ?? `test:${Math.random()}`}, ${o.amount}, ${o.fid}, 'sent', ${new Date(NOW - DAY).toISOString()}::timestamptz)`;
 }
 
 const SMALL = { min: 100, max: 10_000, dailyCountCap: 5, dailyAmountCap: 20_000, pointsPerHundred: 1, suggested: [100] };

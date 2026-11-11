@@ -127,6 +127,8 @@ export async function riskHistory(
   },
 ): Promise<TipRiskInput["history"]> {
   const ex = q.excludeTipId ?? -1;
+  // Only history up to "now" (matters when replaying past tips; a no-op for live checks).
+  const until = new Date(q.nowMs).toISOString();
   const ago = (days: number) => new Date(q.nowMs - days * 86_400_000).toISOString();
   const dayStart = utcDayStart(q.nowMs);
   const one = async (p: Promise<{ n: string; a?: string }[]>) => {
@@ -136,22 +138,22 @@ export async function riskHistory(
   const reciprocal = await one(sql`
     select count(*)::text as n from anon_tips
     where sender_fid = ${q.recipientFid} and recipient_fid = ${q.senderFid} and status = any(${COUNTED})
-      and created_at >= ${ago(q.config.reciprocalDays)}::timestamptz and id <> ${ex}`);
+      and created_at >= ${ago(q.config.reciprocalDays)}::timestamptz and id <> ${ex} and created_at <= ${until}::timestamptz`);
   const pair = await one(sql`
     select count(*)::text as n from anon_tips
     where sender_fid = ${q.senderFid} and recipient_fid = ${q.recipientFid} and status = any(${COUNTED})
-      and created_at >= ${ago(q.config.pairRepeatDays)}::timestamptz and id <> ${ex}`);
+      and created_at >= ${ago(q.config.pairRepeatDays)}::timestamptz and id <> ${ex} and created_at <= ${until}::timestamptz`);
   const recipientToday = await one(sql`
     select count(*)::text as n, coalesce(sum(amount), 0)::text as a from anon_tips
     where recipient_fid = ${q.recipientFid} and status = any(${COUNTED})
-      and created_at >= ${dayStart}::timestamptz and id <> ${ex}`);
+      and created_at >= ${dayStart}::timestamptz and id <> ${ex} and created_at <= ${until}::timestamptz`);
   const globalToday = await one(sql`
     select count(*)::text as n, coalesce(sum(amount), 0)::text as a from anon_tips
-    where status = any(${COUNTED}) and created_at >= ${dayStart}::timestamptz and id <> ${ex}`);
+    where status = any(${COUNTED}) and created_at >= ${dayStart}::timestamptz and id <> ${ex} and created_at <= ${until}::timestamptz`);
   const burst = await one(sql`
     select count(*)::text as n from anon_tips
     where sender_fid = ${q.senderFid} and status = any(${COUNTED})
-      and created_at >= ${new Date(q.nowMs - 3_600_000).toISOString()}::timestamptz and id <> ${ex}`);
+      and created_at >= ${new Date(q.nowMs - 3_600_000).toISOString()}::timestamptz and id <> ${ex} and created_at <= ${until}::timestamptz`);
 
   const payout = q.recipientPayout.toLowerCase();
   const senderAddrs = q.senderAddresses.map((a) => a.toLowerCase());
@@ -159,10 +161,10 @@ export async function riskHistory(
 
   const payoutClaims = await one(sql`
     select count(*)::text as n from faucet_claims
-    where lower(address) = ${payout} and (fid = ${q.senderFid} or (fid is null and lower(address) = any(${senderAddrs})))`);
+    where lower(address) = ${payout} and (fid = ${q.senderFid} or (fid is null and lower(address) = any(${senderAddrs}))) and created_at <= ${until}::timestamptz`);
   const reuse = await one(sql`
     select count(*)::text as n from faucet_claims
-    where lower(address) = any(${recipientAddrs}) and fid is not null and fid <> ${q.recipientFid}`);
+    where lower(address) = any(${recipientAddrs}) and fid is not null and fid <> ${q.recipientFid} and created_at <= ${until}::timestamptz`);
   const sharedIp = await one(sql`
     select count(*)::text as n from (
       select ip_hash from faucet_claims
