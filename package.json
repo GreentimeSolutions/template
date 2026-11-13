@@ -30,7 +30,8 @@
     "test:shop": "node --import jiti/register --test src/lib/youcog/shop-verify.test.ts src/lib/youcog/quest-unlocks.test.ts",
     "test:tip-risk": "node --experimental-strip-types --test src/lib/youcog/tip-risk.test.ts",
     "test:ledger": "node --experimental-strip-types --test src/lib/youcog/ledger.test.ts",
-    "ledger:verify": "node scripts/ledger-verify.mjs"
+    "ledger:verify": "node scripts/ledger-verify.mjs",
+    "test:streak-timeline": "node --experimental-strip-types --test src/lib/youcog/streak-timeline.test.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",

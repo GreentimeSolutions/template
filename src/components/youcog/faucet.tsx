@@ -11,9 +11,10 @@ import { LISTEN_BONUS_AMOUNT } from "@/constants/listen";
 import { FAUCET_CLAIM_FALLBACK_YOUCOG } from "@/constants/faucet";
 import { forgeClaimEnabled, forgeClaimResolve, forgeClaimStart } from "@/lib/youcog/forge-claim";
 import { SaveBonus } from "@/components/youcog/save-bonus";
-import { STREAK_BONUS_EVERY, streakBadge } from "@/lib/youcog/streak-core";
-import { flameTier, lastKnownStreak, rememberStreak, streakFlamesEnabled, streakLevelUp, streakTransition, tierName } from "@/lib/youcog/streak-flames";
-import { StreakFlame } from "@/components/youcog/streak-flames";
+import { STREAK_BONUS_EVERY } from "@/lib/youcog/streak-core";
+import { lastKnownStreak, rememberStreak, streakFlamesEnabled, streakLevelUp, streakTransition } from "@/lib/youcog/streak-flames";
+import { StreakCounter } from "@/components/youcog/streak-counter";
+import { StreakTimelineButton } from "@/components/youcog/streak-timeline";
 import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_RATE_LABEL } from "@/constants/ycurv-bonus";
 
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number; streakBonus?: boolean };
@@ -224,6 +225,7 @@ export function Faucet() {
         </p>
       ) : null}
       {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} flameKey={fc ? "fc" : recipient} /> : null}
+      {fc ? <StreakTimelineButton flameKey="fc" refreshKey={claims} /> : null}
       {visible ? <SaveBonus fc={fc} address={recipient} refreshKey={claims} /> : null}
       <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
@@ -332,54 +334,5 @@ export function Faucet() {
         </p>
       ) : null}
     </section>
-  );
-}
-
-/** "Day 6 of 7" counter with seven pips; the 7th pip is the 3x day. */
-function StreakCounter({ streak, flameKey }: { streak: Streak; flameKey: string }) {
-  const badge = streakBadge(streak);
-  const flames = streakFlamesEnabled();
-  const tier = flameTier(streak.streak);
-  const wasReset = flames && streak.streak === 0 && !streak.claimedToday && lastKnownStreak(flameKey) >= 2;
-  return (
-    <div
-      data-testid="streak"
-      className={`mt-2 rounded-seal border px-3 py-2 ${badge.bonusNow ? "border-accent bg-accent/10" : "border-line"}`}
-    >
-      {flames ? (
-        <div className="flex items-center gap-2">
-          {tier ? <StreakFlame streak={streak.streak} tier={tier} size={40} /> : null}
-          <p className="text-sm text-ink">
-            {wasReset ? "Streak reset. Start a new flame today." : `${streak.streak}-day streak`}
-            {streak.claimedToday ? " · claimed today" : ""}
-            {tier ? <span className="block text-[10px] tracking-widest text-mist">{tierName(tier)}</span> : null}
-          </p>
-        </div>
-      ) : (
-        <p className="text-sm text-ink">
-          🔥 {streak.streak}-day streak{streak.claimedToday ? " · claimed today" : ""}
-        </p>
-      )}
-      <div className="mt-1.5 flex items-center gap-1" aria-hidden="true">
-        {Array.from({ length: STREAK_BONUS_EVERY }, (_, i) => {
-          const filled = i < (streak.claimedToday ? badge.day : badge.day - 1);
-          const isToday = !streak.claimedToday && i === badge.day - 1;
-          const last = i === STREAK_BONUS_EVERY - 1;
-          return (
-            <span
-              key={i}
-              className={`flex h-6 flex-1 items-center justify-center rounded-full text-[10px] font-semibold ${
-                filled ? "bg-accent text-accent-fg" : isToday ? "border border-accent text-ink" : "border border-line text-faint"
-              }`}
-            >
-              {last ? "3x" : i + 1}
-            </span>
-          );
-        })}
-      </div>
-      <p data-testid="streak-label" className={`mt-1.5 text-xs ${badge.bonusNow ? "font-semibold text-ink" : "text-mist"}`}>
-        {badge.label}
-      </p>
-    </div>
   );
 }

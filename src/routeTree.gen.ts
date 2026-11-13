@@ -39,6 +39,7 @@ import { Route as ApiSaveBonusRouteImport } from './routes/api/save-bonus'
 import { Route as ApiShopRouteImport } from './routes/api/shop'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as ApiStreakRouteImport } from './routes/api/streak'
+import { Route as ApiStreakTimelineRouteImport } from './routes/api/streak-timeline'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 import { Route as LabShopRouteImport } from './routes/lab_.shop'
@@ -204,6 +205,11 @@ const ApiStreakRoute = ApiStreakRouteImport.update({
   path: '/api/streak',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStreakTimelineRoute = ApiStreakTimelineRouteImport.update({
+  id: '/api/streak-timeline',
+  path: '/api/streak-timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTipRoute = ApiTipRouteImport.update({
   id: '/api/tip',
   path: '/api/tip',
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
+  '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
+  '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab/shop': typeof LabShopRoute
@@ -392,6 +400,7 @@ export interface FileRoutesById {
   '/api/shop': typeof ApiShopRoute
   '/api/stats': typeof ApiStatsRoute
   '/api/streak': typeof ApiStreakRoute
+  '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
   '/lab_/shop': typeof LabShopRoute
@@ -439,6 +448,7 @@ export interface FileRouteTypes {
     | '/api/shop'
     | '/api/stats'
     | '/api/streak'
+    | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
     | '/lab/shop'
@@ -484,6 +494,7 @@ export interface FileRouteTypes {
     | '/api/shop'
     | '/api/stats'
     | '/api/streak'
+    | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
     | '/lab/shop'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/shop'
     | '/api/stats'
     | '/api/streak'
+    | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
     | '/lab_/shop'
@@ -575,6 +587,7 @@ export interface RootRouteChildren {
   ApiShopRoute: typeof ApiShopRoute
   ApiStatsRoute: typeof ApiStatsRoute
   ApiStreakRoute: typeof ApiStreakRoute
+  ApiStreakTimelineRoute: typeof ApiStreakTimelineRoute
   ApiTipRoute: typeof ApiTipRoute
   ApiTtsRoute: typeof ApiTtsRoute
   LabShopRoute: typeof LabShopRoute
@@ -802,6 +815,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStreakRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/streak-timeline': {
+      id: '/api/streak-timeline'
+      path: '/api/streak-timeline'
+      fullPath: '/api/streak-timeline'
+      preLoaderRoute: typeof ApiStreakTimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/tip': {
       id: '/api/tip'
       path: '/api/tip'
@@ -927,6 +947,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiShopRoute: ApiShopRoute,
   ApiStatsRoute: ApiStatsRoute,
   ApiStreakRoute: ApiStreakRoute,
+  ApiStreakTimelineRoute: ApiStreakTimelineRoute,
   ApiTipRoute: ApiTipRoute,
   ApiTtsRoute: ApiTtsRoute,
   LabShopRoute: LabShopRoute,
