@@ -110,74 +110,76 @@ function StreakTimelineSheet({ flameKey }: { flameKey: string }) {
 
   return (
     <Dialog.Portal>
-      <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]" />
+      <Dialog.Overlay className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px]" />
       <Dialog.Content
         data-testid="streak-timeline"
         aria-describedby={undefined}
         className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-md px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:bottom-6"
       >
         {/* Inner card: .bg-panel.rounded-panel adds the cobweb corners (and position: relative), so it can't be the fixed element. */}
-        <div className="flex max-h-[88dvh] flex-col overflow-hidden rounded-panel border border-line bg-panel p-4">
-          <div className="flex items-start justify-between gap-2">
-            <Dialog.Title className="font-spooky text-xl tracking-wide text-ink">
-              Your streak &amp; tips 👻
-            </Dialog.Title>
-            <Dialog.Close
-              className="press -mr-1 -mt-1 inline-flex h-8 w-8 items-center justify-center rounded-seal text-mist"
-              aria-label="Close"
-            >
-              ✕
-            </Dialog.Close>
-          </div>
-          <div className="-mx-1 mt-1 min-h-0 flex-1 overflow-y-auto px-1">
-            {streak ? (
-              <StreakCounter streak={streak} flameKey={flameKey} />
-            ) : null}
-            {events.length ? (
-              <ol className="mt-3.5" aria-label="Your recent claims and tips">
-                {events.map((e, i) => (
-                  <TimelineItem
-                    key={e.id}
-                    event={e}
-                    last={i === events.length - 1}
-                  />
-                ))}
-              </ol>
-            ) : !busy && !error ? (
-              <p className="mt-4 text-sm text-mist">
-                No claims or tips yet. Claim today&apos;s faucet gift to start
-                your streak.
-              </p>
-            ) : null}
-            {busy ? (
-              <p className="mt-3 text-sm text-mist" role="status">
-                Loading…
-              </p>
-            ) : null}
-            {error ? (
-              <p className="mt-3 text-sm text-danger" role="status">
-                {error}{" "}
+        <div className="rounded-panel bg-canvas">
+          <div className="flex max-h-[88dvh] flex-col overflow-hidden rounded-panel border border-line bg-panel p-4">
+            <div className="flex items-start justify-between gap-2">
+              <Dialog.Title className="font-spooky text-xl tracking-wide text-ink">
+                Your streak &amp; tips 👻
+              </Dialog.Title>
+              <Dialog.Close
+                className="press -mr-1 -mt-1 inline-flex h-8 w-8 items-center justify-center rounded-seal text-mist"
+                aria-label="Close"
+              >
+                ✕
+              </Dialog.Close>
+            </div>
+            <div className="-mx-1 mt-1 min-h-0 flex-1 overflow-y-auto px-1">
+              {streak ? (
+                <StreakCounter streak={streak} flameKey={flameKey} />
+              ) : null}
+              {events.length ? (
+                <ol className="mt-3.5" aria-label="Your recent claims and tips">
+                  {events.map((e, i) => (
+                    <TimelineItem
+                      key={e.id}
+                      event={e}
+                      last={i === events.length - 1}
+                    />
+                  ))}
+                </ol>
+              ) : !busy && !error ? (
+                <p className="mt-4 text-sm text-mist">
+                  No claims or tips yet. Claim today&apos;s faucet gift to start
+                  your streak.
+                </p>
+              ) : null}
+              {busy ? (
+                <p className="mt-3 text-sm text-mist" role="status">
+                  Loading…
+                </p>
+              ) : null}
+              {error ? (
+                <p className="mt-3 text-sm text-danger" role="status">
+                  {error}{" "}
+                  <button
+                    type="button"
+                    className="underline underline-offset-4"
+                    onClick={() => void load()}
+                  >
+                    Retry
+                  </button>
+                </p>
+              ) : null}
+              {nextBefore && !busy ? (
                 <button
                   type="button"
-                  className="underline underline-offset-4"
-                  onClick={() => void load()}
+                  onClick={() => void load(nextBefore)}
+                  className="press mt-3 inline-flex h-9 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink"
                 >
-                  Retry
+                  Show older
                 </button>
+              ) : null}
+              <p className="mt-3 text-[11px] leading-relaxed text-faint">
+                Only you can see this. Tips stay anonymous to everyone else.
               </p>
-            ) : null}
-            {nextBefore && !busy ? (
-              <button
-                type="button"
-                onClick={() => void load(nextBefore)}
-                className="press mt-3 inline-flex h-9 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink"
-              >
-                Show older
-              </button>
-            ) : null}
-            <p className="mt-3 text-[11px] leading-relaxed text-faint">
-              Only you can see this. Tips stay anonymous to everyone else.
-            </p>
+            </div>
           </div>
         </div>
       </Dialog.Content>
