@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { isLabGhostPfp, resolveGhostPfpSrc } from "@/lib/youcog/ghost-pfp";
 
 /**
  * A layer drawn over the ghost picture. Future NFT accessories or upgrades
@@ -21,21 +22,28 @@ export function GhostAvatar({
   accessories = [],
   className = "",
   imgClassName = "",
+  /** Integer pixel scale for Lab portraits (6 = 192px in the size-52 home card). */
+  px = 6,
 }: {
   src?: string | null;
   alt?: string;
   accessories?: GhostAccessory[];
   className?: string;
   imgClassName?: string;
+  px?: number;
 }) {
+  const lab = isLabGhostPfp(src);
   const custom = Boolean(src);
+  const resolved = lab ? resolveGhostPfpSrc(src, px) : (src || DEFAULT_GHOST_SRC);
   return (
-    <span className={`ghost-avatar ${className}`}>
+    <span className={`ghost-avatar ${lab ? "ghost-avatar-lab" : ""} ${className}`} data-lab-ghost={lab || undefined}>
       <img
-        src={src || DEFAULT_GHOST_SRC}
-        alt={custom ? "Your ghost picture" : alt}
+        src={resolved || DEFAULT_GHOST_SRC}
+        alt={lab || custom ? "Your ghost picture" : alt}
         draggable={false}
-        className={`size-full ${custom ? "object-cover" : "object-contain"} ${imgClassName}`}
+        width={lab ? 32 * px : undefined}
+        height={lab ? 32 * px : undefined}
+        className={`size-full ${lab ? "ghost-avatar-lab-img" : custom ? "object-cover" : "object-contain"} ${imgClassName}`}
       />
       {accessories.map((a) => (
         <img

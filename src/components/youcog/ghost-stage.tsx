@@ -415,7 +415,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
       ) : null}
       <div className="home-hero">
       <div className="home-hero-top">
-        <div className="relative shrink-0">
+        <div className="ghost-card-wrap relative shrink-0">
           <button
             ref={ghostRef}
             type="button"
@@ -429,6 +429,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             <GhostAvatar
               key={wiggle}
               src={pfp}
+              px={small ? 4 : 6}
               className={`${size} ${wiggle ? "ghost-wiggle" : ""}`}
             />
           </button>

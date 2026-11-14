@@ -3,11 +3,11 @@
  * Trait encoding mirrors YoucogGhosts.sol: slots 0 hat, 1 shades, 2 sheet, 3 aura, 4 trail, 5 prop;
  * value 0 = none/default, k = k-th item of that category in COSMETICS order (gen/gen.ts @22c3bca).
  */
-import { COSMETICS, type Category, type Outfit } from "./ghost-wardrobe";
+import { ALL_COSMETICS, COSMETICS, isContestId, type Category, type Outfit } from "./ghost-wardrobe";
 
 /** Equip or unequip a cosmetic for a local try-on. Ownership is not required. */
 export function toggleOutfitItem(outfit: Outfit, id: string): Outfit {
-  const c = COSMETICS.find((x) => x.id === id);
+  const c = ALL_COSMETICS.find((x) => x.id === id);
   if (!c) return outfit;
   if (outfit[c.cat] === id) {
     const next = { ...outfit };
@@ -29,6 +29,7 @@ export function outfitToTraits(o: Outfit): number[] {
   return SLOT_ORDER.map((k) => {
     const id = o[k];
     if (!id) return 0;
+    if (isContestId(id)) throw new Error(`Contest-only ${k} cannot be minted`);
     const i = itemsOf(k).findIndex((c) => c.id === id);
     if (i < 0) throw new Error(`Unknown ${k} item: ${id}`);
     return i + 1;
@@ -117,4 +118,81 @@ export function decodeTokenUri(uri: string): { name: string; image: string } {
   const json = typeof atob === "function" ? atob(uri.slice(p.length)) : Buffer.from(uri.slice(p.length), "base64").toString("utf8");
   const j = JSON.parse(json) as { name: string; image: string };
   return { name: j.name, image: j.image };
+}
+
+
+export const WEAR_SLOTS: Category[] = [...SLOT_ORDER, "bg"];
+
+/** True if the outfit includes any off-chain contest item (including a backdrop). */
+export function hasContestItems(o: Outfit): boolean {
+  return WEAR_SLOTS.some((k) => isContestId(o[k]));
+}
+
+/** Drop contest-only items; on-chain pieces stay. */
+export function stripContestItems(o: Outfit): Outfit {
+  const next: Outfit = { ...o };
+  for (const k of WEAR_SLOTS) {
+    if (isContestId(next[k])) delete next[k];
+  }
+  return next;
+}
+
+/** Parse `1,1,1,0,0,0` or `1-1-1-0-0-0` into on-chain trait values, or null if invalid. */
+export function parseTraitsParam(raw: string | null | undefined): number[] | null {
+  if (!raw) return null;
+  const parts = raw.trim().split(/[,\-]/);
+  if (parts.length !== CONTRACT_SLOT_COUNTS.length) return null;
+  const t: number[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    if (!/^\d+$/.test(parts[i])) return null;
+    const n = Number(parts[i]);
+    if (!Number.isInteger(n) || n < 0 || n > CONTRACT_SLOT_COUNTS[i]) return null;
+    t.push(n);
+  }
+  return t;
+}
+
+/** Comma-separated cosmetic ids, one per worn slot. Unknown or duplicate categories -> null. */
+export function parseWearParam(raw: string | null | undefined): Outfit | null {
+  if (!raw || !raw.trim()) return null;
+  const ids = raw.split(",").map((s) => s.trim()).filter(Boolean);
+  const o: Outfit = {};
+  for (const id of ids) {
+    const c = ALL_COSMETICS.find((x) => x.id === id);
+    if (!c) return null;
+    if (o[c.cat]) return null;
+    o[c.cat] = id;
+  }
+  return o;
+}
+
+export function wearFromOutfit(o: Outfit): string {
+  return WEAR_SLOTS.map((k) => o[k]).filter(Boolean).join(",");
+}
+
+/** Compact pfp / URL encoding: `traits:1,1,1,0,0,0` when mintable, otherwise `wear:id,id`. */
+export function encodeLabOutfit(o: Outfit): string {
+  if (!hasContestItems(o)) return `traits:${outfitToTraits(o).join(",")}`;
+  return `wear:${wearFromOutfit(o)}`;
+}
+
+export function decodeLabOutfit(value: string | null | undefined): Outfit | null {
+  if (!value) return null;
+  if (value.startsWith("traits:")) {
+    const t = parseTraitsParam(value.slice("traits:".length));
+    return t ? traitsToOutfit(t) : null;
+  }
+  if (value.startsWith("wear:")) return parseWearParam(value.slice("wear:".length));
+  // bare traits query or wear list
+  const t = parseTraitsParam(value);
+  if (t) return traitsToOutfit(t);
+  return parseWearParam(value);
+}
+
+export function labGhostPath(o: Outfit, px?: number): string {
+  const q = new URLSearchParams();
+  if (hasContestItems(o)) q.set("wear", wearFromOutfit(o));
+  else q.set("traits", outfitToTraits(o).join(","));
+  if (px && px !== 16) q.set("px", String(px));
+  return `/api/ghost-image?${q}`;
 }

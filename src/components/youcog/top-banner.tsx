@@ -1,4 +1,4 @@
-import { useGhostPfp } from "@/lib/youcog/ghost-pfp";
+import { isLabGhostPfp, resolveGhostPfpSrc, useGhostPfp } from "@/lib/youcog/ghost-pfp";
 
 /** Small animated spy ghost (same shapes as public/favicon.svg). */
 function BannerGhost() {
@@ -6,7 +6,11 @@ function BannerGhost() {
   return (
     <span className="banner-ghost" aria-hidden="true">
       {pfp ? (
-        <img src={pfp} alt="" className="size-full rounded-[10px] object-cover" />
+        <img
+          src={resolveGhostPfpSrc(pfp, 2) ?? pfp}
+          alt=""
+          className={`size-full rounded-[10px] ${isLabGhostPfp(pfp) ? "object-contain ghost-avatar-lab-img" : "object-cover"}`}
+        />
       ) : (
         <svg viewBox="0 0 32 32" className="size-full">
           <path

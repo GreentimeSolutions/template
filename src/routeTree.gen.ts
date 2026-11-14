@@ -28,6 +28,7 @@ import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
+import { Route as ApiGhostImageRouteImport } from './routes/api/ghost-image'
 import { Route as ApiGhostsSupplyRouteImport } from './routes/api/ghosts-supply'
 import { Route as ApiHolderRouteImport } from './routes/api/holder'
 import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
@@ -149,6 +150,11 @@ const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
 const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
   id: '/api/fid-claim',
   path: '/api/fid-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGhostImageRoute = ApiGhostImageRouteImport.update({
+  id: '/api/ghost-image',
+  path: '/api/ghost-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGhostsSupplyRoute = ApiGhostsSupplyRouteImport.update({
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghost-image': typeof ApiGhostImageRoute
   '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -349,6 +356,7 @@ export interface FileRoutesByTo {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghost-image': typeof ApiGhostImageRoute
   '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghost-image': typeof ApiGhostImageRoute
   '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghost-image'
     | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -493,6 +503,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghost-image'
     | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -540,6 +551,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghost-image'
     | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
@@ -588,6 +600,7 @@ export interface RootRouteChildren {
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
+  ApiGhostImageRoute: typeof ApiGhostImageRoute
   ApiGhostsSupplyRoute: typeof ApiGhostsSupplyRoute
   ApiHolderRoute: typeof ApiHolderRoute
   ApiHolderNonceRoute: typeof ApiHolderNonceRoute
@@ -749,6 +762,13 @@ declare module '@tanstack/react-router' {
       path: '/api/fid-claim'
       fullPath: '/api/fid-claim'
       preLoaderRoute: typeof ApiFidClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ghost-image': {
+      id: '/api/ghost-image'
+      path: '/api/ghost-image'
+      fullPath: '/api/ghost-image'
+      preLoaderRoute: typeof ApiGhostImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ghosts-supply': {
@@ -956,6 +976,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeepMissionRoute: ApiDeepMissionRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
+  ApiGhostImageRoute: ApiGhostImageRoute,
   ApiGhostsSupplyRoute: ApiGhostsSupplyRoute,
   ApiHolderRoute: ApiHolderRoute,
   ApiHolderNonceRoute: ApiHolderNonceRoute,
@@ -986,12 +1007,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
