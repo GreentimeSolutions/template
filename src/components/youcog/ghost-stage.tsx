@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, ty
 import { Pause, Pencil, Play } from "lucide-react";
 import {
   DEEP_MISSION_THUMB,
-  FAUCET_THUMB, YCURV_THUMB,
+  FAUCET_THUMB, MINT_GHOST_THUMB, YCURV_THUMB,
   GAME_THUMB,
   GAME_URL,
   SOUNDTRACK_THUMB,
@@ -19,7 +19,7 @@ import { useMiniApp } from "@/lib/youcog/use-miniapp";
 
 export const OPEN_FAUCET_EVENT = "youcog:open-faucet";
 
-type TipTarget = "deep" | "faucet" | "game" | "music" | "burn" | "rcst" | "short" | "ycurv";
+type TipTarget = "deep" | "faucet" | "game" | "music" | "burn" | "rcst" | "short" | "ycurv" | "lab";
 type Slide = { kind: "tip"; text: string; target: TipTarget } | { kind: "buy"; text: string };
 type Buy = { tokens: number; usd: number; from: string; at: string };
 
@@ -145,33 +145,56 @@ function goTo(target: TipTarget, inMiniApp: boolean) {
   glow(el);
 }
 
+function useGhostsLeft() {
+  const [left, setLeft] = useState<number | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch("/api/ghosts-supply")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: { left?: unknown }) => {
+        if (live && typeof d?.left === "number" && Number.isFinite(d.left)) setLeft(d.left);
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+  return left;
+}
+
 function GridTile({
   target,
   thumb,
   label,
+  sublabel,
   onClick,
   className = "",
   badge,
   ariaLabel,
+  testId,
 }: {
   target: TipTarget;
   thumb: string;
   label: string;
+  sublabel?: string;
   onClick: () => void;
   className?: string;
   badge?: ReactNode;
   ariaLabel?: string;
+  testId?: string;
 }) {
   return (
     <button
       type="button"
       data-tip-target={target}
+      data-testid={testId}
       aria-label={ariaLabel ?? label}
       className={`grid-tile press ${className}`}
       onClick={onClick}
     >
       <img src={thumb} alt="" draggable={false} className="size-full object-cover" />
-      <span className="grid-tile-label">{label}</span>
+      <span className="grid-tile-label">
+        {label}
+        {sublabel ? <span className="mt-0.5 block text-[0.7rem] font-medium leading-tight opacity-90">{sublabel}</span> : null}
+      </span>
       {badge}
     </button>
   );
@@ -245,6 +268,7 @@ function ChangeGhostMenu({ onClose }: { onClose: () => void }) {
 
 /** Home hero: interactive ghost with a speech-bubble slideshow, plus the quick-tile grid. */
 export function GhostStage({ compact: small = false }: { compact?: boolean }) {
+  const mintLeft = useGhostsLeft();
   const miniApp = useMiniApp();
   const music = useSoundtrack();
   const pfp = useGhostPfp();
@@ -415,6 +439,15 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             label="Faucet"
             ariaLabel="Open the daily YOUCOG faucet"
             onClick={() => goTo("faucet", miniApp.inMiniApp)}
+          />
+          <GridTile
+            target="lab"
+            thumb={MINT_GHOST_THUMB}
+            label="Mint"
+            sublabel={mintLeft != null ? `${mintLeft.toLocaleString()} left` : undefined}
+            ariaLabel={mintLeft != null ? `Mint a ghost, ${mintLeft.toLocaleString()} mints left` : "Mint a ghost"}
+            testId="home-mint-ghost"
+            onClick={() => { location.href = "/lab"; }}
           />
           <GridTile
             target="ycurv"

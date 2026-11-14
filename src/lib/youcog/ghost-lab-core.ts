@@ -57,6 +57,9 @@ export function labStatus(c: LabChain): LabStatus {
 export const publicLeft = (c: Pick<LabChain, "totalSupply" | "reserveMinted">) =>
   Math.max(0, MAX_SUPPLY - c.totalSupply - (OWNER_RESERVE - c.reserveMinted));
 
+/** Mints still available: max supply minus minted (floored at 0). */
+export const mintsLeft = (max: number, minted: number) => Math.max(0, max - minted);
+
 /** Free mints still available: freeUntil - totalSupply (floored at 0). */
 export const freeLeft = (freeUntil: number, totalSupply: number) =>
   Math.max(0, freeUntil - totalSupply);

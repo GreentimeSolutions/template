@@ -40,3 +40,4 @@ export const PROJECT_WALLETS = [
   "0xa959d8eeded6fb440ca584d1e87e581168bbf628", // donations
 ];
 export const YCURV_THUMB = "/ycurv-thumb.webp";
+export const MINT_GHOST_THUMB = "/mint-ghost-thumb.webp";

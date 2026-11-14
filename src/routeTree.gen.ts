@@ -28,6 +28,7 @@ import { Route as ApiBuysRouteImport } from './routes/api/buys'
 import { Route as ApiDeepMissionRouteImport } from './routes/api/deep-mission'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiFidClaimRouteImport } from './routes/api/fid-claim'
+import { Route as ApiGhostsSupplyRouteImport } from './routes/api/ghosts-supply'
 import { Route as ApiHolderRouteImport } from './routes/api/holder'
 import { Route as ApiHolderNonceRouteImport } from './routes/api/holder-nonce'
 import { Route as ApiHolderVerifyRouteImport } from './routes/api/holder-verify'
@@ -148,6 +149,11 @@ const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
 const ApiFidClaimRoute = ApiFidClaimRouteImport.update({
   id: '/api/fid-claim',
   path: '/api/fid-claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGhostsSupplyRoute = ApiGhostsSupplyRouteImport.update({
+  id: '/api/ghosts-supply',
+  path: '/api/ghosts-supply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHolderRoute = ApiHolderRouteImport.update({
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
@@ -342,6 +349,7 @@ export interface FileRoutesByTo {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
@@ -389,6 +397,7 @@ export interface FileRoutesById {
   '/api/deep-mission': typeof ApiDeepMissionRoute
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/fid-claim': typeof ApiFidClaimRoute
+  '/api/ghosts-supply': typeof ApiGhostsSupplyRoute
   '/api/holder': typeof ApiHolderRoute
   '/api/holder-nonce': typeof ApiHolderNonceRoute
   '/api/holder-verify': typeof ApiHolderVerifyRoute
@@ -437,6 +446,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/deep-mission'
     | '/api/feedback'
     | '/api/fid-claim'
+    | '/api/ghosts-supply'
     | '/api/holder'
     | '/api/holder-nonce'
     | '/api/holder-verify'
@@ -576,6 +588,7 @@ export interface RootRouteChildren {
   ApiDeepMissionRoute: typeof ApiDeepMissionRoute
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiFidClaimRoute: typeof ApiFidClaimRoute
+  ApiGhostsSupplyRoute: typeof ApiGhostsSupplyRoute
   ApiHolderRoute: typeof ApiHolderRoute
   ApiHolderNonceRoute: typeof ApiHolderNonceRoute
   ApiHolderVerifyRoute: typeof ApiHolderVerifyRoute
@@ -736,6 +749,13 @@ declare module '@tanstack/react-router' {
       path: '/api/fid-claim'
       fullPath: '/api/fid-claim'
       preLoaderRoute: typeof ApiFidClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ghosts-supply': {
+      id: '/api/ghosts-supply'
+      path: '/api/ghosts-supply'
+      fullPath: '/api/ghosts-supply'
+      preLoaderRoute: typeof ApiGhostsSupplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/holder': {
@@ -936,6 +956,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeepMissionRoute: ApiDeepMissionRoute,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiFidClaimRoute: ApiFidClaimRoute,
+  ApiGhostsSupplyRoute: ApiGhostsSupplyRoute,
   ApiHolderRoute: ApiHolderRoute,
   ApiHolderNonceRoute: ApiHolderNonceRoute,
   ApiHolderVerifyRoute: ApiHolderVerifyRoute,
