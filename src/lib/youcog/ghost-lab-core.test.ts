@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, freeLeft, decodeTokenUri } from "./ghost-lab-core";
+import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, freeLeft, decodeTokenUri, toggleOutfitItem } from "./ghost-lab-core";
 import { DEFAULT_OUTFIT, COSMETICS } from "./ghost-wardrobe";
 
 test("every wardrobe item maps to an on-chain trait (counts match contract)", () => {
@@ -33,4 +33,12 @@ test("decodes tokenURI", () => {
   const j = JSON.stringify({ name: "Youcognito Ghost #2", image: "data:image/svg+xml;base64,AA==" });
   const u = "data:application/json;base64," + Buffer.from(j).toString("base64");
   assert.equal(decodeTokenUri(u).name, "Youcognito Ghost #2");
+});
+
+test("try-on equips and unequips without ownership", () => {
+  const on = toggleOutfitItem({}, "crown");
+  assert.equal(on.hat, "crown");
+  const off = toggleOutfitItem(on, "crown");
+  assert.equal(off.hat, undefined);
+  assert.deepEqual(toggleOutfitItem({}, "not-a-real-item"), {});
 });

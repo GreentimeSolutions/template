@@ -5,6 +5,18 @@
  */
 import { COSMETICS, type Category, type Outfit } from "./ghost-wardrobe";
 
+/** Equip or unequip a cosmetic for a local try-on. Ownership is not required. */
+export function toggleOutfitItem(outfit: Outfit, id: string): Outfit {
+  const c = COSMETICS.find((x) => x.id === id);
+  if (!c) return outfit;
+  if (outfit[c.cat] === id) {
+    const next = { ...outfit };
+    delete next[c.cat];
+    return next;
+  }
+  return { ...outfit, [c.cat]: id };
+}
+
 export const SLOT_ORDER: Category[] = ["hat", "shades", "skin", "aura", "trail", "prop"];
 /** On-chain option counts per slot; must equal the contract's GhostRenderer.slotCount. */
 export const CONTRACT_SLOT_COUNTS = [9, 7, 6, 5, 5, 6] as const;

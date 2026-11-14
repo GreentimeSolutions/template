@@ -211,6 +211,18 @@ function ChangeGhostMenu({ onClose }: { onClose: () => void }) {
           Use my Farcaster pfp
         </button>
       ) : null}
+      <button
+        type="button"
+        role="menuitem"
+        className="ghost-menu-item"
+        data-testid="open-ghost-lab"
+        onClick={() => {
+          onClose();
+          location.href = "/lab";
+        }}
+      >
+        Customize / Ghost Lab
+      </button>
       <button type="button" role="menuitem" className="ghost-menu-item" onClick={() => fileRef.current?.click()}>
         Upload a picture
       </button>
