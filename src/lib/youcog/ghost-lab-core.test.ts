@@ -46,19 +46,16 @@ test("try-on equips and unequips without ownership", () => {
   assert.deepEqual(toggleOutfitItem({}, "not-a-real-item"), {});
 });
 
-test("mint tile copy: free window, paid price, and fallback", () => {
-  const free = ghostsMintLines({ minted: 1, max: 1000, left: 999, freeUntil: 100, freeLeft: 99, priceWei: "0" });
-  assert.deepEqual(free, { ok: true, remaining: "999/1000", freeLine: "99 free mints left", feeLine: "Just pay a small gas fee", priceLine: null });
+test("mint tile copy: gas when price is 0, paid price, and fallback", () => {
+  const gas = ghostsMintLines({ minted: 1, max: 1000, left: 999, freeUntil: 100, freeLeft: 99, priceWei: "0" });
+  assert.deepEqual(gas, { ok: true, remaining: "999/1000", feeLine: "Just pay a small gas fee", priceLine: null });
   const paid = ghostsMintLines({ minted: 100, max: 1000, left: 900, freeUntil: 100, freeLeft: 0, priceWei: (10n ** 18n * 2500n).toString() });
   assert.equal(paid.ok, true);
   if (paid.ok) {
     assert.equal(paid.remaining, "900/1000");
-    assert.equal(paid.freeLine, null);
     assert.equal(paid.feeLine, null);
     assert.equal(paid.priceLine, "2,500 YOUCOG");
   }
   assert.equal(formatYoucogPrice(0n), "Free (gas only)");
-  const zeroPaid = ghostsMintLines({ minted: 100, max: 1000, left: 900, freeUntil: 100, freeLeft: 0, priceWei: "0" });
-  assert.equal(zeroPaid.ok && zeroPaid.priceLine, "Free (gas only)");
   assert.deepEqual(ghostsMintLines(null), { ok: false });
 });

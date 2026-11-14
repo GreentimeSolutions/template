@@ -186,7 +186,6 @@ function MintGhostTile({ supply }: { supply: GhostsSupplyJson | null }) {
         {lines.ok ? (
           <>
             <span className="home-mint-count">{lines.remaining}</span>
-            {lines.freeLine ? <span className="home-mint-line">{lines.freeLine}</span> : null}
             {lines.feeLine ? <span className="home-mint-line">{lines.feeLine}</span> : null}
             {lines.priceLine ? <span className="home-mint-line">{lines.priceLine}</span> : null}
           </>

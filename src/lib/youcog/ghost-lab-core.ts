@@ -82,36 +82,29 @@ export function formatYoucogPrice(priceWei: bigint): string {
 
 export type GhostsMintLines =
   | { ok: false }
-  | { ok: true; remaining: string; freeLine: string | null; feeLine: string | null; priceLine: string | null };
+  | { ok: true; remaining: string; feeLine: string | null; priceLine: string | null };
 
-/** Home mint-tile / card copy from a supply read. Invalid input -> fallback "Mint". */
+/** Home mint-tile copy from a supply read. Invalid input -> fallback "Mint". */
 export function ghostsMintLines(s: GhostsSupplyJson | null | undefined): GhostsMintLines {
-  if (!s || !Number.isFinite(s.max) || s.max <= 0 || !Number.isFinite(s.left) || !Number.isFinite(s.freeLeft)) {
+  if (!s || !Number.isFinite(s.max) || s.max <= 0 || !Number.isFinite(s.left)) {
     return { ok: false };
   }
   const remaining = `${s.left}/${s.max}`;
-  if (s.freeLeft > 0) {
-    return {
-      ok: true,
-      remaining,
-      freeLine: `${s.freeLeft.toLocaleString()} free mints left`,
-      feeLine: "Just pay a small gas fee",
-      priceLine: null,
-    };
-  }
   let priceWei: bigint;
   try {
     priceWei = BigInt(s.priceWei);
   } catch {
     return { ok: false };
   }
-  return { ok: true, remaining, freeLine: null, feeLine: null, priceLine: formatYoucogPrice(priceWei) };
+  if (priceWei === 0n) {
+    return { ok: true, remaining, feeLine: "Just pay a small gas fee", priceLine: null };
+  }
+  return { ok: true, remaining, feeLine: null, priceLine: formatYoucogPrice(priceWei) };
 }
 
 export function ghostsMintAria(lines: GhostsMintLines): string {
   if (!lines.ok) return "Mint a ghost";
   const parts = [`Mint a ghost, ${lines.remaining} remaining`];
-  if (lines.freeLine) parts.push(lines.freeLine);
   if (lines.feeLine) parts.push(lines.feeLine);
   if (lines.priceLine) parts.push(lines.priceLine);
   return parts.join(", ");
