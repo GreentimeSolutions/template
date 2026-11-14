@@ -179,22 +179,22 @@ function MintGhostTile({ supply }: { supply: GhostsSupplyJson | null }) {
       data-tip-target="lab"
       data-testid="home-mint-ghost"
       aria-label={ghostsMintAria(lines)}
-      className="grid-tile press grid-tile-wide"
+      className="grid-tile press home-mint"
       onClick={() => { location.href = "/lab"; }}
     >
-      <img src={MINT_GHOST_THUMB} alt="" draggable={false} className="size-full object-cover" />
-      <span className="grid-tile-mint-copy">
+      <span className="home-mint-copy">
         {lines.ok ? (
           <>
-            <span className="grid-tile-mint-count">{lines.remaining}</span>
-            {lines.freeLine ? <span className="grid-tile-mint-line">{lines.freeLine}</span> : null}
-            {lines.feeLine ? <span className="grid-tile-mint-line">{lines.feeLine}</span> : null}
-            {lines.priceLine ? <span className="grid-tile-mint-line">{lines.priceLine}</span> : null}
+            <span className="home-mint-count">{lines.remaining}</span>
+            {lines.freeLine ? <span className="home-mint-line">{lines.freeLine}</span> : null}
+            {lines.feeLine ? <span className="home-mint-line">{lines.feeLine}</span> : null}
+            {lines.priceLine ? <span className="home-mint-line">{lines.priceLine}</span> : null}
           </>
         ) : (
-          <span className="grid-tile-mint-count">Mint</span>
+          <span className="home-mint-count">Mint</span>
         )}
       </span>
+      <img src={MINT_GHOST_THUMB} alt="" draggable={false} className="home-mint-art" />
     </button>
   );
 }
@@ -414,7 +414,8 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           </span>
         </button>
       ) : null}
-      <div className="flex items-start gap-2.5">
+      <div className="home-hero">
+      <div className="home-hero-top">
         <div className="relative shrink-0">
           <button
             ref={ghostRef}
@@ -443,7 +444,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           </button>
           {menuOpen ? <ChangeGhostMenu onClose={() => setMenuOpen(false)} /> : null}
         </div>
-        <div className={`home-grid ${small ? "h-[17.5rem]" : "h-[22rem]"}`}>
+        <div className={`home-grid ${small ? "h-36" : "h-52"}`}>
           <GridTile
             target="game"
             thumb={GAME_THUMB}
@@ -479,15 +480,6 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             ariaLabel="Open the daily YOUCOG faucet"
             onClick={() => goTo("faucet", miniApp.inMiniApp)}
           />
-          <MintGhostTile supply={ghostsSupply} />
-          <GridTile
-            target="ycurv"
-            thumb={YCURV_THUMB}
-            label="YCURV"
-            ariaLabel="YCURV bonding curve on Mint Club"
-            className="grid-tile-wide"
-            onClick={() => { location.href = "/curve"; }}
-          />
           {YOUTUBE_SHORT.url ? (
             <GridTile
               target="short"
@@ -504,6 +496,16 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             />
           ) : null}
         </div>
+      </div>
+        <MintGhostTile supply={ghostsSupply} />
+        <GridTile
+          target="ycurv"
+          thumb={YCURV_THUMB}
+          label="YCURV"
+          ariaLabel="YCURV bonding curve on Mint Club"
+          className="home-ycurv"
+          onClick={() => { location.href = "/curve"; }}
+        />
       </div>
     </div>
   );
