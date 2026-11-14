@@ -433,15 +433,26 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
               className={`${size} ${wiggle ? "ghost-wiggle" : ""}`}
             />
           </button>
-          <button
-            type="button"
-            aria-label="Change ghost"
-            aria-expanded={menuOpen}
-            className="absolute top-1.5 right-1.5 z-10 grid size-8 place-items-center rounded-full border border-line-strong bg-canvas/85 text-violet-100 shadow"
-            onClick={() => setMenuOpen((o) => !o)}
-          >
-            <Pencil className="size-3.5" aria-hidden="true" />
-          </button>
+          <div className="ghost-lab-pencil">
+            <button
+              type="button"
+              data-testid="ghost-lab-cta"
+              aria-label="Open Ghost Lab"
+              className="ghost-lab-cta press"
+              onClick={() => { location.href = "/lab"; }}
+            >
+              GHOST LAB
+            </button>
+            <button
+              type="button"
+              aria-label="Change ghost"
+              aria-expanded={menuOpen}
+              className="ghost-lab-pencil-btn press"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <Pencil className="size-3.5" aria-hidden="true" />
+            </button>
+          </div>
           {menuOpen ? <ChangeGhostMenu onClose={() => setMenuOpen(false)} /> : null}
         </div>
         <div className={`home-grid ${small ? "h-36" : "h-52"}`}>
