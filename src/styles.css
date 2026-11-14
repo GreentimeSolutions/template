@@ -721,13 +721,31 @@
   border-radius: 9999px;
   background: #7c3aed;
   box-shadow: 0 0 10px rgb(167 139 250 / 0.55);
-  color: #fff;
+  color: #4c1d95;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1;
   white-space: nowrap;
-  animation: ghost-lab-pulse 1.6s ease-in-out infinite;
+}
+
+.ghost-lab-cta-text {
+  display: inline-block;
+  background-image: linear-gradient(
+    90deg,
+    #4c1d95 0%,
+    #4c1d95 38%,
+    #f5f3ff 50%,
+    #4c1d95 62%,
+    #4c1d95 100%
+  );
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: ghost-lab-shimmer 1.8s linear infinite;
 }
 
 .ghost-lab-pencil-btn {
@@ -743,15 +761,9 @@
   box-shadow: 0 0 8px rgb(0 0 0 / 0.35);
 }
 
-@keyframes ghost-lab-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgb(167 139 250 / 0.65), 0 0 10px rgb(167 139 250 / 0.5);
-    filter: brightness(1);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgb(167 139 250 / 0), 0 0 18px rgb(196 181 253 / 0.9);
-    filter: brightness(1.22);
-  }
+@keyframes ghost-lab-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -120% 0; }
 }
 
 .ghost-menu {
@@ -832,8 +844,14 @@
   .ghost-bob,
   .ghost-wiggle,
   .ghost-bubble-text,
-  .ghost-lab-cta {
+  .ghost-lab-cta-text {
     animation: none;
+  }
+
+  .ghost-lab-cta-text {
+    background-image: none;
+    color: #f5f3ff;
+    -webkit-text-fill-color: #f5f3ff;
   }
 
   .tip-glow {

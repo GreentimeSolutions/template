@@ -441,7 +441,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
               className="ghost-lab-cta press"
               onClick={() => { location.href = "/lab"; }}
             >
-              GHOST LAB
+              <span className="ghost-lab-cta-text">GHOST LAB</span>
             </button>
             <button
               type="button"
