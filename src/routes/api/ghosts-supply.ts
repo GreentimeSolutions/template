@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-/** Public, cached Ghosts mint remaining (max supply minus minted). */
+/** Public, cached Ghosts remaining, free-window, and current price. */
 export const Route = createFileRoute("/api/ghosts-supply")({
   server: {
     handlers: {

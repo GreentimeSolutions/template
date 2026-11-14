@@ -64,6 +64,59 @@ export const mintsLeft = (max: number, minted: number) => Math.max(0, max - mint
 export const freeLeft = (freeUntil: number, totalSupply: number) =>
   Math.max(0, freeUntil - totalSupply);
 
+/** JSON shape of GET /api/ghosts-supply (priceWei is a decimal string). */
+export type GhostsSupplyJson = {
+  minted: number;
+  max: number;
+  left: number;
+  freeUntil: number;
+  freeLeft: number;
+  priceWei: string;
+};
+
+/** Same YOUCOG formatting as the Ghost Lab mint button. */
+export function formatYoucogPrice(priceWei: bigint): string {
+  if (priceWei === 0n) return "Free (gas only)";
+  return `${(Number(priceWei / 10n ** 14n) / 1e4).toLocaleString()} YOUCOG`;
+}
+
+export type GhostsMintLines =
+  | { ok: false }
+  | { ok: true; remaining: string; freeLine: string | null; feeLine: string | null; priceLine: string | null };
+
+/** Home mint-tile / card copy from a supply read. Invalid input -> fallback "Mint". */
+export function ghostsMintLines(s: GhostsSupplyJson | null | undefined): GhostsMintLines {
+  if (!s || !Number.isFinite(s.max) || s.max <= 0 || !Number.isFinite(s.left) || !Number.isFinite(s.freeLeft)) {
+    return { ok: false };
+  }
+  const remaining = `${s.left}/${s.max}`;
+  if (s.freeLeft > 0) {
+    return {
+      ok: true,
+      remaining,
+      freeLine: `${s.freeLeft.toLocaleString()} free mints left`,
+      feeLine: "Just pay a small gas fee",
+      priceLine: null,
+    };
+  }
+  let priceWei: bigint;
+  try {
+    priceWei = BigInt(s.priceWei);
+  } catch {
+    return { ok: false };
+  }
+  return { ok: true, remaining, freeLine: null, feeLine: null, priceLine: formatYoucogPrice(priceWei) };
+}
+
+export function ghostsMintAria(lines: GhostsMintLines): string {
+  if (!lines.ok) return "Mint a ghost";
+  const parts = [`Mint a ghost, ${lines.remaining} remaining`];
+  if (lines.freeLine) parts.push(lines.freeLine);
+  if (lines.feeLine) parts.push(lines.feeLine);
+  if (lines.priceLine) parts.push(lines.priceLine);
+  return parts.join(", ");
+}
+
 /** tokenURI is data:application/json;base64,... with an SVG data-URI image. */
 export function decodeTokenUri(uri: string): { name: string; image: string } {
   const p = "data:application/json;base64,";

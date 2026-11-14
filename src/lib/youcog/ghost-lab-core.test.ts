@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, mintsLeft, freeLeft, decodeTokenUri, toggleOutfitItem } from "./ghost-lab-core";
+import { CONTRACT_SLOT_COUNTS, SLOT_ORDER, itemsOf, outfitToTraits, traitsToOutfit, labStatus, publicLeft, mintsLeft, freeLeft, ghostsMintLines, formatYoucogPrice, decodeTokenUri, toggleOutfitItem } from "./ghost-lab-core";
 import { DEFAULT_OUTFIT, COSMETICS } from "./ghost-wardrobe";
 
 test("every wardrobe item maps to an on-chain trait (counts match contract)", () => {
@@ -44,4 +44,21 @@ test("try-on equips and unequips without ownership", () => {
   const off = toggleOutfitItem(on, "crown");
   assert.equal(off.hat, undefined);
   assert.deepEqual(toggleOutfitItem({}, "not-a-real-item"), {});
+});
+
+test("mint tile copy: free window, paid price, and fallback", () => {
+  const free = ghostsMintLines({ minted: 1, max: 1000, left: 999, freeUntil: 100, freeLeft: 99, priceWei: "0" });
+  assert.deepEqual(free, { ok: true, remaining: "999/1000", freeLine: "99 free mints left", feeLine: "Just pay a small gas fee", priceLine: null });
+  const paid = ghostsMintLines({ minted: 100, max: 1000, left: 900, freeUntil: 100, freeLeft: 0, priceWei: (10n ** 18n * 2500n).toString() });
+  assert.equal(paid.ok, true);
+  if (paid.ok) {
+    assert.equal(paid.remaining, "900/1000");
+    assert.equal(paid.freeLine, null);
+    assert.equal(paid.feeLine, null);
+    assert.equal(paid.priceLine, "2,500 YOUCOG");
+  }
+  assert.equal(formatYoucogPrice(0n), "Free (gas only)");
+  const zeroPaid = ghostsMintLines({ minted: 100, max: 1000, left: 900, freeUntil: 100, freeLeft: 0, priceWei: "0" });
+  assert.equal(zeroPaid.ok && zeroPaid.priceLine, "Free (gas only)");
+  assert.deepEqual(ghostsMintLines(null), { ok: false });
 });

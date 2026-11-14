@@ -16,6 +16,7 @@ import { fileToSquareDataUrl, setGhostPfp, useGhostPfp } from "@/lib/youcog/ghos
 import { openExternal } from "@/lib/youcog/open-external";
 import { toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
+import { ghostsMintAria, ghostsMintLines, type GhostsSupplyJson } from "@/lib/youcog/ghost-lab-core";
 
 export const OPEN_FAUCET_EVENT = "youcog:open-faucet";
 
@@ -145,19 +146,57 @@ function goTo(target: TipTarget, inMiniApp: boolean) {
   glow(el);
 }
 
-function useGhostsLeft() {
-  const [left, setLeft] = useState<number | null>(null);
+function parseGhostsSupply(d: unknown): GhostsSupplyJson | null {
+  if (!d || typeof d !== "object") return null;
+  const o = d as Record<string, unknown>;
+  const num = (k: string) => (typeof o[k] === "number" && Number.isFinite(o[k]) ? o[k] : null);
+  const minted = num("minted"), max = num("max"), left = num("left"), freeUntil = num("freeUntil"), freeLeft = num("freeLeft");
+  const priceWei = typeof o.priceWei === "string" ? o.priceWei : null;
+  if (minted == null || max == null || left == null || freeUntil == null || freeLeft == null || !priceWei) return null;
+  return { minted, max, left, freeUntil, freeLeft, priceWei };
+}
+
+function useGhostsSupply() {
+  const [supply, setSupply] = useState<GhostsSupplyJson | null>(null);
   useEffect(() => {
     let live = true;
     fetch("/api/ghosts-supply")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: { left?: unknown }) => {
-        if (live && typeof d?.left === "number" && Number.isFinite(d.left)) setLeft(d.left);
+      .then((d: unknown) => {
+        if (live) setSupply(parseGhostsSupply(d));
       })
-      .catch(() => {});
+      .catch(() => { if (live) setSupply(null); });
     return () => { live = false; };
   }, []);
-  return left;
+  return supply;
+}
+
+function MintGhostTile({ supply }: { supply: GhostsSupplyJson | null }) {
+  const lines = ghostsMintLines(supply);
+  return (
+    <button
+      type="button"
+      data-tip-target="lab"
+      data-testid="home-mint-ghost"
+      aria-label={ghostsMintAria(lines)}
+      className="grid-tile press grid-tile-wide"
+      onClick={() => { location.href = "/lab"; }}
+    >
+      <img src={MINT_GHOST_THUMB} alt="" draggable={false} className="size-full object-cover" />
+      <span className="grid-tile-mint-copy">
+        {lines.ok ? (
+          <>
+            <span className="grid-tile-mint-count">{lines.remaining}</span>
+            {lines.freeLine ? <span className="grid-tile-mint-line">{lines.freeLine}</span> : null}
+            {lines.feeLine ? <span className="grid-tile-mint-line">{lines.feeLine}</span> : null}
+            {lines.priceLine ? <span className="grid-tile-mint-line">{lines.priceLine}</span> : null}
+          </>
+        ) : (
+          <span className="grid-tile-mint-count">Mint</span>
+        )}
+      </span>
+    </button>
+  );
 }
 
 function GridTile({
@@ -268,7 +307,7 @@ function ChangeGhostMenu({ onClose }: { onClose: () => void }) {
 
 /** Home hero: interactive ghost with a speech-bubble slideshow, plus the quick-tile grid. */
 export function GhostStage({ compact: small = false }: { compact?: boolean }) {
-  const mintLeft = useGhostsLeft();
+  const ghostsSupply = useGhostsSupply();
   const miniApp = useMiniApp();
   const music = useSoundtrack();
   const pfp = useGhostPfp();
@@ -404,7 +443,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           </button>
           {menuOpen ? <ChangeGhostMenu onClose={() => setMenuOpen(false)} /> : null}
         </div>
-        <div className={`home-grid ${small ? "h-52" : "h-72"}`}>
+        <div className={`home-grid ${small ? "h-[17.5rem]" : "h-[22rem]"}`}>
           <GridTile
             target="game"
             thumb={GAME_THUMB}
@@ -440,20 +479,13 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             ariaLabel="Open the daily YOUCOG faucet"
             onClick={() => goTo("faucet", miniApp.inMiniApp)}
           />
-          <GridTile
-            target="lab"
-            thumb={MINT_GHOST_THUMB}
-            label="Mint"
-            sublabel={mintLeft != null ? `${mintLeft.toLocaleString()} left` : undefined}
-            ariaLabel={mintLeft != null ? `Mint a ghost, ${mintLeft.toLocaleString()} mints left` : "Mint a ghost"}
-            testId="home-mint-ghost"
-            onClick={() => { location.href = "/lab"; }}
-          />
+          <MintGhostTile supply={ghostsSupply} />
           <GridTile
             target="ycurv"
             thumb={YCURV_THUMB}
             label="YCURV"
             ariaLabel="YCURV bonding curve on Mint Club"
+            className="grid-tile-wide"
             onClick={() => { location.href = "/curve"; }}
           />
           {YOUTUBE_SHORT.url ? (
