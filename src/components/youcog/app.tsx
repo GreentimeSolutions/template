@@ -180,7 +180,7 @@ function Welcome() {
       <div className="hidden flex-col gap-4 lg:flex">
         {isLg ? (
         <div data-tip-target="faucet">
-          <Faucet compact />
+          <Faucet />
         </div>
         ) : null}
         {RCST_PROMO_ENABLED ? (
@@ -629,7 +629,7 @@ export function YoucogApp() {
                     One gift per day, while supplies last. The app sets today&apos;s amount when you claim.
                   </p>
                   <div className="mt-3">
-                    <Faucet />
+                    <Faucet compact />
                   </div>
                 </div>
               ) : null}
