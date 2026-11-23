@@ -18,6 +18,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
       { name: "description", content: SITE_DESCRIPTION },
+      { name: "google-site-verification", content: "8gNUhtGsRTYUZhuNMt5srcdWiLeyvT3e_TqKiq61Bng" },
       { property: "og:site_name", content: APP_NAME },
       { property: "og:type", content: "website" },
       { name: "theme-color", content: "#1a0b2e" },
