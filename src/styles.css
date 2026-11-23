@@ -683,6 +683,137 @@
   height: 4.5rem;
 }
 
+.home-mint-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.home-opensea {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #ddd6fe;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.home-ycurv-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  height: auto;
+  padding: 0.75rem 0.8rem 0.8rem;
+  text-align: left;
+  background: #161022;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 0 16px rgb(45 212 191 / 0.12);
+}
+
+.home-ycurv-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.home-ycurv-logo {
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  background: #0b0b0b;
+}
+
+.home-ycurv-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.home-ycurv-symbol {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.home-ycurv-partner {
+  margin: 0.1rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #5eead4;
+}
+
+.home-ycurv-token {
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.home-ycurv-blurb {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #e2e8f0;
+}
+
+.home-ycurv-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.home-ycurv-stats div {
+  min-width: 0;
+}
+
+.home-ycurv-stats dt {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.home-ycurv-stats dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+  word-break: break-word;
+}
+
+.home-ycurv-static {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #cbd5e1;
+}
+
+.home-ycurv-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.home-ycurv-links a {
+  color: #5eead4;
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
 .grid-tile {
   position: relative;
   overflow: hidden;

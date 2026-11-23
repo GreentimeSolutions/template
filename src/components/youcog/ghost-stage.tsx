@@ -17,6 +17,9 @@ import { openExternal } from "@/lib/youcog/open-external";
 import { toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { ghostsMintAria, ghostsMintLines, type GhostsSupplyJson } from "@/lib/youcog/ghost-lab-core";
+import { CURVE_TOKEN, YCURV } from "@/constants/curve";
+import { fmtUnits, priceAt } from "@/lib/mintclub/curve";
+import { readBond, type BondState } from "@/lib/mintclub/bond";
 
 export const OPEN_FAUCET_EVENT = "youcog:open-faucet";
 
@@ -171,30 +174,111 @@ function useGhostsSupply() {
   return supply;
 }
 
+const OPENSEA_GHOSTS = "https://opensea.io/collection/youcognito-ghosts";
+const MINT_CLUB_YCURV = "https://mint.club/token/base/YCURV";
+const MINT_CLUB_LOGO = "/mint-club-logo.png";
+
 function MintGhostTile({ supply }: { supply: GhostsSupplyJson | null }) {
   const lines = ghostsMintLines(supply);
+  const miniApp = useMiniApp();
   return (
-    <button
-      type="button"
-      data-tip-target="lab"
-      data-testid="home-mint-ghost"
-      aria-label={ghostsMintAria(lines)}
-      className="grid-tile press home-mint"
-      onClick={() => { location.href = "/lab"; }}
-    >
-      <span className="home-mint-copy">
-        {lines.ok ? (
-          <>
-            <span className="home-mint-count">{lines.remaining}</span>
-            {lines.feeLine ? <span className="home-mint-line">{lines.feeLine}</span> : null}
-            {lines.priceLine ? <span className="home-mint-line">{lines.priceLine}</span> : null}
-          </>
-        ) : (
-          <span className="home-mint-count">Mint</span>
-        )}
-      </span>
-      <img src={MINT_GHOST_THUMB} alt="" draggable={false} className="home-mint-art" />
-    </button>
+    <div className="home-mint-wrap" data-tip-target="lab">
+      <button
+        type="button"
+        data-testid="home-mint-ghost"
+        aria-label={ghostsMintAria(lines)}
+        className="grid-tile press home-mint"
+        onClick={() => { location.href = "/lab"; }}
+      >
+        <span className="home-mint-copy">
+          {lines.ok ? (
+            <>
+              <span className="home-mint-count">{lines.remaining}</span>
+              {lines.feeLine ? <span className="home-mint-line">{lines.feeLine}</span> : null}
+              {lines.priceLine ? <span className="home-mint-line">{lines.priceLine}</span> : null}
+            </>
+          ) : (
+            <span className="home-mint-count">Mint</span>
+          )}
+        </span>
+        <img src={MINT_GHOST_THUMB} alt="" draggable={false} className="home-mint-art" />
+      </button>
+      <a
+        className="home-opensea"
+        href={OPENSEA_GHOSTS}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => {
+          e.preventDefault();
+          openExternal(OPENSEA_GHOSTS, miniApp.inMiniApp);
+        }}
+      >
+        See them here on OpenSea
+      </a>
+    </div>
+  );
+}
+
+function HomeYcurvCard() {
+  const miniApp = useMiniApp();
+  const [bond, setBond] = useState<BondState | null>(null);
+  useEffect(() => {
+    let live = true;
+    readBond(CURVE_TOKEN)
+      .then((b) => { if (live) setBond(b); })
+      .catch(() => { if (live) setBond(null); });
+    return () => { live = false; };
+  }, []);
+  const maxSupply = bond?.steps.length ? bond.steps[bond.steps.length - 1].rangeTo : null;
+  const price = bond ? priceAt(bond.steps, bond.supply) : null;
+  return (
+    <article className="home-ycurv-card grid-tile" data-tip-target="ycurv" data-testid="home-ycurv-card">
+      <header className="home-ycurv-head">
+        <img src={MINT_CLUB_LOGO} alt="Mint Club" width={40} height={40} className="home-ycurv-logo" />
+        <div className="home-ycurv-titles">
+          <p className="home-ycurv-symbol">{YCURV.symbol}</p>
+          <p className="home-ycurv-partner">Mint Club token preview</p>
+        </div>
+        <img src={YCURV_THUMB} alt="" className="home-ycurv-token" />
+      </header>
+      <p className="home-ycurv-blurb">
+        YCURV is Youcog Curve, a Mint Club token on Base backed by YOUCOG.
+      </p>
+      {bond && price !== null && maxSupply !== null ? (
+        <dl className="home-ycurv-stats">
+          <div>
+            <dt>Price now</dt>
+            <dd>{fmtUnits(price)} {bond.reserveSymbol}</dd>
+          </div>
+          <div>
+            <dt>Supply / curve</dt>
+            <dd>{fmtUnits(bond.supply, 18, 0)} / {fmtUnits(maxSupply, 18, 0)}</dd>
+          </div>
+          <div>
+            <dt>Reserve</dt>
+            <dd>{fmtUnits(bond.reserveBalance)} {bond.reserveSymbol}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p className="home-ycurv-static">
+          Bonding curve on Base. Reserve token: YOUCOG. Max supply 1,000,000.
+        </p>
+      )}
+      <div className="home-ycurv-links">
+        <a
+          href={MINT_CLUB_YCURV}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
+            openExternal(MINT_CLUB_YCURV, miniApp.inMiniApp);
+          }}
+        >
+          YCURV on Mint Club
+        </a>
+        <a href="/curve">Open in the app</a>
+      </div>
+    </article>
   );
 }
 
@@ -509,14 +593,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
         </div>
       </div>
         <MintGhostTile supply={ghostsSupply} />
-        <GridTile
-          target="ycurv"
-          thumb={YCURV_THUMB}
-          label="YCURV"
-          ariaLabel="YCURV bonding curve on Mint Club"
-          className="home-ycurv"
-          onClick={() => { location.href = "/curve"; }}
-        />
+        <HomeYcurvCard />
       </div>
     </div>
   );

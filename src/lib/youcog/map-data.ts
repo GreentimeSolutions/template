@@ -10,7 +10,7 @@ export const MAP_TREE: MapNode = {
       { id: "deep", title: "Deep Mission", text: "Unlocked by holding 10M YOUCOG (Hold 10M tile)." },
     ] },
     { id: "youcog", title: "YOUCOG token", text: "CA 0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3", children: [
-      { id: "bankr", title: "Official on @bankr", text: "Trade page on bankr.bot", href: "https://bankr.bot/terminal/trade?out=0x92bff5d88157114dfc4a0a00f3496aa7e2e7eba3&chain=base" },
+      { id: "bankr", title: "Official on @bankrbot", text: "Launch credit: @bankrbot on X.", href: "https://x.com/bankrbot" },
     ] },
     { id: "faucet", title: "Daily faucet", text: "Daily YOUCOG gift while supplies last.", href: "/", children: [
       { id: "streaks", title: "Streaks & streak flames", text: "Streak counter with flame tiers." },

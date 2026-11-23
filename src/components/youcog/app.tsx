@@ -92,8 +92,6 @@ function SealMark({ vanishing = false }: { vanishing?: boolean }) {
   );
 }
 
-const BANKR_URL =
-  "https://bankr.bot/terminal/trade?out=0x92bff5d88157114dfc4a0a00f3496aa7e2e7eba3&chain=base";
 const BANKR_CA = "0x92Bff5D88157114DfC4a0A00F3496AA7e2E7EbA3";
 
 
@@ -125,12 +123,12 @@ function YoucogIntro({ compact = false }: { compact?: boolean }) {
       </p>
       <p className="max-w-sm text-sm leading-relaxed text-mist">
         <a
-          href={BANKR_URL}
+          href="https://x.com/bankrbot"
           target="_blank"
           rel="noopener noreferrer"
           className="font-medium text-ink underline decoration-line-strong underline-offset-4"
         >
-          Official on @bankr
+          Official on @bankrbot
         </a>
         <span className="mt-1 block break-all">CA: {BANKR_CA}</span>
         <a
@@ -427,6 +425,7 @@ function Reader({
 
 export function YoucogApp() {
   const [faucetOpen, setFaucetOpen] = useState(false);
+  const isLg = useIsLg();
   const miniApp = useMiniApp();
   const booted = useSession((state) => state.booted);
   const startedAt = useSession((state) => state.startedAt);
@@ -618,6 +617,22 @@ export function YoucogApp() {
         <aside className="safe-bottom order-2 flex min-h-0 flex-col gap-4 border-line px-4 py-4 lg:order-1 lg:col-span-1 lg:overflow-y-auto lg:border-r lg:px-4 lg:py-6">
           {tabs.length === 0 ? (
             <div className="flex flex-col gap-4 lg:hidden">
+              {!isLg ? (
+                <div
+                  id="sidebar-faucet"
+                  data-tip-target="faucet"
+                  data-testid="featured-faucet"
+                  className="scroll-mt-4 rounded-shell border border-accent bg-accent/15 p-4"
+                >
+                  <p className="font-spooky text-2xl tracking-wide text-violet-200">Claim free daily YOUCOG</p>
+                  <p className="mt-1 text-sm leading-relaxed text-mist">
+                    One gift per day, while supplies last. The app sets today&apos;s amount when you claim.
+                  </p>
+                  <div className="mt-3">
+                    <Faucet />
+                  </div>
+                </div>
+              ) : null}
               <YoucogIntro compact />
               <p className="font-spooky text-3xl tracking-wide text-violet-200">YOUCOGNITO</p>
               <h1 className="font-spooky text-4xl tracking-wide">
@@ -676,6 +691,10 @@ export function YoucogApp() {
                 data-tip-target="faucet"
                 className="press flex items-center justify-between gap-2 rounded-seal border border-accent bg-accent/10 px-3 py-3 text-left text-sm font-medium leading-snug text-ink"
                 onClick={() => {
+                  if (!isLg) {
+                    document.getElementById("sidebar-faucet")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    return;
+                  }
                   const next = !faucetOpen;
                   setFaucetOpen(next);
                   if (next) {
@@ -711,7 +730,7 @@ export function YoucogApp() {
               ))}
             </div>
           </form>
-          {faucetOpen ? (
+          {faucetOpen && isLg ? (
             <div id="sidebar-faucet" className="scroll-mt-4">
               <Faucet />
             </div>

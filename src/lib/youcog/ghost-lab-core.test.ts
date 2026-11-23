@@ -48,7 +48,7 @@ test("try-on equips and unequips without ownership", () => {
 
 test("mint tile copy: gas when price is 0, paid price, and fallback", () => {
   const gas = ghostsMintLines({ minted: 1, max: 1000, left: 999, freeUntil: 100, freeLeft: 99, priceWei: "0" });
-  assert.deepEqual(gas, { ok: true, remaining: "999/1000", feeLine: "Just pay a small gas fee", priceLine: null });
+  assert.deepEqual(gas, { ok: true, remaining: "999/1000", feeLine: "Just pay a small gas fee to mint a ghost", priceLine: null });
   const paid = ghostsMintLines({ minted: 100, max: 1000, left: 900, freeUntil: 100, freeLeft: 0, priceWei: (10n ** 18n * 2500n).toString() });
   assert.equal(paid.ok, true);
   if (paid.ok) {

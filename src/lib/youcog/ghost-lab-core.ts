@@ -98,7 +98,7 @@ export function ghostsMintLines(s: GhostsSupplyJson | null | undefined): GhostsM
     return { ok: false };
   }
   if (priceWei === 0n) {
-    return { ok: true, remaining, feeLine: "Just pay a small gas fee", priceLine: null };
+    return { ok: true, remaining, feeLine: "Just pay a small gas fee to mint a ghost", priceLine: null };
   }
   return { ok: true, remaining, feeLine: null, priceLine: formatYoucogPrice(priceWei) };
 }
