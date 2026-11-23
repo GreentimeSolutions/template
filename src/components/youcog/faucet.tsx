@@ -20,7 +20,7 @@ import { YCURV_BONUS_CAP, YCURV_BONUS_HOLD_HOURS, YCURV_BONUS_MIN, YCURV_BONUS_R
 type Msg = { kind: "ok" | "err"; text: string; url?: string; amount?: number; streak?: number; boosted?: boolean; multiplier?: number; streakBonus?: boolean };
 type Streak = { streak: number; claimedToday: boolean; nextStreak: number; nextMultiplier: number; nextIsBonusDay?: boolean; claimAmount?: number };
 
-export function Faucet() {
+export function Faucet({ compact = false }: { compact?: boolean } = {}) {
   const [address, setAddress] = useState("");
   const [amount, setAmount] = useState(FAUCET_CLAIM_FALLBACK_YOUCOG);
   const [website, setWebsite] = useState("");
@@ -199,20 +199,8 @@ export function Faucet() {
     }
   }
 
-  return (
-    <section ref={sectionRef} className="rounded-panel border border-line bg-panel p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-spooky text-xl tracking-wide text-ink">Daily YOUCOG faucet</p>
-        <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
-      </div>
-      <div className="mt-1 flex justify-end">
-        <CoinbaseWalletLink />
-      </div>
-      <p className="mt-1 text-sm leading-relaxed text-mist">
-        {fc
-          ? `Claim a small YOUCOG gift on Base once a day while supplies last${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
-          : "Claim a small YOUCOG gift on Base once a day while supplies last. YOUCOG has no promised value. One claim per address and per connection."}
-      </p>
+  const extras = (
+    <>
       <p className="mt-2 text-xs leading-relaxed text-mist">
         Streak bonus: claim on consecutive UTC days for 1.25x from day 3 and 1.5x from day 7. Every {STREAK_BONUS_EVERY}th day in a row
         (day 7, 14, 21…) you can claim 3x YOUCOG. Missing a day resets.
@@ -227,7 +215,34 @@ export function Faucet() {
       {streak && (streak.streak > 0 || streak.nextStreak > 0) ? <StreakCounter streak={streak} flameKey={fc ? "fc" : recipient} /> : null}
       {fc ? <StreakTimelineButton flameKey="fc" refreshKey={claims} /> : null}
       {visible ? <SaveBonus fc={fc} address={recipient} refreshKey={claims} /> : null}
-      <form className="mt-4 flex flex-col gap-3" onSubmit={onClaim}>
+    </>
+  );
+
+  return (
+    <section ref={sectionRef} className={compact ? "" : "rounded-panel border border-line bg-panel p-4 sm:p-5"}>
+      {compact ? null : (
+        <>
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-spooky text-xl tracking-wide text-ink">Daily YOUCOG faucet</p>
+        <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
+      </div>
+      <div className="mt-1 flex justify-end">
+        <CoinbaseWalletLink />
+      </div>
+        </>
+      )}
+      <p className={compact ? "text-sm leading-relaxed text-mist" : "mt-1 text-sm leading-relaxed text-mist"}>
+        {fc
+          ? `Claim a small YOUCOG gift on Base once a day while supplies last${miniApp.user?.username ? ` as @${miniApp.user.username}` : ""}. One claim per Farcaster account.`
+          : "Claim a small YOUCOG gift on Base once a day while supplies last. YOUCOG has no promised value. One claim per address and per connection."}
+      </p>
+      {compact ? (
+        <p className="mt-2 font-spooky text-3xl tracking-wide text-violet-200" data-testid="featured-faucet-amount">
+          {amount.toLocaleString()} YOUCOG
+        </p>
+      ) : null}
+      {compact ? null : extras}
+      <form className="mt-3 flex flex-col gap-3" onSubmit={onClaim}>
         {fc && walletAddr ? (
           <div className="flex flex-col gap-1 text-sm text-mist">
             <span>
@@ -288,8 +303,8 @@ export function Faucet() {
           onChange={(e) => setWebsite(e.target.value)}
           className="absolute -left-[9999px] h-0 w-0 opacity-0"
         />
-        <ListenBoost ready={fc || validRecipient} />
-        <p className="text-sm text-ink">Today&apos;s gift: {amount.toLocaleString()} YOUCOG</p>
+        {compact ? null : <ListenBoost ready={fc || validRecipient} />}
+        {compact ? null : <p className="text-sm text-ink">Today&apos;s gift: {amount.toLocaleString()} YOUCOG</p>}
         <HauntedButtonFrame>
         <button
           type="submit"
@@ -332,6 +347,19 @@ export function Faucet() {
             </button>
           ) : null}
         </p>
+      ) : null}
+      {compact ? (
+        <details className="mt-3 text-sm text-mist">
+          <summary className="cursor-pointer font-medium text-ink">Streak, listen boost, and extras</summary>
+          <div className="mt-2">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
+              <CoinbaseWalletLink />
+            </div>
+            {extras}
+            <ListenBoost ready={fc || validRecipient} />
+          </div>
+        </details>
       ) : null}
     </section>
   );

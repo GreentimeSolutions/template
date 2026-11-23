@@ -180,7 +180,7 @@ function Welcome() {
       <div className="hidden flex-col gap-4 lg:flex">
         {isLg ? (
         <div data-tip-target="faucet">
-          <Faucet />
+          <Faucet compact />
         </div>
         ) : null}
         {RCST_PROMO_ENABLED ? (
