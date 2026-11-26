@@ -1,8 +1,10 @@
 import { isLabGhostPfp, resolveGhostPfpSrc, useGhostPfp } from "@/lib/youcog/ghost-pfp";
+import { useTheme } from "@/lib/youcog/themes";
 
 /** Small animated spy ghost (same shapes as public/favicon.svg). */
 function BannerGhost() {
   const pfp = useGhostPfp();
+  const thanksgiving = useTheme() === "thanksgiving";
   return (
     <span className="banner-ghost" aria-hidden="true">
       {pfp ? (
@@ -21,14 +23,24 @@ function BannerGhost() {
             fill="#ECEAE6"
             d="M10.5 13.4h11c1.4 0 2.3 1 2.3 2.5v2.8c0 2.1-1.7 3.4-3.7 3.4h-8.2c-2 0-3.7-1.3-3.7-3.4v-2.8c0-1.5.9-2.5 2.3-2.5z"
           />
-          <g className="banner-ghost-hat">
-            <path fill="#ECEAE6" d="M12.1 11.5C12.3 7.8 13.6 5.6 16 5.6s3.7 2.2 3.9 5.9h-7.8z" />
-            <path
-              fill="#ECEAE6"
-              d="M6.3 12.5C8 10.9 10.8 10.2 16 10.2s8 .7 9.7 2.3c.5.5.2 1.2-.6 1.2H6.9c-.8 0-1.1-.7-.6-1.2z"
-            />
-            <rect x="12.3" y="10.15" width="7.4" height="1.15" rx="0.3" fill="#1a0b2e" />
-          </g>
+          {thanksgiving ? (
+            <g className="banner-ghost-hat">
+              <ellipse cx="16" cy="11.3" rx="11" ry="2" fill="#1a1208" />
+              <rect x="10.4" y="3.2" width="11.2" height="8" rx="1" fill="#1a1208" />
+              <rect x="10.4" y="8.3" width="11.2" height="2" fill="#7f1d1d" />
+              <rect x="14.1" y="7.8" width="3.8" height="2.9" fill="#eab308" />
+              <rect x="14.9" y="8.4" width="2.2" height="1.7" fill="#7f1d1d" />
+            </g>
+          ) : (
+            <g className="banner-ghost-hat">
+              <path fill="#ECEAE6" d="M12.1 11.5C12.3 7.8 13.6 5.6 16 5.6s3.7 2.2 3.9 5.9h-7.8z" />
+              <path
+                fill="#ECEAE6"
+                d="M6.3 12.5C8 10.9 10.8 10.2 16 10.2s8 .7 9.7 2.3c.5.5.2 1.2-.6 1.2H6.9c-.8 0-1.1-.7-.6-1.2z"
+              />
+              <rect x="12.3" y="10.15" width="7.4" height="1.15" rx="0.3" fill="#1a0b2e" />
+            </g>
+          )}
           <rect x="10.6" y="15.2" width="4.2" height="2.5" rx="0.7" fill="#1a0b2e" />
           <rect className="banner-ghost-wink" x="17.2" y="15.2" width="4.2" height="2.5" rx="0.7" fill="#1a0b2e" />
           <rect x="14.65" y="16" width="2.7" height="0.9" rx="0.3" fill="#1a0b2e" />

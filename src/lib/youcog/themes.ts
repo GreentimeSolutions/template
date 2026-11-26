@@ -1,23 +1,74 @@
 /** Home look modes. Purely visual; saved in localStorage. Default "ghost" = original look. */
 import { useEffect, useState } from "react";
-export type ThemeId = "ghost" | "autumn" | "winter" | "spring" | "summer";
-export const THEMES: { id: ThemeId; label: string; icon: string }[] = [
-  { id: "ghost", label: "Ghost", icon: "👻" }, { id: "autumn", label: "Autumn", icon: "🍂" },
-  { id: "winter", label: "Winter", icon: "❄️" }, { id: "spring", label: "Spring", icon: "🌸" },
+
+/**
+ * Seasonal Thanksgiving look. Flip this to false after the holiday to drop the
+ * festive default, hide the picker option, and fall back to Ghost. A visitor can
+ * also switch to another Look at any time; that choice is still saved.
+ */
+export const THANKSGIVING_THEME_ON = true;
+
+export type ThemeId = "ghost" | "thanksgiving" | "autumn" | "winter" | "spring" | "summer";
+
+const CORE_THEMES: { id: ThemeId; label: string; icon: string }[] = [
+  { id: "ghost", label: "Ghost", icon: "👻" },
+  { id: "autumn", label: "Autumn", icon: "🍂" },
+  { id: "winter", label: "Winter", icon: "❄️" },
+  { id: "spring", label: "Spring", icon: "🌸" },
   { id: "summer", label: "Summer", icon: "☀️" },
 ];
+
+const THANKSGIVING_THEME = { id: "thanksgiving" as const, label: "Thanksgiving", icon: "🦃" };
+
+export const THEMES: { id: ThemeId; label: string; icon: string }[] = THANKSGIVING_THEME_ON
+  ? [CORE_THEMES[0], THANKSGIVING_THEME, ...CORE_THEMES.slice(1)]
+  : CORE_THEMES;
+
 export const THEME_KEY = "youcog:theme";
 const EVT = "youcog:theme";
+export const DEFAULT_THEME: ThemeId = THANKSGIVING_THEME_ON ? "thanksgiving" : "ghost";
+
 export const isTheme = (v: unknown): v is ThemeId => THEMES.some((t) => t.id === v);
+
 export function readTheme(): ThemeId {
-  try { const v = localStorage.getItem(THEME_KEY); return isTheme(v) ? v : "ghost"; } catch { return "ghost"; }
+  try {
+    const v = localStorage.getItem(THEME_KEY);
+    return isTheme(v) ? v : DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
 }
+
 export function setTheme(t: ThemeId) {
   try { localStorage.setItem(THEME_KEY, t); } catch { /* private mode */ }
   window.dispatchEvent(new Event(EVT));
 }
+
+/** Keep a theme-* class and data-theme on <html> so CSS can key off the look. */
+export function applyThemeClass(theme: ThemeId) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  for (const id of ["ghost", "thanksgiving", "autumn", "winter", "spring", "summer"]) {
+    root.classList.toggle(`theme-${id}`, id === theme);
+  }
+  root.dataset.theme = theme;
+}
+
 export function useTheme(): ThemeId {
-  const [t, set] = useState<ThemeId>("ghost");
-  useEffect(() => { const f = () => set(readTheme()); f(); window.addEventListener(EVT, f); window.addEventListener("storage", f); return () => { window.removeEventListener(EVT, f); window.removeEventListener("storage", f); }; }, []);
+  const [t, set] = useState<ThemeId>(DEFAULT_THEME);
+  useEffect(() => {
+    const f = () => {
+      const next = readTheme();
+      set(next);
+      applyThemeClass(next);
+    };
+    f();
+    window.addEventListener(EVT, f);
+    window.addEventListener("storage", f);
+    return () => {
+      window.removeEventListener(EVT, f);
+      window.removeEventListener("storage", f);
+    };
+  }, []);
   return t;
 }

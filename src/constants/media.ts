@@ -41,3 +41,6 @@ export const PROJECT_WALLETS = [
 ];
 export const YCURV_THUMB = "/ycurv-thumb.webp";
 export const MINT_GHOST_THUMB = "/mint-ghost-thumb.webp";
+
+/** Andy's Zombie Lab pack mint (separate app). */
+export const ZOMBIE_LAB_URL = "https://zombie-lab-mint.vercel.app";

@@ -10,6 +10,7 @@ import {
   SOUNDTRACK_THUMB,
   PROJECT_WALLETS,
   YOUTUBE_SHORT,
+  ZOMBIE_LAB_URL,
 } from "@/constants/media";
 import { GhostAvatar } from "@/components/youcog/ghost-avatar";
 import { fileToSquareDataUrl, setGhostPfp, useGhostPfp } from "@/lib/youcog/ghost-pfp";
@@ -520,15 +521,6 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           <div className="ghost-lab-pencil">
             <button
               type="button"
-              data-testid="ghost-lab-cta"
-              aria-label="Open Ghost Lab"
-              className="ghost-lab-cta press"
-              onClick={() => { location.href = "/lab"; }}
-            >
-              <span className="ghost-lab-cta-text">GHOST LAB</span>
-            </button>
-            <button
-              type="button"
               aria-label="Change ghost"
               aria-expanded={menuOpen}
               className="ghost-lab-pencil-btn press"
@@ -592,6 +584,26 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           ) : null}
         </div>
       </div>
+        <div className="lab-pills">
+          <button
+            type="button"
+            data-testid="ghost-lab-cta"
+            aria-label="Open Ghost Lab"
+            className="ghost-lab-cta press"
+            onClick={() => { location.href = "/lab"; }}
+          >
+            <span className="ghost-lab-cta-text">GHOST LAB</span>
+          </button>
+          <button
+            type="button"
+            data-testid="zombie-lab-cta"
+            aria-label="Open Zombie Lab"
+            className="zombie-lab-cta press"
+            onClick={() => openExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
+          >
+            <span className="zombie-lab-cta-text">ZOMBIE LAB</span>
+          </button>
+        </div>
         <MintGhostTile supply={ghostsSupply} />
         <HomeYcurvCard />
       </div>

@@ -923,6 +923,53 @@
   box-shadow: 0 0 8px rgb(0 0 0 / 0.35);
 }
 
+/* Ghost Lab + Zombie Lab sit side by side under the hero, so they never wrap on a phone. */
+.lab-pills {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+}
+
+.zombie-lab-cta {
+  display: inline-flex;
+  height: 1.5rem;
+  flex: 0 1 auto;
+  align-items: center;
+  padding: 0 0.5rem;
+  border: 1px solid rgb(187 247 208 / 0.75);
+  border-radius: 9999px;
+  background: #3f6212;
+  box-shadow: 0 0 10px rgb(132 204 22 / 0.5);
+  color: #14532d;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.zombie-lab-cta-text {
+  display: inline-block;
+  background-image: linear-gradient(
+    90deg,
+    #14532d 0%,
+    #14532d 38%,
+    #f7fee7 50%,
+    #14532d 62%,
+    #14532d 100%
+  );
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: ghost-lab-shimmer 1.8s linear infinite;
+  animation-delay: 0.45s;
+}
+
 @keyframes ghost-lab-shimmer {
   0% { background-position: 100% 0; }
   100% { background-position: -120% 0; }
@@ -1007,7 +1054,9 @@
   .ghost-bob,
   .ghost-wiggle,
   .ghost-bubble-text,
-  .ghost-lab-cta-text {
+  .ghost-lab-cta-text,
+  .zombie-lab-cta-text,
+  .thanks-leaf {
     animation: none;
   }
 
@@ -1015,6 +1064,12 @@
     background-image: none;
     color: #f5f3ff;
     -webkit-text-fill-color: #f5f3ff;
+  }
+
+  .zombie-lab-cta-text {
+    background-image: none;
+    color: #f7fee7;
+    -webkit-text-fill-color: #f7fee7;
   }
 
   .tip-glow {
@@ -1278,3 +1333,124 @@
 .haunt-backdrop.theme-winter { background: radial-gradient(ellipse at 50% 0%, rgb(189 224 255 / 0.16), transparent 60%); }
 .haunt-backdrop.theme-spring { background: radial-gradient(ellipse at 80% 0%, rgb(255 143 199 / 0.15), transparent 60%); }
 .haunt-backdrop.theme-summer { background: radial-gradient(ellipse at 50% 0%, rgb(255 214 10 / 0.15), transparent 60%); }
+
+/* ---------------------------------------------------------------------------
+ * Thanksgiving look (cosmetic only). Toggle off after the holiday by setting
+ * THANKSGIVING_THEME_ON to false in src/lib/youcog/themes.ts, or pick another
+ * Look in the picker. All rules are scoped to .theme-thanksgiving.
+ * ------------------------------------------------------------------------- */
+.haunt-shell.theme-thanksgiving,
+html.theme-thanksgiving {
+  --color-canvas: #1a0c14;
+  --color-panel: rgb(62 24 20 / 0.92);
+  --color-inset: #14080c;
+  --color-ink: #f6efe4;
+  --color-mist: #e8d5b8;
+  --color-faint: #c9ae86;
+  --color-line: #6b3a24;
+  --color-line-strong: #a35a28;
+  --color-accent: #f5c84c;
+  --color-accent-fg: #1a0c14;
+}
+
+.haunt-shell.theme-thanksgiving {
+  background:
+    radial-gradient(120% 60% at 50% -10%, #7a2e12 0%, transparent 60%),
+    radial-gradient(70% 40% at 100% 0%, rgb(245 200 76 / 0.16), transparent 52%),
+    linear-gradient(180deg, #2a1014 0%, #1a0c14 55%, #12080c 100%);
+}
+
+.haunt-backdrop.theme-thanksgiving,
+.theme-thanksgiving .haunt-backdrop {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgb(234 88 12 / 0.24), transparent 58%),
+    radial-gradient(ellipse at 82% 6%, rgb(245 200 76 / 0.16), transparent 52%);
+}
+
+.theme-thanksgiving .haunt-fog-layer {
+  background:
+    radial-gradient(40% 70% at 12% 85%, rgb(194 65 12 / 0.32), transparent 70%),
+    radial-gradient(35% 60% at 38% 95%, rgb(245 158 11 / 0.22), transparent 70%),
+    radial-gradient(45% 75% at 62% 88%, rgb(180 83 9 / 0.28), transparent 70%),
+    radial-gradient(35% 60% at 88% 95%, rgb(245 200 76 / 0.18), transparent 70%);
+}
+
+.theme-thanksgiving .haunt-mark::before {
+  background: radial-gradient(circle, rgb(254 243 199 / 0.72) 0%, rgb(245 158 11 / 0.42) 38%, rgb(234 88 12 / 0.18) 58%, transparent 72%);
+}
+
+.theme-thanksgiving .haunt-mark .pilgrim-hat {
+  right: -12px;
+  bottom: -4px;
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 4px rgb(245 200 76 / 0.7));
+}
+
+.theme-thanksgiving .top-banner {
+  background:
+    radial-gradient(60% 140% at 12% 50%, rgb(234 88 12 / 0.42), transparent 70%),
+    linear-gradient(90deg, #3b140c, #2a1014 60%, #1a0c14);
+}
+
+.theme-thanksgiving .top-banner .font-spooky,
+.theme-thanksgiving .font-spooky.text-violet-100,
+.theme-thanksgiving .font-spooky.text-violet-200 {
+  color: #fde8a8;
+}
+
+.theme-thanksgiving .bg-panel.rounded-panel::after,
+.theme-thanksgiving .bg-panel.rounded-shell::after {
+  box-shadow:
+    0 0 0 1px rgb(245 158 11 / 0.28),
+    0 0 18px rgb(234 88 12 / 0.22),
+    inset 0 0 14px rgb(245 200 76 / 0.12);
+}
+
+.theme-thanksgiving .ghost-card-wrap {
+  position: relative;
+}
+
+/* Tiny maple leaf badge on the ghost card; does not cover a custom or Lab pfp. */
+.theme-thanksgiving .ghost-card-wrap::after {
+  content: "";
+  position: absolute;
+  right: -0.15rem;
+  top: 0.15rem;
+  z-index: 4;
+  width: 1.15rem;
+  height: 1.15rem;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.2c2.4 2 6.4 3.6 6.6 7.2-1.6.2-3.2-.2-4.2-1.2 1.4 2.6.6 4.8-1.2 6.6l-.2.2h-.4l-.2-.2C7 12 6.2 9.8 7.6 7.2 6.6 8.2 5 8.6 3.4 8.4 3.6 4.8 7.6 3.2 8 1.2z' fill='%23c2410c'/%3E%3Cpath d='M8 7.2v7.2' stroke='%237a3b0c' stroke-width='.8' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 0 3px rgb(234 88 12 / 0.55));
+}
+
+.thanks-leaf {
+  position: absolute;
+  top: -8%;
+  z-index: 0;
+  display: block;
+  opacity: 0.55;
+  animation-name: thanks-leaf-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 2px rgb(234 88 12 / 0.35));
+}
+
+@keyframes thanks-leaf-fall {
+  0% { transform: translate3d(0, 0, 0) rotate(var(--leaf-rot, 0deg)); opacity: 0; }
+  8% { opacity: 0.6; }
+  90% { opacity: 0.5; }
+  100% { transform: translate3d(18px, 112vh, 0) rotate(calc(var(--leaf-rot, 0deg) + 180deg)); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thanks-leaf {
+    animation: none;
+    display: none;
+  }
+}

@@ -23,6 +23,7 @@ import {
   ClaimCelebration,
   HauntedBackdrop,
   JackOLantern,
+  PilgrimHat,
   burnStatic,
 } from "@/components/youcog/halloween";
 import { TapEggs } from "@/components/youcog/tap-eggs";
@@ -66,6 +67,7 @@ function withProtocol(value: string): string {
 }
 
 function SealMark({ vanishing = false }: { vanishing?: boolean }) {
+  const theme = useTheme();
   return (
     <span className={vanishing ? "haunt-mark is-vanishing" : "haunt-mark"}>
     <svg viewBox="0 0 32 32" className="size-9 shrink-0" aria-hidden="true">
@@ -87,7 +89,11 @@ function SealMark({ vanishing = false }: { vanishing?: boolean }) {
       <rect className="fill-canvas" x="17.2" y="15.2" width="4.2" height="2.5" rx="0.7" />
       <rect className="fill-canvas" x="14.65" y="16" width="2.7" height="0.9" rx="0.3" />
     </svg>
-    <JackOLantern className="jack" />
+    {theme === "thanksgiving" ? (
+      <PilgrimHat className="jack pilgrim-hat" />
+    ) : (
+      <JackOLantern className="jack" />
+    )}
     </span>
   );
 }
@@ -427,6 +433,7 @@ export function YoucogApp() {
   const [faucetOpen, setFaucetOpen] = useState(false);
   const isLg = useIsLg();
   const miniApp = useMiniApp();
+  const theme = useTheme();
   const booted = useSession((state) => state.booted);
   const startedAt = useSession((state) => state.startedAt);
   const now = useSession((state) => state.now);
@@ -511,7 +518,7 @@ export function YoucogApp() {
   }
 
   return (
-    <div className="haunt-shell flex h-dvh flex-col overflow-hidden text-ink">
+    <div className={`haunt-shell theme-${theme} flex h-dvh flex-col overflow-hidden text-ink`}>
       <HauntedBackdrop />
       <TapEggs />
       <ClaimCelebration />

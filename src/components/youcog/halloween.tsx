@@ -65,6 +65,16 @@ function Gear({ theme, i }: { theme: ThemeId; i: number }) {
     case "winter": return <g><rect x="7" y="19" width="18" height="3" rx="1.5" fill={i % 2 ? "#d7263d" : "#3a86ff"} /><rect x="19" y="21" width="3" height="6" fill={i % 2 ? "#d7263d" : "#3a86ff"} /><path d="M10 6h12l-2-4h-8z" fill="#ffffff" /><circle cx="16" cy="2" r="1.6" fill="#ffffff" /></g>;
     case "spring": return <g>{[9, 13, 16, 19, 23].map((x, k) => <circle key={x} cx={x} cy={k % 2 ? 4 : 5} r="1.8" fill={["#ff8fc7", "#ffe066", "#b18cff", "#ff8fc7", "#8fe3b0"][k]} />)}</g>;
     case "summer": return <g><rect x="9" y="11.5" width="6" height="4" rx="1.5" fill="#111" /><rect x="17" y="11.5" width="6" height="4" rx="1.5" fill="#111" /><rect x="14" y="12.5" width="4" height="1" fill="#111" /><ellipse cx="16" cy="6" rx="12" ry="2" fill="#f5d48a" /><path d="M10 6c0-4 12-4 12 0z" fill="#f5d48a" /></g>;
+    case "thanksgiving": return <g>
+      <ellipse cx="16" cy="8.3" rx="10" ry="1.8" fill="#1a1208" />
+      <rect x="10.4" y="1.4" width="11.2" height="6.8" rx="1" fill="#1a1208" />
+      <rect x="10.4" y="5.5" width="11.2" height="1.8" fill="#7f1d1d" />
+      <rect x="14.1" y="5.1" width="3.8" height="2.6" fill="#eab308" />
+      <rect x="14.9" y="5.6" width="2.2" height="1.6" fill="#7f1d1d" />
+      {i % 2
+        ? <path d="M25.2 22.4c-3.6 0-5.4 3-4.2 5.6 3.2.8 6.6-1.6 4.2-5.6z" fill="#c2410c" />
+        : <path d="M6.8 22.4c3.6 0 5.4 3 4.2 5.6-3.2.8-6.6-1.6-4.2-5.6z" fill="#ca8a04" />}
+    </g>;
     default: return null;
   }
 }
@@ -111,7 +121,49 @@ export function HauntedBackdrop() {
         <div className="haunt-fog-layer" />
         <div className="haunt-fog-layer haunt-fog-layer-2" />
       </div>
+      {theme === "thanksgiving" ? <ThanksgivingLeaves /> : null}
     </div>
+  );
+}
+
+const LEAVES = [
+  { left: "8%", delay: "0s", dur: "16s", size: 14, rot: 20, color: "#c2410c" },
+  { left: "22%", delay: "-4s", dur: "19s", size: 11, rot: -30, color: "#ca8a04" },
+  { left: "41%", delay: "-9s", dur: "17s", size: 13, rot: 12, color: "#ea580c" },
+  { left: "63%", delay: "-2s", dur: "21s", size: 12, rot: -18, color: "#b45309" },
+  { left: "79%", delay: "-11s", dur: "18s", size: 15, rot: 28, color: "#d97706" },
+  { left: "91%", delay: "-6s", dur: "20s", size: 10, rot: -8, color: "#9a3412" },
+];
+
+function ThanksgivingLeaf({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className="size-full" aria-hidden="true">
+      <path d="M8 1.2c2.4 2 6.4 3.6 6.6 7.2-1.6.2-3.2-.2-4.2-1.2 1.4 2.6.6 4.8-1.2 6.6l-.2.2h-.4l-.2-.2C7 12 6.2 9.8 7.6 7.2 6.6 8.2 5 8.6 3.4 8.4 3.6 4.8 7.6 3.2 8 1.2z" fill={color} />
+      <path d="M8 7.2v7.2" stroke="#7a3b0c" strokeWidth="0.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ThanksgivingLeaves() {
+  return (
+    <>
+      {LEAVES.map((leaf, i) => (
+        <span
+          key={i}
+          className="thanks-leaf"
+          style={{
+            left: leaf.left,
+            width: leaf.size,
+            height: leaf.size,
+            animationDuration: leaf.dur,
+            animationDelay: leaf.delay,
+            ["--leaf-rot" as string]: `${leaf.rot}deg`,
+          }}
+        >
+          <ThanksgivingLeaf color={leaf.color} />
+        </span>
+      ))}
+    </>
   );
 }
 
@@ -232,6 +284,19 @@ export function JackOLantern({ className }: { className?: string }) {
         className="jack-glow"
         fill="#fde047"
       />
+    </svg>
+  );
+}
+
+/** Compact pilgrim hat for the header ghost during the Thanksgiving look. */
+export function PilgrimHat({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <ellipse cx="12" cy="16.4" rx="10.6" ry="2.8" fill="#1a1208" />
+      <path d="M7.2 15.8V7.4c0-1 .8-1.8 1.8-2h5.9c1 0.2 1.9 1 1.9 2v8.4z" fill="#1a1208" />
+      <rect x="7.2" y="12.2" width="9.6" height="2.3" fill="#7f1d1d" />
+      <rect x="10.2" y="11.5" width="3.6" height="3.4" rx="0.35" fill="#eab308" />
+      <rect x="11" y="12.2" width="2" height="2" fill="#7f1d1d" />
     </svg>
   );
 }
