@@ -891,8 +891,19 @@
   white-space: nowrap;
 }
 
-.ghost-lab-cta-text {
+.ghost-lab-cta-text,
+.zombie-lab-cta-text {
   display: inline-block;
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: lab-pill-shimmer-blink 5s linear infinite;
+}
+
+.ghost-lab-cta-text {
   background-image: linear-gradient(
     90deg,
     #4c1d95 0%,
@@ -901,13 +912,6 @@
     #4c1d95 62%,
     #4c1d95 100%
   );
-  background-size: 220% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  animation: ghost-lab-shimmer 1.8s linear infinite;
 }
 
 .ghost-lab-pencil-btn {
@@ -942,7 +946,7 @@
   border-radius: 9999px;
   background: #3f6212;
   box-shadow: 0 0 10px rgb(132 204 22 / 0.5);
-  color: #14532d;
+  color: #d9f99d;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -951,28 +955,70 @@
 }
 
 .zombie-lab-cta-text {
-  display: inline-block;
+  /* Light lime body so the label stays readable between shimmer highlights. */
   background-image: linear-gradient(
     90deg,
-    #14532d 0%,
-    #14532d 38%,
-    #f7fee7 50%,
-    #14532d 62%,
-    #14532d 100%
+    #d9f99d 0%,
+    #d9f99d 38%,
+    #ffffff 50%,
+    #d9f99d 62%,
+    #d9f99d 100%
   );
-  background-size: 220% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-  animation: ghost-lab-shimmer 1.8s linear infinite;
-  animation-delay: 0.45s;
+  animation-delay: 0.35s;
 }
 
-@keyframes ghost-lab-shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -120% 0; }
+/* Shimmer once, then flash the full word solid white three times, then loop. */
+@keyframes lab-pill-shimmer-blink {
+  0% {
+    background-position: 100% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  36% {
+    background-position: -120% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  40% {
+    background-position: -120% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  44%, 50% {
+    background-position: -120% 0;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+  }
+  53%, 57% {
+    background-position: -120% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  60%, 66% {
+    background-position: -120% 0;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+  }
+  69%, 73% {
+    background-position: -120% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  76%, 82% {
+    background-position: -120% 0;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+  }
+  86%, 92% {
+    background-position: -120% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  100% {
+    background-position: 100% 0;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .ghost-menu {
@@ -1399,6 +1445,19 @@ html.theme-thanksgiving {
   color: #fde8a8;
 }
 
+.seasonal-greeting {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: var(--color-accent);
+}
+
+.theme-thanksgiving .seasonal-greeting {
+  color: #fde8a8;
+}
+
 .theme-thanksgiving .bg-panel.rounded-panel::after,
 .theme-thanksgiving .bg-panel.rounded-shell::after {
   box-shadow:
@@ -1432,19 +1491,19 @@ html.theme-thanksgiving {
   top: -8%;
   z-index: 0;
   display: block;
-  opacity: 0.55;
+  opacity: 0.8;
   animation-name: thanks-leaf-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   pointer-events: none;
   will-change: transform, opacity;
-  filter: drop-shadow(0 0 2px rgb(234 88 12 / 0.35));
+  filter: drop-shadow(0 0 4px rgb(234 88 12 / 0.45));
 }
 
 @keyframes thanks-leaf-fall {
   0% { transform: translate3d(0, 0, 0) rotate(var(--leaf-rot, 0deg)); opacity: 0; }
-  8% { opacity: 0.6; }
-  90% { opacity: 0.5; }
+  8% { opacity: 0.85; }
+  90% { opacity: 0.7; }
   100% { transform: translate3d(18px, 112vh, 0) rotate(calc(var(--leaf-rot, 0deg) + 180deg)); opacity: 0; }
 }
 

@@ -127,12 +127,13 @@ export function HauntedBackdrop() {
 }
 
 const LEAVES = [
-  { left: "8%", delay: "0s", dur: "16s", size: 14, rot: 20, color: "#c2410c" },
-  { left: "22%", delay: "-4s", dur: "19s", size: 11, rot: -30, color: "#ca8a04" },
-  { left: "41%", delay: "-9s", dur: "17s", size: 13, rot: 12, color: "#ea580c" },
-  { left: "63%", delay: "-2s", dur: "21s", size: 12, rot: -18, color: "#b45309" },
-  { left: "79%", delay: "-11s", dur: "18s", size: 15, rot: 28, color: "#d97706" },
-  { left: "91%", delay: "-6s", dur: "20s", size: 10, rot: -8, color: "#9a3412" },
+  { left: "6%", delay: "0s", dur: "16s", size: 42, rot: 20, color: "#c2410c" },
+  { left: "20%", delay: "-4s", dur: "19s", size: 34, rot: -30, color: "#ca8a04" },
+  { left: "36%", delay: "-9s", dur: "17s", size: 48, rot: 12, color: "#ea580c" },
+  { left: "52%", delay: "-13s", dur: "22s", size: 38, rot: -24, color: "#b45309" },
+  { left: "68%", delay: "-2s", dur: "21s", size: 44, rot: 18, color: "#d97706" },
+  { left: "82%", delay: "-11s", dur: "18s", size: 36, rot: 28, color: "#9a3412" },
+  { left: "93%", delay: "-6s", dur: "20s", size: 32, rot: -8, color: "#c2410c" },
 ];
 
 function ThanksgivingLeaf({ color }: { color: string }) {

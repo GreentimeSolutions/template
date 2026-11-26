@@ -44,6 +44,7 @@ import { Route as ApiStreakRouteImport } from './routes/api/streak'
 import { Route as ApiStreakTimelineRouteImport } from './routes/api/streak-timeline'
 import { Route as ApiTipRouteImport } from './routes/api/tip'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
+import { Route as ApiZombieLabSupplyRouteImport } from './routes/api/zombie-lab-supply'
 import { Route as LabShopRouteImport } from './routes/lab_.shop'
 import { Route as TipIdRouteImport } from './routes/tip.$id'
 import { Route as ApiAdminTipReviewsRouteImport } from './routes/api/admin/tip-reviews'
@@ -232,6 +233,11 @@ const ApiTtsRoute = ApiTtsRouteImport.update({
   path: '/api/tts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiZombieLabSupplyRoute = ApiZombieLabSupplyRouteImport.update({
+  id: '/api/zombie-lab-supply',
+  path: '/api/zombie-lab-supply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LabShopRoute = LabShopRouteImport.update({
   id: '/lab_/shop',
   path: '/lab/shop',
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/zombie-lab-supply': typeof ApiZombieLabSupplyRoute
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
@@ -372,6 +379,7 @@ export interface FileRoutesByTo {
   '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/zombie-lab-supply': typeof ApiZombieLabSupplyRoute
   '/lab/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
@@ -421,6 +429,7 @@ export interface FileRoutesById {
   '/api/streak-timeline': typeof ApiStreakTimelineRoute
   '/api/tip': typeof ApiTipRoute
   '/api/tts': typeof ApiTtsRoute
+  '/api/zombie-lab-supply': typeof ApiZombieLabSupplyRoute
   '/lab_/shop': typeof LabShopRoute
   '/tip/$id': typeof TipIdRoute
   '/api/admin/tip-reviews': typeof ApiAdminTipReviewsRoute
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
+    | '/api/zombie-lab-supply'
     | '/lab/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
+    | '/api/zombie-lab-supply'
     | '/lab/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/api/streak-timeline'
     | '/api/tip'
     | '/api/tts'
+    | '/api/zombie-lab-supply'
     | '/lab_/shop'
     | '/tip/$id'
     | '/api/admin/tip-reviews'
@@ -616,6 +628,7 @@ export interface RootRouteChildren {
   ApiStreakTimelineRoute: typeof ApiStreakTimelineRoute
   ApiTipRoute: typeof ApiTipRoute
   ApiTtsRoute: typeof ApiTtsRoute
+  ApiZombieLabSupplyRoute: typeof ApiZombieLabSupplyRoute
   LabShopRoute: typeof LabShopRoute
   TipIdRoute: typeof TipIdRoute
   ApiAdminTipReviewsRoute: typeof ApiAdminTipReviewsRoute
@@ -876,6 +889,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTtsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/zombie-lab-supply': {
+      id: '/api/zombie-lab-supply'
+      path: '/api/zombie-lab-supply'
+      fullPath: '/api/zombie-lab-supply'
+      preLoaderRoute: typeof ApiZombieLabSupplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lab_/shop': {
       id: '/lab_/shop'
       path: '/lab/shop'
@@ -992,6 +1012,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStreakTimelineRoute: ApiStreakTimelineRoute,
   ApiTipRoute: ApiTipRoute,
   ApiTtsRoute: ApiTtsRoute,
+  ApiZombieLabSupplyRoute: ApiZombieLabSupplyRoute,
   LabShopRoute: LabShopRoute,
   TipIdRoute: TipIdRoute,
   ApiAdminTipReviewsRoute: ApiAdminTipReviewsRoute,
@@ -1007,3 +1028,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

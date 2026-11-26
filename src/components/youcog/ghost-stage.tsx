@@ -18,6 +18,8 @@ import { openExternal } from "@/lib/youcog/open-external";
 import { toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { ghostsMintAria, ghostsMintLines, type GhostsSupplyJson } from "@/lib/youcog/ghost-lab-core";
+import { parseZombieLabSupply, zombieLabMintAria, zombieLabMintLines, type ZombieLabSupplyJson } from "@/lib/youcog/zombie-lab-supply";
+import { ZOMBIE_LAB_OPENSEA, ZOMBIE_LAB_THUMB } from "@/constants/zombie-lab";
 import { CURVE_TOKEN, YCURV } from "@/constants/curve";
 import { fmtUnits, priceAt } from "@/lib/mintclub/curve";
 import { readBond, type BondState } from "@/lib/mintclub/bond";
@@ -175,6 +177,21 @@ function useGhostsSupply() {
   return supply;
 }
 
+function useZombieLabSupply() {
+  const [supply, setSupply] = useState<ZombieLabSupplyJson | null>(null);
+  useEffect(() => {
+    let live = true;
+    fetch("/api/zombie-lab-supply")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d: unknown) => {
+        if (live) setSupply(parseZombieLabSupply(d));
+      })
+      .catch(() => { if (live) setSupply(null); });
+    return () => { live = false; };
+  }, []);
+  return supply;
+}
+
 const OPENSEA_GHOSTS = "https://opensea.io/collection/youcognito-ghosts";
 const MINT_CLUB_YCURV = "https://mint.club/token/base/YCURV";
 const MINT_CLUB_LOGO = "/mint-club-logo.png";
@@ -212,6 +229,46 @@ function MintGhostTile({ supply }: { supply: GhostsSupplyJson | null }) {
         onClick={(e) => {
           e.preventDefault();
           openExternal(OPENSEA_GHOSTS, miniApp.inMiniApp);
+        }}
+      >
+        See them here on OpenSea
+      </a>
+    </div>
+  );
+}
+
+function MintZombieTile({ supply }: { supply: ZombieLabSupplyJson | null }) {
+  const lines = zombieLabMintLines(supply);
+  const miniApp = useMiniApp();
+  return (
+    <div className="home-mint-wrap" data-testid="home-mint-zombie-wrap">
+      <button
+        type="button"
+        data-testid="home-mint-zombie"
+        aria-label={zombieLabMintAria(lines)}
+        className="grid-tile press home-mint"
+        onClick={() => openExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
+      >
+        <span className="home-mint-copy">
+          {lines.ok ? (
+            <>
+              <span className="home-mint-count">{lines.remaining}</span>
+              <span className="home-mint-line">{lines.feeLine}</span>
+            </>
+          ) : (
+            <span className="home-mint-count">Zombie Lab</span>
+          )}
+        </span>
+        <img src={ZOMBIE_LAB_THUMB} alt="" draggable={false} className="home-mint-art" />
+      </button>
+      <a
+        className="home-opensea"
+        href={ZOMBIE_LAB_OPENSEA}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => {
+          e.preventDefault();
+          openExternal(ZOMBIE_LAB_OPENSEA, miniApp.inMiniApp);
         }}
       >
         See them here on OpenSea
@@ -392,6 +449,7 @@ function ChangeGhostMenu({ onClose }: { onClose: () => void }) {
 /** Home hero: interactive ghost with a speech-bubble slideshow, plus the quick-tile grid. */
 export function GhostStage({ compact: small = false }: { compact?: boolean }) {
   const ghostsSupply = useGhostsSupply();
+  const zombieSupply = useZombieLabSupply();
   const miniApp = useMiniApp();
   const music = useSoundtrack();
   const pfp = useGhostPfp();
@@ -605,6 +663,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
           </button>
         </div>
         <MintGhostTile supply={ghostsSupply} />
+        <MintZombieTile supply={zombieSupply} />
         <HomeYcurvCard />
       </div>
     </div>

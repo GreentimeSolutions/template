@@ -1,5 +1,5 @@
 import { isLabGhostPfp, resolveGhostPfpSrc, useGhostPfp } from "@/lib/youcog/ghost-pfp";
-import { useTheme } from "@/lib/youcog/themes";
+import { themeGreeting, useTheme } from "@/lib/youcog/themes";
 
 /** Small animated spy ghost (same shapes as public/favicon.svg). */
 function BannerGhost() {
@@ -51,12 +51,17 @@ function BannerGhost() {
 }
 
 export function TopBanner() {
+  const greeting = themeGreeting(useTheme());
   return (
     <div className="top-banner flex h-14 shrink-0 items-center gap-3 px-4">
       <BannerGhost />
       <div className="min-w-0 leading-none">
         <p className="font-spooky text-2xl leading-none tracking-wide text-violet-100">YOUCOGNITO</p>
-        <p className="mt-1 truncate text-xs text-mist">Private AI research on Base</p>
+        {greeting ? (
+          <p className="seasonal-greeting mt-1 truncate" data-testid="seasonal-greeting">{greeting}</p>
+        ) : (
+          <p className="mt-1 truncate text-xs text-mist">Private AI research on Base</p>
+        )}
       </div>
     </div>
   );
