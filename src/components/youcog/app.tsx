@@ -524,7 +524,7 @@ export function YoucogApp() {
       <ClaimCelebration />
       <BurnStatic />
       <TopBanner />
-      <header className="flex shrink-0 items-center gap-3 border-b border-line bg-canvas/85 px-4 py-3">
+      <header className="site-header flex shrink-0 items-center gap-3 border-b border-line px-4 py-3">
         <SealMark vanishing={vanishing} />
         <div className="min-w-0">
           <p className="font-spooky text-xl leading-none tracking-wide">Youcog</p>
@@ -629,10 +629,10 @@ export function YoucogApp() {
                   id="sidebar-faucet"
                   data-tip-target="faucet"
                   data-testid="featured-faucet"
-                  className="scroll-mt-4 rounded-shell border border-accent bg-accent/15 p-4"
+                  className="featured-faucet scroll-mt-4 rounded-shell p-4"
                 >
                   <p className="font-spooky text-2xl tracking-wide text-violet-200">Claim free daily YOUCOG</p>
-                  <p className="mt-1 text-sm leading-relaxed text-mist">
+                  <p className="featured-faucet-lede mt-1 text-sm leading-relaxed text-mist">
                     One gift per day, while supplies last. The app sets today&apos;s amount when you claim.
                   </p>
                   <div className="mt-3">
@@ -696,7 +696,7 @@ export function YoucogApp() {
                 aria-expanded={faucetOpen}
                 aria-controls="sidebar-faucet"
                 data-tip-target="faucet"
-                className="press flex items-center justify-between gap-2 rounded-seal border border-accent bg-accent/10 px-3 py-3 text-left text-sm font-medium leading-snug text-ink"
+                className="press flex min-h-11 items-center justify-between gap-2 rounded-seal border border-accent bg-accent/10 px-3 py-3 text-left text-sm font-medium leading-snug text-ink"
                 onClick={() => {
                   if (!isLg) {
                     document.getElementById("sidebar-faucet")?.scrollIntoView({ behavior: "smooth", block: "start" });

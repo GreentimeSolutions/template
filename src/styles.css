@@ -78,6 +78,15 @@
     background: var(--color-accent);
     color: var(--color-accent-fg);
   }
+
+  input, textarea {
+    caret-color: var(--color-accent);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
 }
 
 @layer components {
@@ -86,11 +95,27 @@
       transform var(--motion-quick) var(--ease-smooth-out),
       opacity var(--motion-quick) var(--ease-smooth-out),
       background-color var(--motion-quick) var(--ease-smooth-out),
-      color var(--motion-quick) var(--ease-smooth-out);
+      color var(--motion-quick) var(--ease-smooth-out),
+      box-shadow var(--motion-quick) var(--ease-smooth-out),
+      border-color var(--motion-quick) var(--ease-smooth-out),
+      filter var(--motion-quick) var(--ease-smooth-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .press:hover:not(:disabled) {
+      filter: brightness(1.06);
+    }
+  }
+
+  .grid-tile.press,
+  .ghost-lab-cta.press,
+  .zombie-lab-cta.press {
+    transition-property: transform, opacity, background-color, color, filter;
   }
 
   .press:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: scale(0.97);
+    filter: brightness(0.98);
   }
 
   .rise {
@@ -332,13 +357,21 @@
 .haunt-btn-frame > button {
   position: relative;
   z-index: 1;
-  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+  min-height: 2.75rem;
+  background: linear-gradient(180deg, #8b5cf6, #6d28d9);
   color: #fff;
-  animation: haunt-glow 2.4s ease-in-out infinite, haunt-wobble 5s ease-in-out infinite;
+  box-shadow: 0 8px 18px rgb(76 29 149 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.16);
+  animation: haunt-glow 3.6s ease-in-out infinite;
 }
 
 .haunt-btn-frame > button:disabled {
   animation: none;
+  box-shadow: none;
+}
+
+.haunt-btn-frame > button:active:not(:disabled) {
+  animation: none;
+  transform: scale(0.97);
 }
 
 .haunt-peek {
@@ -353,8 +386,8 @@
 }
 
 @keyframes haunt-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(124 58 237 / 0.45), 0 0 10px rgb(167 139 250 / 0.25); }
-  50% { box-shadow: 0 0 0 4px rgb(124 58 237 / 0.18), 0 0 22px rgb(167 139 250 / 0.5); }
+  0%, 100% { box-shadow: 0 8px 18px rgb(76 29 149 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.16); }
+  50% { box-shadow: 0 10px 22px rgb(76 29 149 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.2); }
 }
 
 @keyframes haunt-wobble {
@@ -442,7 +475,12 @@
   .haunt-btn-frame > button,
   .bg-panel.rounded-panel::after,
   .bg-panel.rounded-shell::after,
-  .haunt-mark.is-vanishing svg:first-child {
+  .featured-faucet::after,
+  .haunt-mark.is-vanishing svg:first-child,
+  .grid-tile,
+  .home-ycurv-card,
+  .ghost-lab-cta,
+  .zombie-lab-cta {
     animation: none;
   }
 
@@ -455,6 +493,55 @@
   .haunt-peek {
     transform: translateY(2px);
   }
+}
+
+/* App chrome: sits over scrolling content without a decorative glass stack. */
+.site-header {
+  background: color-mix(in oklab, var(--color-canvas) 90%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Featured daily faucet on mobile: one clear surface, hairline, primary action wins. */
+.featured-faucet {
+  position: relative;
+  border: 1px solid rgb(167 139 250 / 0.45);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--color-accent) 12%, transparent), transparent 46%),
+    color-mix(in oklab, var(--color-panel) 92%, #000);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--color-ink) 8%, transparent),
+    0 12px 28px rgb(0 0 0 / 0.28);
+}
+
+.featured-faucet::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px rgb(167 139 250 / 0.4),
+    0 0 20px rgb(124 58 237 / 0.38),
+    inset 0 0 14px rgb(167 139 250 / 0.16);
+  animation: candle 3.6s ease-in-out infinite;
+}
+
+.featured-faucet-lede {
+  max-width: 36ch;
+}
+
+.featured-faucet-amount {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+}
+
+.featured-faucet-extras {
+  display: list-item;
+  min-height: 2.75rem;
+  padding-block: 0.55rem;
+  cursor: pointer;
 }
 
 /* Top banner + media row */
@@ -585,7 +672,7 @@
   border: 1px solid var(--color-line-strong);
   border-radius: 1rem;
   background: linear-gradient(180deg, rgb(59 20 102 / 0.95), rgb(42 16 72 / 0.95));
-  box-shadow: 0 0 18px rgb(124 58 237 / 0.25);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 0.28);
 }
 
 .ghost-bubble::after {
@@ -658,6 +745,8 @@
   letter-spacing: -0.03em;
   line-height: 1;
   color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 .home-mint-line {
@@ -691,8 +780,10 @@
 }
 
 .home-opensea {
-  display: inline-block;
-  font-size: 0.8125rem;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.3;
   color: #ddd6fe;
@@ -709,8 +800,14 @@
   padding: 0.75rem 0.8rem 0.8rem;
   text-align: left;
   background: #161022;
-  border: 1px solid rgba(45, 212, 191, 0.35);
-  box-shadow: 0 0 16px rgb(45 212 191 / 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  box-shadow: 0 0 16px rgb(45 212 191 / 0.28), 0 10px 22px rgb(0 0 0 / 0.22);
+  animation: ycurv-glow 3.4s ease-in-out infinite;
+}
+
+@keyframes ycurv-glow {
+  0%, 100% { box-shadow: 0 0 12px rgb(45 212 191 / 0.2), 0 10px 22px rgb(0 0 0 / 0.22); }
+  50% { box-shadow: 0 0 24px rgb(45 212 191 / 0.5), 0 10px 22px rgb(0 0 0 / 0.22); }
 }
 
 .home-ycurv-head {
@@ -744,9 +841,9 @@
 
 .home-ycurv-partner {
   margin: 0.1rem 0 0;
-  font-size: 0.7rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   color: #5eead4;
 }
 
@@ -760,8 +857,8 @@
 
 .home-ycurv-blurb {
   margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font-size: 0.875rem;
+  line-height: 1.4;
   color: #e2e8f0;
 }
 
@@ -777,19 +874,21 @@
 }
 
 .home-ycurv-stats dt {
-  font-size: 0.65rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #94a3b8;
 }
 
 .home-ycurv-stats dd {
   margin: 0.15rem 0 0;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.25;
   color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
   word-break: break-word;
 }
 
@@ -804,11 +903,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
 .home-ycurv-links a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
   color: #5eead4;
   text-decoration: underline;
   text-underline-offset: 0.18rem;
@@ -817,10 +919,26 @@
 .grid-tile {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--color-line-strong);
+  border: 1px solid rgb(167 139 250 / 0.45);
   border-radius: 0.8rem;
   background: #2e1065;
-  box-shadow: 0 0 12px rgb(124 58 237 / 0.25);
+  box-shadow: 0 0 14px rgb(124 58 237 / 0.4), 0 8px 20px rgb(0 0 0 / 0.25);
+  animation: tile-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes tile-glow {
+  0%, 100% { box-shadow: 0 0 10px rgb(124 58 237 / 0.3), 0 8px 20px rgb(0 0 0 / 0.25); }
+  50% { box-shadow: 0 0 22px rgb(124 58 237 / 0.7), 0 8px 20px rgb(0 0 0 / 0.25); }
+}
+
+[data-testid="home-mint-zombie"] {
+  border-color: rgb(134 239 172 / 0.7);
+  animation-name: zombie-tile-glow;
+}
+
+@keyframes zombie-tile-glow {
+  0%, 100% { box-shadow: 0 0 10px rgb(74 222 128 / 0.35), 0 8px 20px rgb(0 0 0 / 0.25); }
+  50% { box-shadow: 0 0 22px rgb(74 222 128 / 0.75), 0 8px 20px rgb(0 0 0 / 0.25); }
 }
 
 .grid-tile-tall {
@@ -873,22 +991,28 @@
   gap: 0.25rem;
 }
 
-.ghost-lab-cta {
+.ghost-lab-cta,
+.zombie-lab-cta {
   display: inline-flex;
-  height: 1.5rem;
-  flex: 0 1 auto;
+  min-height: 2.75rem;
+  flex: 1 1 0;
   align-items: center;
-  padding: 0 0.5rem;
-  border: 1px solid rgb(221 214 254 / 0.75);
+  justify-content: center;
+  padding: 0 0.9rem;
   border-radius: 9999px;
-  background: #7c3aed;
-  box-shadow: 0 0 10px rgb(167 139 250 / 0.55);
-  color: #4c1d95;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   line-height: 1;
   white-space: nowrap;
+}
+
+.ghost-lab-cta {
+  border: 1px solid rgb(221 214 254 / 0.85);
+  background: #6d28d9;
+  box-shadow: 0 0 12px rgb(167 139 250 / 0.6), 0 6px 14px rgb(76 29 149 / 0.35);
+  color: #f5f3ff;
+  animation: ghost-pill-glow 2.8s ease-in-out infinite;
 }
 
 .ghost-lab-cta-text,
@@ -904,70 +1028,73 @@
 }
 
 .ghost-lab-cta-text {
+  /* Violet body with a bright white sheen, then the signature blink. */
   background-image: linear-gradient(
     90deg,
-    #4c1d95 0%,
-    #4c1d95 38%,
-    #f5f3ff 50%,
-    #4c1d95 62%,
-    #4c1d95 100%
+    #ddd6fe 0%,
+    #c4b5fd 38%,
+    #ffffff 50%,
+    #c4b5fd 62%,
+    #ddd6fe 100%
   );
 }
 
 .ghost-lab-pencil-btn {
   display: grid;
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
   place-items: center;
   border: 1px solid var(--color-line-strong);
   border-radius: 9999px;
   background: rgb(12 7 18 / 0.85);
   color: #ede9fe;
-  box-shadow: 0 0 8px rgb(0 0 0 / 0.35);
+  box-shadow: 0 6px 14px rgb(0 0 0 / 0.35);
 }
 
 /* Ghost Lab + Zombie Lab sit side by side under the hero, so they never wrap on a phone. */
 .lab-pills {
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.35rem;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
   max-width: 100%;
 }
 
 .zombie-lab-cta {
-  display: inline-flex;
-  height: 1.5rem;
-  flex: 0 1 auto;
-  align-items: center;
-  padding: 0 0.5rem;
-  border: 1px solid rgb(187 247 208 / 0.75);
-  border-radius: 9999px;
+  border: 1px solid rgb(134 239 172 / 0.95);
   background: #3f6212;
-  box-shadow: 0 0 10px rgb(132 204 22 / 0.5);
-  color: #d9f99d;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  white-space: nowrap;
+  box-shadow: 0 0 14px rgb(74 222 128 / 0.7), 0 6px 14px rgb(20 83 45 / 0.35);
+  color: #bbf7d0;
+  animation: zombie-pill-glow 2.8s ease-in-out infinite;
+  animation-delay: 0.35s;
 }
 
 .zombie-lab-cta-text {
-  /* Light lime body so the label stays readable between shimmer highlights. */
+  /* Vibrant green sweep so the Zombie Lab pill is unmistakably green. */
   background-image: linear-gradient(
     90deg,
-    #d9f99d 0%,
-    #d9f99d 38%,
-    #ffffff 50%,
-    #d9f99d 62%,
-    #d9f99d 100%
+    #86efac 0%,
+    #4ade80 36%,
+    #f7fee7 50%,
+    #4ade80 64%,
+    #86efac 100%
   );
   animation-delay: 0.35s;
 }
 
-/* Shimmer once, then flash the full word solid white three times, then loop. */
+@keyframes ghost-pill-glow {
+  0%, 100% { box-shadow: 0 0 8px rgb(167 139 250 / 0.45), 0 6px 14px rgb(76 29 149 / 0.3); }
+  50% { box-shadow: 0 0 18px rgb(167 139 250 / 0.9), 0 0 32px rgb(124 58 237 / 0.5), 0 6px 14px rgb(76 29 149 / 0.35); }
+}
+
+@keyframes zombie-pill-glow {
+  0%, 100% { box-shadow: 0 0 8px rgb(74 222 128 / 0.5), 0 6px 14px rgb(20 83 45 / 0.3); }
+  50% { box-shadow: 0 0 20px rgb(74 222 128 / 0.95), 0 0 36px rgb(34 197 94 / 0.55), 0 6px 14px rgb(20 83 45 / 0.35); }
+}
+
+/* Shimmer once, then flash the full word solid three times, then loop. */
 @keyframes lab-pill-shimmer-blink {
   0% {
     background-position: 100% 0;
@@ -1102,6 +1229,8 @@
   .ghost-bubble-text,
   .ghost-lab-cta-text,
   .zombie-lab-cta-text,
+  .ghost-lab-cta,
+  .zombie-lab-cta,
   .thanks-leaf {
     animation: none;
   }
@@ -1461,9 +1590,41 @@ html.theme-thanksgiving {
 .theme-thanksgiving .bg-panel.rounded-panel::after,
 .theme-thanksgiving .bg-panel.rounded-shell::after {
   box-shadow:
-    0 0 0 1px rgb(245 158 11 / 0.28),
-    0 0 18px rgb(234 88 12 / 0.22),
-    inset 0 0 14px rgb(245 200 76 / 0.12);
+    0 0 0 1px rgb(245 158 11 / 0.4),
+    0 0 20px rgb(234 88 12 / 0.32),
+    inset 0 0 16px rgb(245 200 76 / 0.16);
+}
+
+.theme-thanksgiving .featured-faucet {
+  border-color: rgb(245 158 11 / 0.55);
+  box-shadow:
+    inset 0 1px 0 rgb(253 232 168 / 0.1),
+    0 12px 28px rgb(0 0 0 / 0.32);
+}
+
+.theme-thanksgiving .featured-faucet::after {
+  box-shadow:
+    0 0 0 1px rgb(245 158 11 / 0.5),
+    0 0 22px rgb(234 88 12 / 0.4),
+    inset 0 0 16px rgb(245 200 76 / 0.2);
+}
+
+.theme-thanksgiving .haunt-btn-frame > button {
+  background: linear-gradient(180deg, #ea580c, #c2410c);
+  box-shadow: 0 8px 18px rgb(154 52 18 / 0.45), inset 0 1px 0 rgb(255 237 213 / 0.28);
+}
+
+.theme-thanksgiving .haunt-btn-frame > button:disabled {
+  box-shadow: none;
+}
+
+@keyframes thanks-haunt-glow {
+  0%, 100% { box-shadow: 0 8px 18px rgb(154 52 18 / 0.45), inset 0 1px 0 rgb(255 237 213 / 0.28); }
+  50% { box-shadow: 0 10px 22px rgb(154 52 18 / 0.55), inset 0 1px 0 rgb(255 237 213 / 0.34); }
+}
+
+.theme-thanksgiving .haunt-btn-frame > button:not(:disabled) {
+  animation-name: thanks-haunt-glow;
 }
 
 .theme-thanksgiving .ghost-card-wrap {

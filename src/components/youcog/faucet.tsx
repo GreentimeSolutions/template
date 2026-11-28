@@ -237,7 +237,7 @@ export function Faucet({ compact = false }: { compact?: boolean } = {}) {
           : "Claim a small YOUCOG gift on Base once a day while supplies last. YOUCOG has no promised value. One claim per address and per connection."}
       </p>
       {compact ? (
-        <p className="mt-2 font-spooky text-3xl tracking-wide text-violet-200" data-testid="featured-faucet-amount">
+        <p className="featured-faucet-amount mt-2 font-spooky text-3xl tracking-wide text-violet-200" data-testid="featured-faucet-amount">
           {amount.toLocaleString()} YOUCOG
         </p>
       ) : null}
@@ -350,7 +350,7 @@ export function Faucet({ compact = false }: { compact?: boolean } = {}) {
       ) : null}
       {compact ? (
         <details className="mt-3 text-sm text-mist">
-          <summary className="cursor-pointer font-medium text-ink">Streak, listen boost, and extras</summary>
+          <summary className="featured-faucet-extras cursor-pointer font-medium text-ink">Streak, listen boost, and extras</summary>
           <div className="mt-2">
             <div className="mb-2 flex items-center justify-between gap-2">
               <BuyYoucogButton label="Buy YOUCOG" className="inline-flex h-8 items-center justify-center rounded-seal border border-line px-3 text-xs font-medium text-ink" />
