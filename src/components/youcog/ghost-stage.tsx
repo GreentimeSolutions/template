@@ -14,7 +14,7 @@ import {
 } from "@/constants/media";
 import { GhostAvatar } from "@/components/youcog/ghost-avatar";
 import { fileToSquareDataUrl, setGhostPfp, useGhostPfp } from "@/lib/youcog/ghost-pfp";
-import { openExternal } from "@/lib/youcog/open-external";
+import { openExternal, openMiniAppOrExternal } from "@/lib/youcog/open-external";
 import { toggleSoundtrack, useSoundtrack } from "@/lib/youcog/soundtrack";
 import { useMiniApp } from "@/lib/youcog/use-miniapp";
 import { ghostsMintAria, ghostsMintLines, type GhostsSupplyJson } from "@/lib/youcog/ghost-lab-core";
@@ -247,7 +247,7 @@ function MintZombieTile({ supply }: { supply: ZombieLabSupplyJson | null }) {
         data-testid="home-mint-zombie"
         aria-label={zombieLabMintAria(lines)}
         className="grid-tile press home-mint"
-        onClick={() => openExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
+        onClick={() => openMiniAppOrExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
       >
         <span className="home-mint-copy">
           {lines.ok ? (
@@ -657,7 +657,7 @@ export function GhostStage({ compact: small = false }: { compact?: boolean }) {
             data-testid="zombie-lab-cta"
             aria-label="Open Zombie Lab"
             className="zombie-lab-cta press"
-            onClick={() => openExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
+            onClick={() => openMiniAppOrExternal(ZOMBIE_LAB_URL, miniApp.inMiniApp)}
           >
             <span className="zombie-lab-cta-text">ZOMBIE LAB</span>
           </button>
